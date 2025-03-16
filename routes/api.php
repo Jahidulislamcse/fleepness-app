@@ -20,4 +20,6 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('/vendorlist ', [UserVendorController::class, 'vendorlist']);
     Route::get('/vendorlist/{vendor} ', [UserVendorController::class, 'vendorData']);
     Route::get('/vendorlist/{vendor}/mediumprice ', [UserProductController::class, 'getProductsByPriceRange']);
+    Route::get('/vendorlist/{vendor}/mediumprice ', [UserProductController::class, 'getProductsByPriceRange']);
+    Route::get('/vendorlist/{vendor}/allproduct ', [UserProductController::class, 'getAllProducts']);
 });

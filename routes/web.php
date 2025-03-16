@@ -17,6 +17,7 @@ use App\Http\Controllers\Vendor\VendorOrderController;
 use App\Http\Controllers\Vendor\VendorProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\SocialLoginController;
+use App\Http\Controllers\Vendor\VendorShortVideoController;
 
 Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
@@ -52,6 +53,11 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
     Route::get('product-image-delete/{id}', [VendorProductController::class, 'ImageDelete'])->name('product-image-delete');
     Route::get('product-stock-delete/{id}', [VendorProductController::class, 'StockDelete'])->name('product-stock-delete');
     Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
+    // Route::get('/short-videos', [VendorShortVideoController::class, 'Videos'])->name('media.videos');
+    Route::get('/videos', [VendorShortVideoController::class, 'Videos'])->name('videos');
+    Route::post('/video/store', [VendorShortVideoController::class, 'store'])->name('video.store');
+    Route::put('/video/update/{id}', [VendorShortVideoController::class, 'update'])->name('video.update');
+    Route::delete('/video/delete/{id}', [VendorShortVideoController::class, 'destroy'])->name('video.delete');
 });
 
 Route::prefix('vendor')->name('vendor.')->group(function () {

@@ -68,4 +68,16 @@ class UserProductController extends Controller
             'data' => $products
         ], 200);
     }
+
+    public function getAllProducts($vendor)
+    {
+        // Search in Products table
+        $products = Product::where('user_id', $vendor)
+            ->limit(10)
+            ->get();
+
+        return response()->json([
+            'products' => $products,
+        ]);
+    }
 }
