@@ -4,6 +4,7 @@ namespace App\Http\Controllers\user;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\ShortVideo;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -43,6 +44,28 @@ class UserVendorController extends Controller
             'status' => true,
             'message' => 'Products retrieved successfully',
             'data' => $products
+        ], 200);
+    }
+
+    public function getShortVideos($vendor)
+    {
+        // Fetch videos where user_id matches the given id
+        $videos = ShortVideo::where('user_id', $vendor)->get();
+
+        // Check if videos exist
+        if ($videos->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No videos found for this vendor',
+                'data' => []
+            ], 404);
+        }
+
+        // Return success response
+        return response()->json([
+            'status' => true,
+            'message' => 'Videos retrieved successfully',
+            'data' => $videos
         ], 200);
     }
 }
