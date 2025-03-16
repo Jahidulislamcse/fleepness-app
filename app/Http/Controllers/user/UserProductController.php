@@ -36,4 +36,36 @@ class UserProductController extends Controller
             'categories' => $categories,
         ]);
     }
+
+    public function getProductsByPriceRange(Request $request, $vendor)
+    {
+        // Get minPrice and maxPrice from query parameters
+        $minPrice = $request->query('minPrice', 0); // Default to 0 if not provided
+        $maxPrice = $request->query('maxPrice', 999999); // Default to a high number if not provided
+
+        // Validate price inputs
+        if (!is_numeric($minPrice) || !is_numeric($maxPrice) || $minPrice > $maxPrice) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid price range'
+            ], 400);
+        }
+
+        // Fetch products where discount_price OR selling_price is within the range
+        $products = Product::where('user_id', $vendor)
+            ->where(function ($query) use ($minPrice, $maxPrice) {
+                $query->whereBetween('discount_price', [$minPrice, $maxPrice])
+                    ->orWhere(function ($query) use ($minPrice, $maxPrice) {
+                        $query->whereNull('discount_price')
+                            ->orWhere('discount_price', 0)
+                            ->whereBetween('selling_price', [$minPrice, $maxPrice]);
+                    });
+            })
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $products
+        ], 200);
+    }
 }

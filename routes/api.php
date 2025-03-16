@@ -18,5 +18,6 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
     Route::get('/search', [UserProductController::class, 'search']);
     Route::get('/vendorlist ', [UserVendorController::class, 'vendorlist']);
-    Route::get('/vendorlist/{id} ', [UserVendorController::class, 'vendorData']);
+    Route::get('/vendorlist/{vendor} ', [UserVendorController::class, 'vendorData']);
+    Route::get('/vendorlist/{vendor}/mediumprice ', [UserProductController::class, 'getProductsByPriceRange']);
 });

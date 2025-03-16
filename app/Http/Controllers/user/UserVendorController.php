@@ -24,10 +24,10 @@ class UserVendorController extends Controller
         ], 200);
     }
 
-    public function vendorData($id)
+    public function vendorData($vendor)
     {
         // Fetch products where user_id matches the given id
-        $products = Product::where('user_id', $id)->get();
+        $products = Product::where('user_id', $vendor)->get();
 
         // Check if products exist
         if ($products->isEmpty()) {
