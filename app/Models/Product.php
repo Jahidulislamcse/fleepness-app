@@ -39,6 +39,10 @@ class Product extends Model
         return $this->hasOne(ProductImage::class);
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
 
     // Automatically set the slug attribute
     protected static function boot()
