@@ -69,4 +69,22 @@ class AuthenticatedSessionController extends Controller
 
         return redirect('/');
     }
+
+    public function destroyapi(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        // Revoke all tokens for the user
+        $user->tokens()->delete();
+
+        return response()->json([
+            'message' => 'Logged out successfully'
+        ], 200);
+    }
 }

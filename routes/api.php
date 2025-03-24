@@ -9,7 +9,9 @@ use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\user\ProductController;
 use App\Http\Controllers\user\UserProductController;
 use App\Http\Controllers\user\UserVendorController;
+use App\Http\Controllers\user\UserVendorFollowController;
 use App\Http\Controllers\user\UserVendorReviewController;
+use App\Http\Controllers\SMSController;
 
 RateLimiter::for('api', function (Request $request) {
     return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
@@ -17,17 +19,33 @@ RateLimiter::for('api', function (Request $request) {
 
 Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::post('/login', [AuthenticatedSessionController::class, 'storeapi']);
+    Route::middleware('auth:sanctum')->post('/logout', [AuthenticatedSessionController::class, 'destroyapi']);
+
     Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']);
     Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
+
     Route::get('/search', [UserProductController::class, 'search']);
+
     Route::get('/vendorlist ', [UserVendorController::class, 'vendorlist']);
     Route::get('/vendorlist/{vendor} ', [UserVendorController::class, 'vendorData']);
-    Route::get('/vendorlist/{vendor}/mediumprice ', [UserProductController::class, 'getProductsByPriceRange']);
-    Route::get('/vendorlist/{vendor}/mediumprice ', [UserProductController::class, 'getProductsByPriceRange']);
+
+    Route::get('/vendorlist/{vendor}/product/in-price-range ', [UserProductController::class, 'getProductsByPriceRange']);
+    Route::get('/vendorlist/{vendor}/product/in-price-category', [UserProductController::class, 'getProductsInPriceCategory']);
     Route::get('/vendorlist/{vendor}/allproduct ', [UserProductController::class, 'getAllProducts']);
+
     Route::get('/vendorlist/{vendor}/shortvideo ', [UserVendorController::class, 'getShortVideos']);
+
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/vendor/{vendor_id}/review', [UserVendorReviewController::class, 'store']);
+        Route::delete('/vendor/{review_id}/delete', [UserVendorReviewController::class, 'delete']);
     });
     Route::get('/vendor/{vendor_id}/reviews', [UserVendorReviewController::class, 'index']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/vendor/{vendor_id}/follow', [UserVendorFollowController::class, 'follow']);
+        Route::get('/vendor/{vendor_id}/unfollow ', [UserVendorFollowController::class, 'unfollow']);
+    });
+
+    Route::post('/send-sms', [SMSController::class, 'sendSMS']);
+    // Route::post('/send-bulk-sms', [SMSController::class, 'sendBulkSMS']);
 });

@@ -43,4 +43,17 @@ class UserVendorReviewController extends Controller
             'reviews' => $reviews,
         ]);
     }
+
+    public function delete($review_id)
+    {
+        $review = VendorReview::where('id', $review_id)
+            ->where('user_id', auth()->id()) // Ensure the user can only delete their own reviews
+            ->firstOrFail();
+
+        $review->delete();
+
+        return response()->json([
+            'message' => 'Review deleted successfully'
+        ], 200);
+    }
 }

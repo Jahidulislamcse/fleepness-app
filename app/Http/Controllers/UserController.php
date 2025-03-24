@@ -4,9 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Services\SMSService;
 
 class UserController extends Controller
 {
+    protected $smsService;
+
+    public function __construct(SMSService $smsService)
+    {
+        $this->smsService = $smsService;
+    }
+
     public function userList()
     {
 
@@ -106,7 +114,32 @@ class UserController extends Controller
         // dd($request->all());
         $user = User::findOrFail($id);
         $user->update($request->all());
+
+        // $message = "Dear {$user->name}, your seller account has been approved!\n";
+        // $message .= "Email: {$user->email}\n";
+
+        // $smsSent = $this->smsService->sendSMS($user->phone, $message);
+
         return redirect()->route('admin.user.list')->with('success', 'User updated successfully');
+    }
+
+    public function status($id)
+    {
+        $user = User::findOrFail($id);
+        $user->update([
+            'status' => 'approved',
+            'activation_date' => now()
+        ]);
+
+        $password = $user->raw_password ?? "Your set password";
+        $message = "Dear {$user->name}, your admin account has been approved!\n";
+        $message .= "Email: {$user->email}\n";
+        $message .= "Password: {$password}\n";
+
+
+        $smsSent = $this->smsService->sendSMS($user->phone, $message);
+
+        return redirect()->to(route('super-admin.user.manage') . '?tab=pending_admins')->with('success', 'User status updated and SMS sent successfully');
     }
 
     public function destroy($id)
