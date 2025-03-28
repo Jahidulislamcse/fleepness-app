@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\SMSService;
+use App\Events\SellerStatusUpdated;
 
 class UserController extends Controller
 {
@@ -51,7 +52,7 @@ class UserController extends Controller
 
     public function application(Request $request)
     {
-
+        // Validate the request data
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -61,8 +62,8 @@ class UserController extends Controller
             'role' => 'required|in:vendor,admin,rider',
         ]);
 
-
-        User::create([
+        // Create user
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'phone_number' => $request->phone,
@@ -72,9 +73,94 @@ class UserController extends Controller
             'status' => 'pending',
         ]);
 
+        // Check if the request expects JSON (API request)
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'Account created successfully!',
+                'user' => $user
+            ], 201);
+        }
 
+        // If it's a web request, redirect to a specific route with a success message
         return redirect()->route('create.vendor.account')->with('success', 'Account created successfully!');
     }
+
+    public function sellerRequest()
+    {
+        // Fetch users with role 'vendor' and status 'pending'
+        $pendingSellers = User::where('role', 'vendor')
+            ->where('status', 'pending')
+            ->get();
+
+        return response()->json([
+            'message' => 'Pending seller requests retrieved successfully.',
+            'data' => $pendingSellers
+        ]);
+    }
+
+    public function checkProfile()
+    {
+        // Get logged user info
+        $user = auth()->user();
+
+        return response()->json([
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'role' => $user->role,
+            'status' => $user->status,
+        ]);
+    }
+
+    public function checkStatus()
+    {
+        // Retrieve only the 'status' column for the authenticated user
+        $status = User::where('id', auth()->id())->value('status');
+        // dd($status);
+
+        return response()->json([
+            'status' => $status
+        ], 200);
+    }
+
+    public function sellerApprove(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $user = User::find($request->user_id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $user->update([
+            'status' => 'approved',
+            // 'role' => 'vendor' // If you want to update role as well
+        ]);
+
+        return response()->json(['message' => 'Seller approved successfully', 'user' => $user]);
+    }
+
+    public function sellerReject(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $user = User::find($request->user_id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $user->update([
+            'status' => 'rejected',
+        ]);
+
+        return response()->json(['message' => 'Seller rejected successfully', 'user' => $user]);
+    }
+
 
     public function riderApplication(Request $request)
     {
@@ -140,6 +226,62 @@ class UserController extends Controller
         $smsSent = $this->smsService->sendSMS($user->phone, $message);
 
         return redirect()->to(route('super-admin.user.manage') . '?tab=pending_admins')->with('success', 'User status updated and SMS sent successfully');
+    }
+
+    public function approveSeller(Request $request)
+    {
+        $request->validate([
+            'seller_id' => 'required|exists:users,id',
+        ]);
+
+        $seller = User::find($request->seller_id);
+
+        if (!$seller) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $seller->status = 'approved';
+        $seller->save();
+
+        // Send SMS using SMSController
+        $smsController = new SMSController();
+        $smsController->sendSMS(new Request([
+            'Message' => "Your seller request has been approved by Fleepness!",
+            'MobileNumbers' => $seller->phone_number,
+        ]));
+
+        // Send notification
+        event(new SellerStatusUpdated($seller->id, "Your seller request has been approved! 🎉"));
+
+        return response()->json(['message' => 'Seller approved successfully']);
+    }
+
+    public function rejectSeller(Request $request)
+    {
+        $request->validate([
+            'seller_id' => 'required|exists:users,id',
+        ]);
+
+        $seller = User::find($request->seller_id);
+
+        if (!$seller) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $seller->status = 'rejected';
+        $seller->save();
+
+        // Send SMS using SMSController
+        $smsController = new SMSController();
+        $smsController->sendSMS(new Request([
+            'Message' => "Your seller request has been Rejected by Fleepness!",
+            'MobileNumbers' => $seller->phone_number,
+        ]));
+
+        // Send notification
+        event(new SellerStatusUpdated($seller->user_id, "Your seller request has been rejected. ❌"));
+
+        return response()->json(['message' => 'Seller rejected successfully']);
     }
 
     public function destroy($id)

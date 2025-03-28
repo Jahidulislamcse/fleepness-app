@@ -97,7 +97,7 @@ Route::get('create-rider-account', [ProfileController::class, 'createRider'])->n
 Route::post('rider/application', [UserController::class, 'riderApplication'])->name('rider.application');
 
 
-// Route::middleware('role:admin')->group(function () {
+Route::middleware('role:admin')->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::resource('categories', AdminCategoryController::class);
@@ -139,6 +139,6 @@ Route::post('rider/application', [UserController::class, 'riderApplication'])->n
         Route::get('/payment/history', [PaymentController::class, 'AdminPaymentHistory'])->name('payment.history');
         Route::put('/payment/update/{bill}', [PaymentController::class, 'update'])->name('payment.update');
     });
-// });
+});
 
 require __DIR__ . '/auth.php';

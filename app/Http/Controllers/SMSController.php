@@ -17,6 +17,19 @@ class SMSController extends Controller
             'ScheduleTime' => 'nullable|date_format:Y-m-d H:i',
         ]);
 
+        // Ensure the number starts with '880'
+        $mobileNumber = trim($validated['MobileNumbers']);
+
+        // If the number starts with '0', remove it and prepend '880'
+        if (str_starts_with($mobileNumber, '0')) {
+            $mobileNumber = '880' . substr($mobileNumber, 1);
+        } elseif (!str_starts_with($mobileNumber, '880')) {
+            $mobileNumber = '880' . $mobileNumber;
+        }
+
+        // Update the validated data with the formatted number
+        $validated['MobileNumbers'] = $mobileNumber;
+
         // Fetch API credentials from .env
         $apiKey = env('SMS_API_KEY');
         $clientId = env('SMS_CLIENT_ID');

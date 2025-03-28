@@ -19,6 +19,11 @@ class RoleMiddleware
             return $next($request);
         }
 
+        // Different response for API requests
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Access denied. Admins only.'], 403);
+        }
+
         return redirect('/');
     }
 }

@@ -18,18 +18,7 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'phone_number',
-        'gender',
-        'address',
-        'status',
-        'provider',
-        'provider_id'
-    ];
+    protected $guarded = [];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -58,5 +47,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(VendorReview::class);
     }
-
 }
