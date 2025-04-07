@@ -63,7 +63,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
 
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/vendor/{vendor_id}/review', [UserVendorReviewController::class, 'store']);
-        Route::delete('/vendor/{review_id}/delete', [UserVendorReviewController::class, 'delete']);
+        Route::delete('/vendor/review/{review_id}/delete', [UserVendorReviewController::class, 'delete']);
     });
     Route::get('/vendor/{vendor_id}/reviews', [UserVendorReviewController::class, 'index']);
 
