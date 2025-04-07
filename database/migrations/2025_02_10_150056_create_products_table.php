@@ -16,6 +16,7 @@ return new class extends Migration
             $table->integer('user_id');
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
             $table->json('tags')->nullable();
+            $table->foreignId('size_template_id')->constrained('categories')->onDelete('cascade');
             $table->string('name')->unique();
             $table->string('slug')->unique();
             $table->string('code')->unique();
