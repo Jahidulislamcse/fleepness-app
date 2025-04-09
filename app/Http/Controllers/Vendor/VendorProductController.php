@@ -7,7 +7,10 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\OrderItem;
 use App\Models\ProductImage;
+use App\Models\ProductSize;
 use App\Models\Stock;
+use App\Models\SizeTemplate;
+use App\Models\SizeTemplateItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -19,8 +22,24 @@ class VendorProductController extends Controller
     {
         $data['products'] = Product::with('category')->latest()->whereNull('deleted_at')->where('user_id', auth()->id())->get();
         $data['categories'] = Category::whereNull('parent_id')->get();
+        $data['size_templates'] = SizeTemplate::where('seller_id', auth()->id())->get();
         return view('vendor.products.index', $data);
     }
+
+    public function show()
+    {
+        $products = Product::with('category')
+            ->latest()
+            ->whereNull('deleted_at')
+            ->where('user_id', auth()->id())
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'products' => $products,
+        ]);
+    }
+
 
     protected function generateUniqueCode()
     {
@@ -34,100 +53,78 @@ class VendorProductController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'long_description' => 'required|string',
-            'short_description' => 'required|string',
-        ]);
+        try {
+            $validated = $request->validate([
+                'category_id' => 'required|exists:categories,id',
+                'name' => 'nullable|string|max:255',
+                'long_description' => 'nullable|string',
+                'short_description' => 'nullable|string',
+                'size_template_id' => 'nullable|exists:size_templates,id',
+            ]);
 
-        $validated['code'] = $this->generateUniqueCode();
-        $validated['status'] = 'active';
-        $validated['user_id'] = auth()->id();
-        $validated['tags'] = json_encode($request->tags);
+            $validated['code'] = $this->generateUniqueCode();
+            $validated['status'] = 'active';
+            $validated['user_id'] = auth()->id();
+            $validated['tags'] = json_encode($request->tags);
 
-        // Save the product using $validated data
-        $product = Product::create($validated);
+            $product = Product::create($validated);
 
-        if ($request->hasFile('images')) {
-
-            $photos = $request->file('images');
-
-            foreach ($photos as $photo) {
-                $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-
-                // Define the path where the photo will be stored
-                $path = public_path('upload/product');
-
-                // Check if the directory exists, create it if not
-                if (!file_exists($path)) {
-                    mkdir($path, 0777, true);
+            // Copy sizes from template
+            if ($request->size_template_id) {
+                $sizes = SizeTemplateItem::where('template_id', $request->size_template_id)->get();
+                foreach ($sizes as $size) {
+                    ProductSize::create([
+                        'product_id' => $product->id,
+                        'size_name' => $size->size_name,
+                        'size_value' => $size->size_value,
+                    ]);
                 }
-
-                // Move the image to the desired folder
-                $photo->move($path, $name_gen);
-
-                // Set the path URL for storage
-                $photo_url = 'upload/product/' . $name_gen;
-
-                // Create the ProductImage record
-                ProductImage::create([
-                    'product_id' => $product->id,
-                    'path' => $photo_url,
-                    'alt_text' => $request->input('alt_text', ''),
-                ]);
             }
-        }
 
-
-        if ($request->variants) {
-            foreach ($request->variants as $variant) {
-                $photoPath = null;
-                if (isset($variant['photo'])) {
-                    $photo = $variant['photo'];
-
-                    // Generate a unique name for the photo
+            // Save images
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $photo) {
                     $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-
-                    // Define the path where the photo will be stored
                     $path = public_path('upload/product');
 
-                    // Check if the directory exists, create it if not
                     if (!file_exists($path)) {
                         mkdir($path, 0777, true);
                     }
 
-                    // Move the image to the desired folder
                     $photo->move($path, $name_gen);
 
-                    // Set the photo URL path
-                    $photoPath = 'upload/product/' . $name_gen;
-                }
-
-
-                if (isset($variant['sizes'])) {
-                    foreach ($variant['sizes'] as $sizeData) {
-                        $variantSize = new Stock();
-                        $variantSize->product_id = $product->id;
-                        $variantSize->size = $sizeData['size'];
-                        $variantSize->quantity = $sizeData['quantity'];
-                        $variantSize->buying_price = $sizeData['buying_price'];
-                        $variantSize->selling_price = $sizeData['selling_price'];
-                        $variantSize->photo = $photoPath;
-                        $variantSize->discount_price = $sizeData['discount_price'] ?? null;
-                        $variantSize->save();
-                    }
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'path' => 'upload/product/' . $name_gen,
+                        'alt_text' => $request->input('alt_text', ''),
+                    ]);
                 }
             }
+
+            // 👇 Conditionally return redirect or JSON 
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Product created successfully',
+                    'product' => $product,
+                ]);
+            } else {
+                return redirect()->route('vendor.products.index')
+                    ->with('success', 'Product created successfully');
+            }
+        } catch (\Exception $e) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => $e->getMessage(),
+                ], 500);
+            } else {
+                return redirect()->back()
+                    ->with('error', 'Something went wrong: ' . $e->getMessage());
+            }
         }
-        $productPrice = Product::where('id', $product->id)->first();
-        $stockPrice = Stock::where('product_id', $product->id)->first();
-        $productPrice->selling_price = $stockPrice->selling_price;
-        $productPrice->discount_price = $stockPrice->discount_price;
-        $productPrice->quantity = $stockPrice->quantity;
-        $productPrice->save();
-        return redirect()->route('vendor.products.index')->with('success', 'Product created successfully.');
     }
+
 
     public function edit(Product $product)
     {

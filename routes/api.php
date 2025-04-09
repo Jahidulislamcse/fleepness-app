@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SizeTemplateController;
 use App\Http\Controllers\user\ProductController;
 use App\Http\Controllers\user\UserProductController;
 use App\Http\Controllers\user\UserVendorController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\user\UserVendorFollowController;
 use App\Http\Controllers\user\UserVendorReviewController;
 use App\Http\Controllers\SMSController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\Vendor\VendorProductController;
 
 RateLimiter::for('api', function (Request $request) {
     return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
@@ -71,5 +73,26 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::get('/vendor/{vendor_id}/follow', [UserVendorFollowController::class, 'follow']);
         Route::get('/vendor/{vendor_id}/unfollow ', [UserVendorFollowController::class, 'unfollow']);
     });
+
+    Route::middleware('auth:sanctum')->group(function () {
+        // Create a size template
+        Route::post('/size-template/create', [SizeTemplateController::class, 'store']);
+
+        // Add a size to a template
+        Route::post('/size-templates/{templateId}/sizes', [SizeTemplateController::class, 'addSizeToTemplate']);
+
+        // Get all size templates for the authenticated seller
+        Route::get('/size-templates', [SizeTemplateController::class, 'getTemplates']);
+
+        // Delete a size template
+        Route::delete('/size-templates/{id}', [SizeTemplateController::class, 'destroy']);
+
+        //store product
+        Route::post('/product/create', [VendorProductController::class, 'store']);
+
+        //show products
+        Route::get('/product/index', [VendorProductController::class, 'show']);
+    });
+
 
 });
