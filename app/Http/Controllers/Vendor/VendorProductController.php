@@ -53,6 +53,7 @@ class VendorProductController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
         try {
             $validated = $request->validate([
                 'category_id' => 'required|exists:categories,id',
@@ -101,7 +102,7 @@ class VendorProductController extends Controller
                 }
             }
 
-            // 👇 Conditionally return redirect or JSON 
+            // 👇 Conditionally return redirect or JSON
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => true,
@@ -134,161 +135,66 @@ class VendorProductController extends Controller
         return view('vendor.products.product_edit', compact('product', 'categories', 'productImageCount'));
     }
 
-    public function update(Request $request, Product $product)
+    public function update(Request $request, $id)
     {
-        $productImageCount = ProductImage::where('product_id', $product->id)->count();
-        if ($productImageCount == 0 && $request->hasFile('images') == null) {
-            return back()->with('success', 'Please add updated images.');
-        }
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'short_description' => 'required|string',
-            'long_description' => 'required|string',
+        // dd($id);
+        // dd($request->all());
 
-        ]);
-        //  dd($request);
-        // If code is not provided, keep the existing code or generate a new one
-        $validated['code'] = $validated['code'] ?? $product->code ?? $this->generateUniqueCode();
-        $validated['status'] = $request->status;
-        if ($request->has('tags')) {
+        try {
+            $validated = $request->validate([
+                'category_id' => 'required|exists:categories,id',
+                'name' => 'nullable|string|max:255',
+                'long_description' => 'nullable|string',
+                'short_description' => 'nullable|string',
+                'size_template_id' => 'nullable|exists:size_templates,id',
+            ]);
+
+            $product = Product::findOrFail($id);
+
             $validated['tags'] = json_encode($request->tags);
-        } else {
-            $validated['tags'] = json_encode([]); // If no tags are selected, store an empty array
-        }
-        $product->update($validated);
+            // $validated['user_id'] = auth()->id(); // optional
+            $product->update($validated);
 
-        if ($request->hasFile('images')) {
-            $photos = $request->file('images');
-            foreach ($photos as $photo) {
-                // Generate a unique name for the photo
-                $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
+            // Handle sizes (retain only submitted size IDs)
+            if ($request->has('size_ids')) {
+                $submittedIds = $request->size_ids; // array of product_size IDs to keep
+                $existingIds = ProductSize::where('product_id', $product->id)->pluck('id')->toArray();
 
-                // Define the path where the photo will be stored
-                $path = public_path('upload/product');
+                // Delete removed sizes
+                $toDelete = array_diff($existingIds, $submittedIds);
+                ProductSize::whereIn('id', $toDelete)->delete();
+            }
 
-                // Check if the directory exists, create it if not
-                if (!file_exists($path)) {
-                    mkdir($path, 0777, true);
-                }
-
-                // Move the image to the desired folder
-                $photo->move($path, $name_gen);
-
-                // Set the photo URL path
-                $photo_url = 'upload/product/' . $name_gen;
-
-                // Create a new record for the photo in the ProductImage model
-                ProductImage::create([
-                    'product_id' => $product->id,
-                    'path' => $photo_url,
-                    'alt_text' => $request->input('alt_text', ''),
-                ]);
-            } // end foreach
-
-        }
-        if ($request->variantsUpdate) {
-            foreach ($request->variantsUpdate as $variant) {
-                // Initialize photoPath with null
-                $photoPath = null;
-
-                // Check if a new photo is uploaded
-                if (isset($variant['photo'])) {
-                    $photo = $variant['photo'];
-
-                    // Generate a unique name for the photo
+            // Add new images if any
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $photo) {
                     $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-
-                    // Define the path where the photo will be stored
                     $path = public_path('upload/product');
 
-                    // Check if the directory exists, create it if not
                     if (!file_exists($path)) {
                         mkdir($path, 0777, true);
                     }
 
-                    // Move the image to the desired folder
                     $photo->move($path, $name_gen);
 
-                    // Set the photo URL path
-                    $photoPath = 'upload/product/' . $name_gen;
-                }
-
-
-                // Loop through sizes to update them
-                if (isset($variant['sizes'])) {
-                    foreach ($variant['sizes'] as $sizeData) {
-                        $variantSizeUpdate = Stock::where('id', $sizeData['id'])->first();
-
-                        // If no new photo is uploaded, keep the old one
-                        if (is_null($photoPath)) {
-                            $photoPath = $variantSizeUpdate->photo; // Use old photo path
-                        }
-
-                        // Update stock details
-                        $variantSizeUpdate->product_id = $product->id;
-                        $variantSizeUpdate->size = $sizeData['size'];
-                        $variantSizeUpdate->quantity = $sizeData['quantity'];
-                        $variantSizeUpdate->buying_price = $sizeData['buying_price'];
-                        $variantSizeUpdate->selling_price = $sizeData['selling_price'];
-                        $variantSizeUpdate->photo = $photoPath; // Set photo path (new or old)
-                        $variantSizeUpdate->discount_price = $sizeData['discount_price'] ?? null;
-                        $variantSizeUpdate->save();
-                    }
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'path' => 'upload/product/' . $name_gen,
+                        'alt_text' => $request->input('alt_text', ''),
+                    ]);
                 }
             }
+
+            return $request->wantsJson()
+                ? response()->json(['success' => true, 'message' => 'Product updated successfully', 'product' => $product])
+                : redirect()->route('vendor.products.index')->with('success', 'Product updated successfully');
+        } catch (\Exception $e) {
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'error' => $e->getMessage()], 500)
+                : redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
         }
-
-
-        if ($request->variants) {
-            foreach ($request->variants as $variant) {
-                $photoPath = null;
-                if (isset($variant['photo'])) {
-                    $photo = $variant['photo'];
-
-                    // Generate a unique name for the photo
-                    $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-
-                    // Define the path where the photo will be stored
-                    $path = public_path('upload/product');
-
-                    // Check if the directory exists, create it if not
-                    if (!file_exists($path)) {
-                        mkdir($path, 0777, true);
-                    }
-
-                    // Move the image to the desired folder
-                    $photo->move($path, $name_gen);
-
-                    // Set the photo URL path
-                    $photoPath = 'upload/product/' . $name_gen;
-                }
-
-
-                if (isset($variant['sizes'])) {
-                    foreach ($variant['sizes'] as $sizeData) {
-                        $variantSize = new Stock();
-                        $variantSize->product_id = $product->id;
-                        $variantSize->size = $sizeData['size'];
-                        $variantSize->quantity = $sizeData['quantity'];
-                        $variantSize->buying_price = $sizeData['buying_price'];
-                        $variantSize->selling_price = $sizeData['selling_price'];
-                        $variantSize->photo = $photoPath;
-                        $variantSize->discount_price = $sizeData['discount_price'] ?? null;
-                        $variantSize->save();
-                    }
-                }
-            }
-        }
-
-        $productPrice = Product::where('id', $product->id)->first();
-        $stockPrice = Stock::where('product_id', $product->id)->first();
-        $productPrice->selling_price = $stockPrice->selling_price;
-        $productPrice->discount_price = $stockPrice->discount_price;
-        $productPrice->quantity = $stockPrice->quantity;
-        $productPrice->save();
-        return redirect()->route('vendor.products.index')->with('success', 'Product updated successfully.');
     }
+
 
 
     public function destroy(Product $product)

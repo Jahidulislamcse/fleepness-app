@@ -16,9 +16,8 @@ class OTPAuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string',
             'phone_number' => 'required|digits_between:10,15|unique:users',
-            'password' => 'required|min:6',
+            // 'password' => 'required|min:6',
         ]);
 
         if ($validator->fails()) {
@@ -26,14 +25,14 @@ class OTPAuthController extends Controller
         }
 
         // Generate OTP
-        $otp = rand(100000, 999999);
+        $otp = rand(1000, 9999);
         $otp_expiry = Carbon::now()->addMinutes(10);
 
         // Create user but mark as unverified
         $user = User::create([
             'name' => $request->name,
             'phone_number' => $request->phone_number,
-            'password' => Hash::make($request->password),
+            // 'password' => Hash::make($request->password),
             'otp' => $otp,
             'otp_expires_at' => $otp_expiry,
         ]);
@@ -56,7 +55,7 @@ class OTPAuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
-            'otp' => 'required|digits:6'
+            'otp' => 'required|digits:4'
         ]);
 
         if ($validator->fails()) {

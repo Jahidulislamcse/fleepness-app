@@ -99,137 +99,137 @@
                                                     @enderror
                                                 </div>
 
-                                            <div id="variants">
-                                                <div class="variant">
-                                                    <h4 class="mt-4">Variant - 1</h4>
-                                                    <div class="variant-sizes">
-                                                        <div class="row size-row">
-                                                            <div class="col-2">
-                                                                <label for="size">Size</label>
-                                                                <input type="text" class="form-control" name="variants[0][sizes][0][size]"
-                                                                    required>
-                                                            </div>
-                                                            <div class="col-2">
-                                                                <label for="quantity">quantity</label>
-                                                                <input type="number" min="1" class="form-control"
-                                                                    name="variants[0][sizes][0][quantity]" required>
-                                                            </div>
-                                                            <div class="col-2">
-                                                                <label for="buying_price">Buying Price</label>
-                                                                <input type="number" min="1" class="form-control"
-                                                                    name="variants[0][sizes][0][buying_price]" required>
-                                                            </div>
-                                                            <div class="col-2">
-                                                                <label for="selling_price">Selling Price</label>
-                                                                <input type="number" min="1" class="form-control"
-                                                                    name="variants[0][sizes][0][selling_price]" required>
-                                                            </div>
-                                                            <div class="col-2">
-                                                                <label for="discount_price">Discount Price</label>
-                                                                <input type="number" min="1" class="form-control"
-                                                                    name="variants[0][sizes][0][discount_price]">
-                                                            </div>
-                                                            <div class="col-2 fa-2x mt-3">
-                                                                <span class="text-danger remove-size" onclick="removeSize(this)"
-                                                                    style="cursor: pointer; display: none;"> <i class="bx bx-x"></i></span>
+                                                <div id="variants">
+                                                    <div class="variant">
+                                                        <h4 class="mt-4">Variant - 1</h4>
+                                                        <div class="variant-sizes">
+                                                            <div class="row size-row">
+                                                                <div class="col-2">
+                                                                    <label for="size">Size</label>
+                                                                    <input type="text" class="form-control" name="variants[0][sizes][0][size]"
+                                                                        required>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label for="quantity">quantity</label>
+                                                                    <input type="number" min="1" class="form-control"
+                                                                        name="variants[0][sizes][0][quantity]" required>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label for="buying_price">Buying Price</label>
+                                                                    <input type="number" min="1" class="form-control"
+                                                                        name="variants[0][sizes][0][buying_price]" required>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label for="selling_price">Selling Price</label>
+                                                                    <input type="number" min="1" class="form-control"
+                                                                        name="variants[0][sizes][0][selling_price]" required>
+                                                                </div>
+                                                                <div class="col-2">
+                                                                    <label for="discount_price">Discount Price</label>
+                                                                    <input type="number" min="1" class="form-control"
+                                                                        name="variants[0][sizes][0][discount_price]">
+                                                                </div>
+                                                                <div class="col-2 fa-2x mt-3">
+                                                                    <span class="text-danger remove-size" onclick="removeSize(this)"
+                                                                        style="cursor: pointer; display: none;"> <i class="bx bx-x"></i></span>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <button type="button" id="addVariant" class="btn btn-success btn-sm mt-3">
-                                                <i class="bx bx-plus"></i> Add Variant</button>
+                                                <button type="button" id="addVariant" class="btn btn-success btn-sm mt-3">
+                                                    <i class="bx bx-plus"></i> Add Variant</button>
 
-                                            <div class="form-group">
-                                                <label for="short_description">Short Description <span
-                                                        class="text-danger">*</span> </label>
-                                                <textarea name="short_description" id="short_description"
-                                                    class="form-control @error('short_description') is-invalid @enderror" required>{{ old('short_description', $product->short_description ?? '') }}</textarea>
-                                                @error('short_description')
-                                                <div class="alert alert-danger">{{ $message }}</div>
-                                                @enderror
-                                            </div>
+                                                <div class="form-group">
+                                                    <label for="short_description">Short Description <span
+                                                            class="text-danger">*</span> </label>
+                                                    <textarea name="short_description" id="short_description"
+                                                        class="form-control @error('short_description') is-invalid @enderror" required>{{ old('short_description', $product->short_description ?? '') }}</textarea>
+                                                    @error('short_description')
+                                                    <div class="alert alert-danger">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
 
-                                            <div class="form-group">
-                                                <label for="long_description">Long Description </label>
-                                                <textarea name="long_description" id="long_description"
-                                                    class="form-control mytextarea @error('long_description') is-invalid @enderror">{{ old('long_description', $product->long_description ?? '') }}</textarea>
-                                                @error('long_description')
-                                                <div class="alert alert-danger">{{ $message }}</div>
-                                                @enderror
-                                            </div>
+                                                <div class="form-group">
+                                                    <label for="long_description">Long Description </label>
+                                                    <textarea name="long_description" id="long_description"
+                                                        class="form-control mytextarea @error('long_description') is-invalid @enderror">{{ old('long_description', $product->long_description ?? '') }}</textarea>
+                                                    @error('long_description')
+                                                    <div class="alert alert-danger">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
 
+                                            </div>
                                         </div>
                                     </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-primary">Save changes</button>
+                                    </div>
+                                </form>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary"
-                                    data-bs-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-primary">Save changes</button>
-                            </div>
-                            </form>
                         </div>
                     </div>
+
+                    <div class="table-responsive">
+                        <table id="basic-datatables" class="display table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>SN</th>
+                                    <th>Photo</th>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Status</th>
+
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($products as $key => $product)
+                                @php
+                                $countQty = App\Models\Stock::where('product_id',$product->id)->sum('quantity');
+                                @endphp
+                                <tr>
+                                    <td>{{ $key + 1 }}</td>
+                                    <td>
+                                        @if ($product->images->first())
+                                        <img src="{{ asset($product->images->first()->path) }}"
+                                            alt="{{ $product->images->first()->alt_text }}" width="50">
+                                        @else
+                                        <img src="{{ asset('default-image.png') }}" alt="No Image"
+                                            width="50">
+                                        @endif
+                                    </td>
+
+                                    <td>{{ $product->name }}</td>
+                                    <td>{{ optional($product->category)->name ?? 'No Category' }}</td>
+                                    <td>{{ $product->selling_price }}</td>
+                                    <td>{{ $countQty }}</td>
+                                    <td>{{ $product->status }}</td>
+                                    <td style="display: flex;gap:5px ">
+                                        <a href="{{ route('vendor.products.edit', $product->id) }}"
+                                            class="btn btn-warning btn-sm">Edit</a>
+                                        <form action="{{ route('vendor.products.destroy', $product->id) }}"
+                                            method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Are you sure you want to delete this product?')">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
                 </div>
-
-                <div class="table-responsive">
-                    <table id="basic-datatables" class="display table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>SN</th>
-                                <th>Photo</th>
-                                <th>Name</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Quantity</th>
-                                <th>Status</th>
-
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($products as $key => $product)
-                            @php
-                            $countQty = App\Models\Stock::where('product_id',$product->id)->sum('quantity');
-                            @endphp
-                            <tr>
-                                <td>{{ $key + 1 }}</td>
-                                <td>
-                                    @if ($product->images->first())
-                                    <img src="{{ asset($product->images->first()->path) }}"
-                                        alt="{{ $product->images->first()->alt_text }}" width="50">
-                                    @else
-                                    <img src="{{ asset('default-image.png') }}" alt="No Image"
-                                        width="50">
-                                    @endif
-                                </td>
-
-                                <td>{{ $product->name }}</td>
-                                <td>{{ optional($product->category)->name ?? 'No Category' }}</td>
-                                <td>{{ $product->selling_price }}</td>
-                                <td>{{ $countQty }}</td>
-                                <td>{{ $product->status }}</td>
-                                <td style="display: flex;gap:5px ">
-                                    <a href="{{ route('vendor.products.edit', $product->id) }}"
-                                        class="btn btn-warning btn-sm">Edit</a>
-                                    <form action="{{ route('vendor.products.destroy', $product->id) }}"
-                                        method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm"
-                                            onclick="return confirm('Are you sure you want to delete this product?')">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
             </div>
         </div>
     </div>
-</div>
 </div>
 @endsection
 
@@ -261,10 +261,9 @@
 
                         if (Array.isArray(tags) && tags.length > 0) {
                             tags.forEach(tag => {
-                                // Create checkboxes for each tag
                                 $('#tags-container').append(`
                                     <div class="form-check">
-                                        <input type="checkbox" name="tags[]" class="form-check-input" value="${tag.id}" id="tag_${tag.id}">
+                                        <input type="radio" name="tags" class="form-check-input" value="${tag.id}" id="tag_${tag.id}">
                                         <label class="form-check-label" for="tag_${tag.id}">${tag.name}</label>
                                     </div>
                                 `);
@@ -272,6 +271,7 @@
                         } else {
                             $('#tags-container').html('<div>No tags available</div>');
                         }
+
                     },
                     error: function(xhr, status, error) {
                         console.error("Error fetching tags:", xhr.responseText);

@@ -342,7 +342,7 @@
                                 // Create checkboxes for each tag
                                 $('#tags-container').append(`
                                     <div class="form-check">
-                                        <input type="checkbox" name="tags[]" class="form-check-input" value="${tag.id}" id="tag_${tag.id}" ${isChecked}>
+                                        <input type="radio" name="tags" class="form-check-input" value="${tag.id}" id="tag_${tag.id}" ${isChecked}>
                                         <label class="form-check-label" for="tag_${tag.id}">${tag.name}</label>
                                     </div>
                                 `);
@@ -581,7 +581,7 @@
     document.getElementById('images').addEventListener('change', function() {
         checkImageField({
             {
-                $image->id;
+                $image - > id;
             }
         });
     });

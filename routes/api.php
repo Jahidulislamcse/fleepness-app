@@ -64,13 +64,21 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('/vendorlist/{vendor}/shortvideo ', [UserVendorController::class, 'getShortVideos']);
 
     Route::middleware(['auth:sanctum'])->group(function () {
+        //Giving a review to a seller
         Route::post('/vendor/{vendor_id}/review', [UserVendorReviewController::class, 'store']);
+
+        //Removing review from a seller
         Route::delete('/vendor/review/{review_id}/delete', [UserVendorReviewController::class, 'delete']);
     });
+
+    //See all reviews of a seller
     Route::get('/vendor/{vendor_id}/reviews', [UserVendorReviewController::class, 'index']);
 
     Route::middleware('auth:sanctum')->group(function () {
+        //Follow a Seller
         Route::get('/vendor/{vendor_id}/follow', [UserVendorFollowController::class, 'follow']);
+
+        //Unfollow a seller
         Route::get('/vendor/{vendor_id}/unfollow ', [UserVendorFollowController::class, 'unfollow']);
     });
 
@@ -92,7 +100,8 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
 
         //show products
         Route::get('/product/index', [VendorProductController::class, 'show']);
+
+        //Update Product
+        Route::post('/products/{id}', [VendorProductController::class, 'update']);
     });
-
-
 });

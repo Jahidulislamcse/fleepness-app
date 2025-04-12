@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\SMSService;
 use App\Events\SellerStatusUpdated;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -53,36 +54,90 @@ class UserController extends Controller
     public function application(Request $request)
     {
         // Validate the request data
-        $request->validate([
+        // dd($request->all());
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'store_title' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|unique:users,phone_number',
             'address' => 'required|string|max:255',
-            'password' => 'required|string|min:8',
+            // 'password' => 'required|string|min:8',
             'role' => 'required|in:vendor,admin,rider',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        // Create user
+        // dd($validated);
+
+        // Generate OTP and expiry
+        $otp = rand(1000, 9999);
+        $otp_expiry = Carbon::now()->addMinutes(10);
+
+        // Create user with pending status and unverified
         $user = User::create([
             'name' => $request->name,
+            'store_title' => $request->store_title,
             'email' => $request->email,
             'phone_number' => $request->phone,
             'address' => $request->address,
-            'password' => bcrypt($request->password),
+            // 'password' => bcrypt($request->password),
             'role' => $request->role,
             'status' => 'pending',
+            'otp' => $otp,
+            'otp_expires_at' => $otp_expiry,
         ]);
 
-        // Check if the request expects JSON (API request)
+        // Save single image after user is created
+        if ($request->hasFile('photo')) {
+            $photo = $request->file('photo');
+            $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
+            $path = public_path('upload/user');
+
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            $photo->move($path, $name_gen);
+
+            // Update user's photo field
+            $user->profile_image = 'upload/user/' . $name_gen;
+            $user->save();
+        }
+
+        if ($request->hasFile('logo')) {
+            $logo = $request->file('logo');
+            $name_gen = hexdec(uniqid()) . '.' . $logo->getClientOriginalExtension();
+            $path = public_path('upload/user');
+
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            $logo->move($path, $name_gen);
+
+            // Update user's logo field
+            $user->logo = 'upload/user/' . $name_gen;
+            $user->save();
+        }
+
+        // Send OTP via SMS
+        $smsController = new SMSController();
+        $smsController->sendSMS(new Request([
+            'Message' => "Your OTP is: $otp",
+            'MobileNumbers' => $user->phone_number,
+        ]));
+
+        // Respond with JSON if API request
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
-                'message' => 'Account created successfully!',
-                'user' => $user
+                'message' => 'OTP sent to your phone. Please verify to complete registration.',
+                'user_id' => $user->id
             ], 201);
         }
 
-        // If it's a web request, redirect to a specific route with a success message
-        return redirect()->route('create.vendor.account')->with('success', 'Account created successfully!');
+        // Otherwise redirect with success
+        return redirect()->route('create.vendor.account')
+            ->with('success', 'OTP sent to your phone. Please verify to complete registration.');
     }
 
     public function sellerRequest()
