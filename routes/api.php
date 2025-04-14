@@ -56,7 +56,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         //Checking Seller profile info, specially role for determining UI
         Route::get('/user/profile', [UserController::class, 'checkProfile']);
 
-        //fetching BNotifications
+        //fetching Notifications
         Route::get('/notifications', [NotificationController::class, 'getNotifications']);
 
         //Marking a notification as read

@@ -137,8 +137,8 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <button type="button" id="addVariant" class="btn btn-success btn-sm mt-3">
-                                                    <i class="bx bx-plus"></i> Add Variant</button>
+                                                <!-- <button type="button" id="addVariant" class="btn btn-success btn-sm mt-3">
+                                                    <i class="bx bx-plus"></i> Add Variant</button> -->
 
                                                 <div class="form-group">
                                                     <label for="short_description">Short Description <span
@@ -391,7 +391,7 @@
 </script>
 
 
-<script>
+<!-- <script>
     let variantCount = 1;
 
     document.getElementById('addVariant').addEventListener('click', function() {
@@ -480,7 +480,7 @@
             newSizeRow.querySelector('.remove-size').style.display = 'inline';
         }
     });
-</script>
+</script> -->
 <style>
     #tags-container {
         display: grid;

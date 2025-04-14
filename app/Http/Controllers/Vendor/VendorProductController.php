@@ -61,6 +61,9 @@ class VendorProductController extends Controller
                 'long_description' => 'nullable|string',
                 'short_description' => 'nullable|string',
                 'size_template_id' => 'nullable|exists:size_templates,id',
+                'quantity' => 'nullable|integer|min:0',
+                'selling_price' => 'nullable|numeric|min:0',
+                'discount_price' => 'nullable|numeric|min:0',
             ]);
 
             $validated['code'] = $this->generateUniqueCode();
@@ -147,6 +150,9 @@ class VendorProductController extends Controller
                 'long_description' => 'nullable|string',
                 'short_description' => 'nullable|string',
                 'size_template_id' => 'nullable|exists:size_templates,id',
+                'quantity' => 'nullable|integer|min:0',
+                'selling_price' => 'nullable|numeric|min:0',
+                'discount_price' => 'nullable|numeric|min:0',
             ]);
 
             $product = Product::findOrFail($id);
