@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
 use App\Http\Controllers\Auth\SocialLoginController;
+use App\Http\Controllers\LiveStreaming\GetLivestreamPublisherTokenController;
+use App\Http\Controllers\LiveStreaming\GetLivestreamSubscriberTokenController;
+use App\Http\Controllers\LiveStreaming\LivestreamController;
+use App\Http\Controllers\LiveStreaming\LivestreamProductController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SizeTemplateController;
 use App\Http\Controllers\user\UserProductController;
@@ -136,5 +140,25 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
 
         //Update Product
         Route::post('/products/{id}', [VendorProductController::class, 'update']);
+
+        //Soft Deleting a product
+        Route::post('/products/soft-delete/{id}', [VendorProductController::class, 'destroy']);
+
+        //Inactivating a product
+        Route::post('/products/inactive/{id}', [VendorProductController::class, 'inactive']);
+
+        //Activating a product
+        Route::post('/products/active/{id}', [VendorProductController::class, 'active']);
     });
+
+    Route::apiResource('livestreams', LivestreamController::class)->except(['destroy']);
+    Route::get('livestreams/{livestream}/publisher-token', GetLivestreamPublisherTokenController::class)
+        ->middleware('auth:sanctum')
+        ->name('livestreams.get-publisher-token');
+    Route::get('livestreams/{livestream}/subscriber-token', GetLivestreamSubscriberTokenController::class)
+        ->name('livestreams.get-subscriber-token');
+    Route::post('livestreams/{livestream}/products', [LivestreamProductController::class, 'store'])
+        ->name('livestream-products.store');
+    Route::delete('livestreams/{livestream}/products', [LivestreamProductController::class, 'destroy'])
+        ->name('livestream-products.destroy');
 });

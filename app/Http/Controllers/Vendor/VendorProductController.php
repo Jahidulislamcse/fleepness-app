@@ -203,20 +203,79 @@ class VendorProductController extends Controller
 
 
 
-    public function destroy(Product $product)
+    public function destroy($id, Request $request)
     {
-        $order = OrderItem::where('product_id', $product->id)->count('id');
+        $product = Product::findOrFail($id);
+        // dd($product);
+
+        $order = OrderItem::where('product_id', $product->id)->count();
+
         if ($order > 0) {
-            return redirect()->route('vendor.products.index')->with('success', 'You can not delete this Product . Because Under this product First delete Order.');
+            $message = 'You cannot delete this product because it has related orders. Please delete the orders first.';
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                ], 403);
+            }
+
+            return redirect()->route('vendor.products.index')->with('error', $message);
         }
 
-        $product->deleted_at = Carbon::now();
-        $product->status = 'inactive';
-        $product->save();
+        $product->update([
+            'deleted_at' => now(),
+            'status' => 'inactive',
+        ]);
 
+        $message = 'Product deleted successfully.';
 
-        return redirect()->route('vendor.products.index')->with('success', 'Product deleted successfully.');
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'product' => $product,
+            ]);
+        }
+
+        return redirect()->route('vendor.products.index')->with('success', $message);
     }
+
+    public function inactive(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+
+        $product->update([
+            'status' => 'inactive',
+        ]);
+
+        $message = 'Product inactivated successfully.';
+
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'product' => $product,
+        ]);
+    }
+
+    public function active(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+
+        $product->update([
+            'status' => 'active',
+        ]);
+
+        $message = 'Product activated successfully.';
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'product' => $product,
+        ]);
+    }
+
 
     public function ImageDelete($id)
     {
