@@ -4,7 +4,7 @@ namespace App\Data\Dto;
 
 use App\Constants\GateNames;
 use App\Models\Product;
-use Gate;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Validation\Rule;
 use Spatie\LaravelData\Attributes\MapName;

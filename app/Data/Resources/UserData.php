@@ -36,7 +36,7 @@ class UserData extends Data
             $user->address,
             $user->phone_number,
             $user->getFirstMedia('avatar') ? MediaData::from($user->getFirstMedia('avatar')) : null,
-            VendorData::collection($user->vendors)
+            DataCollection::from($user->vendors->map(fn($vendor) => VendorData::from($vendor)))
         );
     }
 }

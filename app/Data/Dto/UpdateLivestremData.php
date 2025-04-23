@@ -15,7 +15,7 @@ use App\Models\User; // Assuming the media will be associated with a User model
 use Illuminate\Http\UploadedFile;
 
 #[MapName(SnakeCaseMapper::class)]
-class UpdateLivestreamData extends Data
+class UpdateLivestremData extends Data
 {
     public function __construct(
         public Optional|string $title,
