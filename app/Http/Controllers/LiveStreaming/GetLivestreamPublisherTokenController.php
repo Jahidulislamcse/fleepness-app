@@ -16,10 +16,11 @@ class GetLivestreamPublisherTokenController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Livestream $livestream)
+    public function __invoke($id)
     {
-        $this->authorize(GateNames::GET_LIVESTREAM_PUBLISHER_TOKEN->value, $livestream);
-
+        // $this->authorize(GateNames::GET_LIVESTREAM_PUBLISHER_TOKEN->value, $livestream);
+        // dd($livestream);
+        $livestream = Livestream::findOrFail($id);
         $vendorName = $livestream->vendor->name;
         $roomName = $livestream->getRoomName();
 

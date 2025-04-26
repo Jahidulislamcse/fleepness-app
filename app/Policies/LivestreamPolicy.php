@@ -16,9 +16,9 @@ class LivestreamPolicy
     public function create(User $user): Response|bool
     {
         // Ensure that the user has the 'vendor' role
-        if ($user->role !== 'vendor') {
-            return Response::denyAsNotFound(); // Deny if the user is not a vendor
-        }
+        // if ($user->role !== 'vendor') {
+        // return Response::denyAsNotFound(); // Deny if the user is not a vendor
+        // }
 
         return true; // Proceed if the user is a vendor
     }
@@ -28,9 +28,9 @@ class LivestreamPolicy
      */
     public function update(User $user, Livestream $livestream): Response|bool
     {
-        $userVendor = $user->vendors->first();
+        // $userVendor = $user->vendors->first();
 
-        $canSee = $livestream->vendor()->is($userVendor) && $livestream->status !== LivestreamStatuses::FINISHED->value && is_null($livestream->ended_at);
+        $canSee = $livestream->vendor()->is($user) && $livestream->status !== LivestreamStatuses::FINISHED->value && is_null($livestream->ended_at);
 
         if (! $canSee) {
             return Response::denyAsNotFound();

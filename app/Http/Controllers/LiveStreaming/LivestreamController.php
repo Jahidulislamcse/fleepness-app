@@ -13,6 +13,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as Controller;
 use Closure;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Pipeline;
 use Spatie\LaravelData\Optional;
 use Spatie\LaravelData\PaginatedDataCollection;
@@ -40,17 +41,18 @@ class LivestreamController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateLivestremData $createLivestremData): LivestreamData
+    public function store(CreateLivestremData $createLivestremData): Livestream
     {
         $vendor = User::find($createLivestremData->vendorId);
-        $this->authorize('create-livestream', $vendor);
+        // $this->authorize('create-livestream', $vendor);
 
         /** @var Livestream */
         $newLivestream = Livestream::create($createLivestremData->toArray());
 
         // $newLivestream->addAllMediaFromTokens($createLivestremData->thumbnailPicture, 'thumbnail');
 
-        return LivestreamData::from($newLivestream);
+        // return LivestreamData::from($newLivestream);
+        return $newLivestream;
     }
 
     /**
@@ -64,17 +66,20 @@ class LivestreamController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateLivestremData $updateLivestremData, Livestream $livestream)
+    public function update(UpdateLivestremData $updateLivestremData,  $livestreamId)
     {
-        $this->authorize(GateNames::UPDATE_LIVESTREAM->value, $livestream);
+        /** @var Livestream */
+        $livestream = Livestream::find($livestreamId);
+        // $this->authorize(GateNames::UPDATE_LIVESTREAM->value, $livestream);
 
         $livestream->fill($updateLivestremData->toArray());
+
 
         Pipeline::send($updateLivestremData)
             ->through([
                 function (UpdateLivestremData $updateLivestremData, Closure $next) use (&$livestream) {
-                    if (is_string($updateLivestremData->thumbnailPicture)) {
-                        $livestream->addAllMediaFromTokens($updateLivestremData->thumbnailPicture, 'thumbnail');
+                    if ($updateLivestremData->thumbnailPicture instanceof UploadedFile) {
+                        $livestream->addMedia($updateLivestremData->thumbnailPicture)->toMediaCollection('thumbnail');
                     }
 
                     return $next($updateLivestremData);

@@ -54,4 +54,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(VendorReview::class);
     }
+
+    public function shopCategory()
+    {
+        return $this->belongsTo(ShopCategory::class, 'shop_category');
+        // 'shop_category' is the foreign key in users table
+    }
 }

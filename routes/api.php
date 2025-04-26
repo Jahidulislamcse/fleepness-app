@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ShopCategoryController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\OTPAuthController;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ use App\Http\Controllers\user\UserVendorController;
 use App\Http\Controllers\user\UserVendorFollowController;
 use App\Http\Controllers\user\UserVendorReviewController;
 use App\Http\Controllers\SMSController;
+use App\Http\Controllers\user\UserSearchController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Vendor\VendorProductController;
 
@@ -26,29 +28,20 @@ RateLimiter::for('api', function (Request $request) {
 });
 
 Route::middleware(['api', 'throttle:api'])->group(function () {
-    //Facebook and google authentication
-    Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']);
+
+    Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']); //Facebook and google authentication
 
     //Facebook and google authentication callback
     Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
 
-    //Otp based registration
-    Route::post('/register', [OTPAuthController::class, 'register']);
 
-    //Sending sms to phone number
-    Route::post('/send-sms', [SMSController::class, 'sendSMS']);
-
-    //Verifying OTP
-    Route::post('/verify-otp', [OTPAuthController::class, 'verifyOtp']);
-
-    //Resending OTP
-    Route::post('/resend-otp', [OTPAuthController::class, 'resendOtp']);
-
-    //Seller registration
-    Route::post('/seller/register', [UserController::class, 'application']);
-
-    //Login to the system
-    Route::post('/login', [AuthenticatedSessionController::class, 'storeapi']);
+    Route::post('/register', [OTPAuthController::class, 'register']);   //Otp based registration
+    Route::post('/send-sms', [SMSController::class, 'sendSMS']);     //Sending sms to phone number
+    Route::post('/verify-otp', [OTPAuthController::class, 'verifyOtp']);    //Verifying OTP
+    Route::post('/resend-otp', [OTPAuthController::class, 'resendOtp']);    //Resending OTP
+    Route::post('/seller/register', [UserController::class, 'application']);    //Seller registration
+    Route::middleware('auth:sanctum')->post('/seller/application', [UserController::class, 'applyForSeller']); //Regular user to seller application
+    Route::post('/login', [AuthenticatedSessionController::class, 'storeapi']); //Login to the system
 
     //Logout from the system
     Route::middleware('auth:sanctum')->post('/logout', [AuthenticatedSessionController::class, 'destroyapi']);
@@ -60,33 +53,24 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         //Checking Seller profile info, specially role for determining UI
         Route::get('/user/profile', [UserController::class, 'checkProfile']);
 
-        //fetching Notifications
-        Route::get('/notifications', [NotificationController::class, 'getNotifications']);
 
-        //Marking a notification as read
-        Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead']);
+        Route::get('/notifications', [NotificationController::class, 'getNotifications']);          //fetching Notifications
+        Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead']);  //Marking a notification as read
 
         // Only admins can access these routes
         Route::middleware(['role:admin'])->group(function () {
-            //Approving a seller request
-            Route::post('/admin/seller-approve', [UserController::class, 'approveSeller']);
-
-            //Rejecting a seller request
-            Route::post('/admin/seller-reject', [UserController::class, 'rejectSeller']);
-
-            //Getting all seller requests
-            Route::get('/admin/seller-requests', [UserController::class, 'sellerRequest']);
+            Route::post('/admin/seller-approve', [UserController::class, 'approveSeller']);  //Approving a seller request
+            Route::post('/admin/seller-reject', [UserController::class, 'rejectSeller']);    //Rejecting a seller request
+            Route::get('/admin/seller-requests', [UserController::class, 'sellerRequest']);  //Getting all seller requests
         });
     });
 
-    //Searching a product by name, description, category
-    Route::get('/search', [UserProductController::class, 'search']);
 
-    //Show all sellers in list form
-    Route::get('/vendorlist ', [UserVendorController::class, 'vendorlist']);
+    Route::get('/search/product', [UserProductController::class, 'search']); //Searching a product
+    Route::get('/search', [UserSearchController::class, 'search']); //Searching by seller/tag
 
-    //Show a particular seller data
-    Route::get('/vendorlist/{vendor} ', [UserVendorController::class, 'vendorData']);
+    Route::get('/vendorlist ', [UserVendorController::class, 'vendorlist']);            //Show all sellers in list form
+    Route::get('/vendorlist/{vendor} ', [UserVendorController::class, 'vendorData']);   //Show a particular seller data
 
     //Show products based on price range
     Route::get('/vendorlist/{vendor}/product/in-price-range ', [UserProductController::class, 'getProductsByPriceRange']);
@@ -101,54 +85,34 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('/vendorlist/{vendor}/shortvideo ', [UserVendorController::class, 'getShortVideos']);
 
     Route::middleware(['auth:sanctum'])->group(function () {
-        //Giving a review to a seller
-        Route::post('/vendor/{vendor_id}/review', [UserVendorReviewController::class, 'store']);
-
-        //Removing review from a seller
-        Route::delete('/vendor/review/{review_id}/delete', [UserVendorReviewController::class, 'delete']);
+        Route::post('/vendor/{vendor_id}/review', [UserVendorReviewController::class, 'store']);            //Giving a review to a seller
+        Route::delete('/vendor/review/{review_id}/delete', [UserVendorReviewController::class, 'delete']);  //Removing review from a seller
     });
-
-    //See all reviews of a seller
-    Route::get('/vendor/{vendor_id}/reviews', [UserVendorReviewController::class, 'index']);
+    Route::get('/vendor/{vendor_id}/reviews', [UserVendorReviewController::class, 'index']);                //See all reviews of a seller
 
     Route::middleware('auth:sanctum')->group(function () {
-        //Follow a Seller
-        Route::get('/vendor/{vendor_id}/follow', [UserVendorFollowController::class, 'follow']);
-
-        //Unfollow a seller
-        Route::get('/vendor/{vendor_id}/unfollow ', [UserVendorFollowController::class, 'unfollow']);
+        Route::get('/vendor/{vendor_id}/follow', [UserVendorFollowController::class, 'follow']);        //Follow a Seller
+        Route::get('/vendor/{vendor_id}/unfollow ', [UserVendorFollowController::class, 'unfollow']);   //Unfollow a seller
     });
 
     Route::middleware('auth:sanctum')->group(function () {
-        // Create a size template
-        Route::post('/size-template/create', [SizeTemplateController::class, 'store']);
+        Route::post('/size-template/create', [SizeTemplateController::class, 'store']);              // Create a size template
+        Route::post('/size-templates/{templateId}/sizes', [SizeTemplateController::class, 'addSizeToTemplate']); // Add a size to a template
+        Route::get('/size-templates', [SizeTemplateController::class, 'getTemplates']);         // Get all size templates for the authenticated seller
+        Route::delete('/size-templates/{id}', [SizeTemplateController::class, 'destroy']);      // Delete a size template
 
-        // Add a size to a template
-        Route::post('/size-templates/{templateId}/sizes', [SizeTemplateController::class, 'addSizeToTemplate']);
+        Route::post('/product/create', [VendorProductController::class, 'store']);              //store product
+        Route::get('/product/index', [VendorProductController::class, 'show']);                 //show products
+        Route::post('/products/{id}', [VendorProductController::class, 'update']);              //Update Product
+        Route::post('/products/soft-delete/{id}', [VendorProductController::class, 'destroy']); //Soft Deleting a product
+        Route::post('/products/inactive/{id}', [VendorProductController::class, 'inactive']);   //Inactivating a product
+        Route::post('/products/active/{id}', [VendorProductController::class, 'active']);       //Activating a product
 
-        // Get all size templates for the authenticated seller
-        Route::get('/size-templates', [SizeTemplateController::class, 'getTemplates']);
-
-        // Delete a size template
-        Route::delete('/size-templates/{id}', [SizeTemplateController::class, 'destroy']);
-
-        //store product
-        Route::post('/product/create', [VendorProductController::class, 'store']);
-
-        //show products
-        Route::get('/product/index', [VendorProductController::class, 'show']);
-
-        //Update Product
-        Route::post('/products/{id}', [VendorProductController::class, 'update']);
-
-        //Soft Deleting a product
-        Route::post('/products/soft-delete/{id}', [VendorProductController::class, 'destroy']);
-
-        //Inactivating a product
-        Route::post('/products/inactive/{id}', [VendorProductController::class, 'inactive']);
-
-        //Activating a product
-        Route::post('/products/active/{id}', [VendorProductController::class, 'active']);
+        Route::get('/shop-categories', [ShopCategoryController::class, 'index']);          // List all categories
+        Route::post('/shop-categories', [ShopCategoryController::class, 'store']);         // Create new category
+        Route::get('/shop-categories/{id}', [ShopCategoryController::class, 'show']);      // View single category
+        Route::put('/shop-categories/{id}', [ShopCategoryController::class, 'update']);    // Update category
+        Route::delete('/shop-categories/{id}', [ShopCategoryController::class, 'destroy']); // Delete category
     });
 
     // GET /api/livestreams

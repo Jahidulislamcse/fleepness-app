@@ -15,30 +15,28 @@ class LivestreamData extends Data
 {
     public function __construct(
         public int $id,
-        public VendorData $vendor,
         public string $title,
-        public ?MediaData $thumbnailPicture,
+        public ?string $thumbnailPicture,
         public string $status,
-        #[DataCollectionOf(ProductData::class)]
-        public DataCollection $products,
+        // #[DataCollectionOf(ProductData::class)]
+        // public DataCollection $products,
         public ?Carbon $scheduledTime,
         public ?int $totalDuration,
         public ?Carbon $startedAt,
         public ?Carbon $endedAt
-    ) {
-    }
+    ) {}
 
     public static function fromMode(Livestream $livestream): self
     {
         $thumbnail = $livestream->getFirstMedia('thumbnail');
 
+
         return new self(
             $livestream->getKey(),
-            VendorData::from($livestream->vendor),
             $livestream->title,
-            isset($thumbnail) ? MediaData::from($thumbnail) : null,
+            isset($thumbnail) ? $thumbnail->getFullUrl() : null,
             $livestream->status,
-            DataCollection::from($livestream->products->map(fn($product) => ProductData::from($product))),
+            // DataCollection::from($livestream->products->map(fn($product) => ProductData::from($product))),
             $livestream->scheduled_time ? Carbon::parse($livestream->scheduled_time) : null,
             $livestream->total_duration,
             $livestream->started_at,

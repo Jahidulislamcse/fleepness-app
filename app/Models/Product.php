@@ -44,6 +44,12 @@ class Product extends Model
         return $this->hasMany(ProductReview::class);
     }
 
+    public function livestreams()
+    {
+        return $this->belongsToMany(Livestream::class)->withTimestamps();
+    }
+
+
     // Automatically set the slug attribute
     protected static function boot()
     {

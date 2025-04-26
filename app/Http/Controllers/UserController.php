@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\SMSService;
 use App\Events\SellerStatusUpdated;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -51,20 +52,106 @@ class UserController extends Controller
         return redirect()->route('admin.user.list')->with('success', 'User created successfully!');
     }
 
+    // Applying for Seller account after registering as a customer
+    public function applyForSeller(Request $request)
+    {
+        $user = auth()->user(); // Sanctum authenticated user
+
+        $validated = Validator::make($request->all(), [
+            'name' => 'nullable|string|max:255',
+            'shop_name' => 'required|string|max:255',
+            'shop_category' => 'nullable|exists:shop_categories,id',
+            'contact_number' => 'required|string|max:20',
+            'payment_bkash' => 'nullable|boolean',
+            'payment_nagad' => 'nullable|boolean',
+            'payment_number' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'pickup_location' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:255',
+            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        if ($validated->fails()) {
+            return response()->json([
+                'errors' => $validated->errors()
+            ], 422);
+        }
+
+        // Update the user
+        $user->update([
+            'name' => $request->name,
+            'shop_name' => $request->shop_name,
+            'shop_category' => $request->shop_category,
+            'contact_number' => $request->contact_number,
+            'payment_bkash' => $request->boolean('payment_bkash'),
+            'payment_nagad' => $request->boolean('payment_nagad'),
+            'payment_number' => $request->payment_number,
+            'address' => $request->address,
+            'pickup_location' => $request->pickup_location,
+            'description' => $request->description,
+            'role' => 'vendor', // make them vendor
+            'status' => 'pending', // pending admin approval
+        ]);
+
+        // Handle banner image
+        if ($request->hasFile('banner_image')) {
+            $banner_image = $request->file('banner_image');
+            $name_gen = hexdec(uniqid()) . '.' . $banner_image->getClientOriginalExtension();
+            $path = public_path('upload/user');
+
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            $banner_image->move($path, $name_gen);
+
+            $user->banner_image = 'upload/user/' . $name_gen;
+            $user->save();
+        }
+
+        // Handle cover image
+        if ($request->hasFile('cover_image')) {
+            $cover_image = $request->file('cover_image');
+            $name_gen = hexdec(uniqid()) . '.' . $cover_image->getClientOriginalExtension();
+            $path = public_path('upload/user');
+
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+
+            $cover_image->move($path, $name_gen);
+
+            $user->cover_image = 'upload/user/' . $name_gen;
+            $user->save();
+        }
+
+        return response()->json([
+            'message' => 'Seller application submitted successfully. Pending admin approval.',
+            'user' => $user,
+        ], 200);
+    }
+
     public function application(Request $request)
     {
         // Validate the request data
         // dd($request->all());
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'store_title' => 'required|string|max:255',
+            'shop_name' => 'required|string|max:255',
+            'shop_category' => 'nullable|exists:shop_categories,id',
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|string|max:20|unique:users,phone_number',
-            'address' => 'required|string|max:255',
-            // 'password' => 'required|string|min:8',
-            'role' => 'required|in:vendor,admin,rider',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'contact_number' => 'required|string|max:20',
+            'payment_bkash' => 'nullable|boolean',
+            'payment_nagad' => 'nullable|boolean',
+            'payment_number' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'pickup_location' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:255',
+            'role' => 'nullable|in:vendor,admin,rider',
+            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         // dd($validated);
@@ -75,48 +162,55 @@ class UserController extends Controller
 
         // Create user with pending status and unverified
         $user = User::create([
-            'name' => $request->name,
-            'store_title' => $request->store_title,
-            'email' => $request->email,
-            'phone_number' => $request->phone,
-            'address' => $request->address,
-            // 'password' => bcrypt($request->password),
-            'role' => $request->role,
+            'name' => $validated['name'],
+            'shop_name' => $validated['shop_name'],
+            'shop_category' => $validated['shop_category'] ?? null,
+            'contact_number' => $validated['contact_number'],
+            'payment_bkash' => $request->boolean('payment_bkash'),
+            'payment_nagad' => $request->boolean('payment_nagad'),
+            'payment_number' => $validated['payment_number'] ?? null,
+            'pickup_location' => $validated['pickup_location'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'email' => $validated['email'],
+            'phone_number' => $validated['phone'],
+            'address' => $validated['address'] ?? null,
+            'role' => $validated['role'] ?? 'vendor',  // default vendor if role not passed
             'status' => 'pending',
             'otp' => $otp,
             'otp_expires_at' => $otp_expiry,
         ]);
 
+
         // Save single image after user is created
-        if ($request->hasFile('photo')) {
-            $photo = $request->file('photo');
-            $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
+        if ($request->hasFile('banner_image')) {
+            $banner_image = $request->file('banner_image');
+            $name_gen = hexdec(uniqid()) . '.' . $banner_image->getClientOriginalExtension();
             $path = public_path('upload/user');
 
             if (!file_exists($path)) {
                 mkdir($path, 0777, true);
             }
 
-            $photo->move($path, $name_gen);
+            $banner_image->move($path, $name_gen);
 
-            // Update user's photo field
-            $user->profile_image = 'upload/user/' . $name_gen;
+            // Update user's banner_image field
+            $user->banner_image = 'upload/user/' . $name_gen;
             $user->save();
         }
 
-        if ($request->hasFile('logo')) {
-            $logo = $request->file('logo');
-            $name_gen = hexdec(uniqid()) . '.' . $logo->getClientOriginalExtension();
+        if ($request->hasFile('cover_image')) {
+            $cover_image = $request->file('cover_image');
+            $name_gen = hexdec(uniqid()) . '.' . $cover_image->getClientOriginalExtension();
             $path = public_path('upload/user');
 
             if (!file_exists($path)) {
                 mkdir($path, 0777, true);
             }
 
-            $logo->move($path, $name_gen);
+            $cover_image->move($path, $name_gen);
 
-            // Update user's logo field
-            $user->logo = 'upload/user/' . $name_gen;
+            // Update user's cover_image field
+            $user->cover_image = 'upload/user/' . $name_gen;
             $user->save();
         }
 
@@ -285,6 +379,8 @@ class UserController extends Controller
 
     public function approveSeller(Request $request)
     {
+        // dd($request->seller_id);
+
         $request->validate([
             'seller_id' => 'required|exists:users,id',
         ]);

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\LiveStreaming;
+
 use Illuminate\Routing\Controller;
 
 use App\Constants\GateNames;
@@ -14,9 +15,11 @@ class GetLivestreamSubscriberTokenController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Livestream $livestream)
+    public function __invoke($livestreamId)
     {
-        $this->authorize(GateNames::GET_LIVESTREAM_SUBSCRIBER_TOKEN->value, $livestream);
+        $livestream = Livestream::find($livestreamId);
+        // $livestream->load('vendor');
+        // $this->authorize(GateNames::GET_LIVESTREAM_SUBSCRIBER_TOKEN->value, $livestream);
 
         $userId = auth()->id() ?? 'public';
         $displayName = auth()->user()?->name ?? 'public';

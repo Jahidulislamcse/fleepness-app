@@ -64,13 +64,14 @@ class Livestream extends Model implements HasMedia
 
     public function vendor()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'vendor_id');
     }
 
-    // public function products()
-    // {
-    //     return $this->belongsToMany(Product::class)->using(LivestreamProduct::class);
-    // }
+    public function products()
+    {
+        return $this->belongsToMany(Product::class)->using(LivestreamProduct::class);
+    }
+
 
     public static function booted(): void
     {
@@ -83,8 +84,12 @@ class Livestream extends Model implements HasMedia
     {
         $vendorId = $this->vendor_id;
         $livestreamId = $this->getKey();
-        $ownerId = $this->vendor->user->getKey();
 
-        return "room-{$ownerId}-{$vendorId}-{$livestreamId}";
+        return "room:{$vendorId}:{$livestreamId}";
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('thumbnail')->singleFile();
     }
 }

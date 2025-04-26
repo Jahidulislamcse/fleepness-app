@@ -30,6 +30,7 @@ class AddLivestreamProductData extends Data
     {
         $livestream = request()->route('livestream');
 
-        return Gate::authorize(GateNames::ADD_LIVESTREAM_PRODUCTS->value, $livestream);
+        return $livestream;
+        // return Gate::authorize(GateNames::ADD_LIVESTREAM_PRODUCTS->value, $livestream);
     }
 }
