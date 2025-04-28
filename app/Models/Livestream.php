@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Constants\LivestreamStatuses;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Facades\Livestream as FacadesLivestream;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\ModelStatus\HasStatuses;
@@ -54,8 +55,7 @@ class Livestream extends Model implements HasMedia
 {
     use HasFactory, HasStatuses, InteractsWithMedia;
 
-    protected $fillable = ['title', 'vendor_id', 'total_duration', 'scheduled_time', 'started_at', 'ended_at'];
-
+    protected $fillable = ['title', 'vendor_id', 'total_duration', 'scheduled_time', 'started_at', 'ended_at', 'egress_id'];
     protected $casts = [
         'started_at' => 'datetime',
         'ended_at' => 'datetime',
@@ -82,10 +82,32 @@ class Livestream extends Model implements HasMedia
 
     public function getRoomName(): string
     {
-        $vendorId = $this->vendor_id;
-        $livestreamId = $this->getKey();
+        return sprintf('%s:%s', $this->title, $this->getKey());
+    }
 
-        return "room:{$vendorId}:{$livestreamId}";
+    public function getEncodedFileOutputName(): string
+    {
+        $title = $this->title;
+
+        return sprintf('%s_%s', $title, today()->format('Ymd_h_i_s'));
+    }
+
+    public function stopRecording()
+    {
+        $this->ended_at = now();
+
+        if (filled($egressId = $this->egress_id)) {
+            FacadesLivestream::stopRecording($egressId);
+        }
+    }
+
+    public function startRecording()
+    {
+        $this->started_at = now();
+        $egress = FacadesLivestream::startRecording($this->getRoomName(), $this->getEncodedFileOutputName());
+        $this->fill([
+            'egress_id' => $egress->getEgressId(),
+        ]);
     }
 
     public function registerMediaCollections(): void

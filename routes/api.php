@@ -21,6 +21,8 @@ use App\Http\Controllers\user\UserVendorReviewController;
 use App\Http\Controllers\SMSController;
 use App\Http\Controllers\user\UserSearchController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\EmailController;
+use App\Http\Controllers\TagController;
 use App\Http\Controllers\Vendor\VendorProductController;
 
 RateLimiter::for('api', function (Request $request) {
@@ -33,10 +35,10 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
 
     //Facebook and google authentication callback
     Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
-
-
     Route::post('/register', [OTPAuthController::class, 'register']);   //Otp based registration
     Route::post('/send-sms', [SMSController::class, 'sendSMS']);     //Sending sms to phone number
+    Route::post('/send-login-otp', [AuthenticatedSessionController::class, 'apiSendOtp']);
+    Route::post('/verify-cache-otp', [AuthenticatedSessionController::class, 'verifyCacheOtp']);    //Verifying OTP
     Route::post('/verify-otp', [OTPAuthController::class, 'verifyOtp']);    //Verifying OTP
     Route::post('/resend-otp', [OTPAuthController::class, 'resendOtp']);    //Resending OTP
     Route::post('/seller/register', [UserController::class, 'application']);    //Seller registration
@@ -52,9 +54,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
 
         //Checking Seller profile info, specially role for determining UI
         Route::get('/user/profile', [UserController::class, 'checkProfile']);
-
-
-        Route::get('/notifications', [NotificationController::class, 'getNotifications']);          //fetching Notifications
+        Route::get('/notifications', [NotificationController::class, 'getNotifications']);  //fetching Notifications
         Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead']);  //Marking a notification as read
 
         // Only admins can access these routes
@@ -65,6 +65,8 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         });
     });
 
+    Route::post('/send-email', [EmailController::class, 'sendTestEmail']);
+    Route::post('/get-email', [EmailController::class, 'receiveCustomerEmail']);
 
     Route::get('/search/product', [UserProductController::class, 'search']); //Searching a product
     Route::get('/search', [UserSearchController::class, 'search']); //Searching by seller/tag
@@ -101,6 +103,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::get('/size-templates', [SizeTemplateController::class, 'getTemplates']);         // Get all size templates for the authenticated seller
         Route::delete('/size-templates/{id}', [SizeTemplateController::class, 'destroy']);      // Delete a size template
 
+        Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
         Route::post('/product/create', [VendorProductController::class, 'store']);              //store product
         Route::get('/product/index', [VendorProductController::class, 'show']);                 //show products
         Route::post('/products/{id}', [VendorProductController::class, 'update']);              //Update Product

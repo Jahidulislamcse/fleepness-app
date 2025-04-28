@@ -13,6 +13,6 @@ class GeneratePublisherTokenData extends Data
         public string $roomName,
         public string $identity,
         public string $displayName,
-    ) {
-    }
+        public array $metadata = []
+    ) {}
 }

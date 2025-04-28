@@ -31,10 +31,10 @@ class SMSController extends Controller
         $validated['MobileNumbers'] = $mobileNumber;
 
         // Fetch API credentials from .env
-        $apiKey = env('SMS_API_KEY');
-        $clientId = env('SMS_CLIENT_ID');
-        $senderId = env('SMS_SENDER_ID');
-        $apiUrl = env('SMS_API_URL') . '/SendSMS'; // Append endpoint
+        $apiKey = config('sms.api_key');
+        $clientId = config('sms.client_id');
+        $senderId = config('sms.sender_id');
+        $apiUrl = config('sms.api_url') . '/SendSMS';
 
         // Prepare the parameters for the API request
         $params = [

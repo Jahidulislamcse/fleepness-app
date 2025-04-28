@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\LiveStreaming;
 
-use App\Constants\GateNames;
 use App\Constants\LivestreamStatuses;
 use App\Data\Dto\CreateLivestremData;
 use App\Data\Dto\UpdateLivestremData;
@@ -66,12 +65,10 @@ class LivestreamController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateLivestremData $updateLivestremData,  $livestreamId)
+    public function update(UpdateLivestremData $updateLivestremData, $livestreamId)
     {
         /** @var Livestream */
         $livestream = Livestream::find($livestreamId);
-        // $this->authorize(GateNames::UPDATE_LIVESTREAM->value, $livestream);
-
         $livestream->fill($updateLivestremData->toArray());
 
 
@@ -86,14 +83,14 @@ class LivestreamController extends Controller
                 },
                 function (UpdateLivestremData $updateLivestremData, Closure $next) use (&$livestream) {
                     if ($updateLivestremData->status === LivestreamStatuses::STARTED) {
-                        $livestream->started_at = now();
+                        $livestream->startRecording();
                     }
 
                     return $next($updateLivestremData);
                 },
                 function (UpdateLivestremData $updateLivestremData, Closure $next) use (&$livestream) {
                     if ($updateLivestremData->status === LivestreamStatuses::FINISHED) {
-                        $livestream->ended_at = now();
+                        $livestream->stopRecording();
                     }
 
                     return $next($updateLivestremData);

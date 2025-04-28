@@ -90,7 +90,6 @@ class UserController extends Controller
             'address' => $request->address,
             'pickup_location' => $request->pickup_location,
             'description' => $request->description,
-            'role' => 'vendor', // make them vendor
             'status' => 'pending', // pending admin approval
         ]);
 
@@ -149,7 +148,7 @@ class UserController extends Controller
             'address' => 'nullable|string|max:255',
             'pickup_location' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:255',
-            'role' => 'nullable|in:vendor,admin,rider',
+            // 'role' => 'nullable|in:vendor,admin,rider',
             'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
@@ -174,7 +173,7 @@ class UserController extends Controller
             'email' => $validated['email'],
             'phone_number' => $validated['phone'],
             'address' => $validated['address'] ?? null,
-            'role' => $validated['role'] ?? 'vendor',  // default vendor if role not passed
+            // 'role' => $validated['role'] ?? 'vendor',  // default vendor if role not passed
             'status' => 'pending',
             'otp' => $otp,
             'otp_expires_at' => $otp_expiry,
@@ -237,8 +236,7 @@ class UserController extends Controller
     public function sellerRequest()
     {
         // Fetch users with role 'vendor' and status 'pending'
-        $pendingSellers = User::where('role', 'vendor')
-            ->where('status', 'pending')
+        $pendingSellers = User::where('status', 'pending')
             ->get();
 
         return response()->json([
@@ -285,7 +283,7 @@ class UserController extends Controller
 
         $user->update([
             'status' => 'approved',
-            // 'role' => 'vendor' // If you want to update role as well
+            'role' => 'vendor' // If you want to update role as well
         ]);
 
         return response()->json(['message' => 'Seller approved successfully', 'user' => $user]);
@@ -391,6 +389,7 @@ class UserController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
+        $seller->role = 'vendor';
         $seller->status = 'approved';
         $seller->save();
 
