@@ -19,8 +19,11 @@ class LivestreamProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Livestream $livestream, AddLivestreamProductData $data): LivestreamData
+    public function store($livestreamId, AddLivestreamProductData $data): LivestreamData
     {
+
+        // dd($livestream_id);
+        $livestream = Livestream::findOrFail($livestreamId);
         $livestream->products()->sync($data->productIds, false);
 
         return LivestreamData::from($livestream);

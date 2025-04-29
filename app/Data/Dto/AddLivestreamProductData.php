@@ -26,11 +26,11 @@ class AddLivestreamProductData extends Data
         ];
     }
 
-    public static function authorize(): Response|bool
-    {
-        $livestream = request()->route('livestream');
+    // public static function authorize(): Response|bool
+    // {
+    //     $livestream = request()->route('livestream');
 
-        return $livestream;
+    //     return $livestream;
         // return Gate::authorize(GateNames::ADD_LIVESTREAM_PRODUCTS->value, $livestream);
-    }
+    // }
 }

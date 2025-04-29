@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Livestream;
 use App\Http\Controllers\Admin\ShopCategoryController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\OTPAuthController;
@@ -25,6 +26,11 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\Vendor\VendorProductController;
+
+// Route::get('/livestreams/{livestream:id}', function (Livestream $livestream) {
+//     dd($livestream);
+//     return $livestream;
+// });
 
 RateLimiter::for('api', function (Request $request) {
     return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
@@ -139,7 +145,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('livestreams/{livestream}/subscriber-token', GetLivestreamSubscriberTokenController::class)
         ->name('livestreams.get-subscriber-token');
 
-    Route::post('livestreams/{livestream}/products', [LivestreamProductController::class, 'store'])
+    Route::post('livestreams/{ls}/products', [LivestreamProductController::class, 'store'])
         ->middleware('auth:sanctum')
         ->name('livestream-products.store');
 
