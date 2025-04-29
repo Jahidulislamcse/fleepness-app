@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
 use App\Http\Controllers\Auth\SocialLoginController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LiveStreaming\GetLivestreamPublisherTokenController;
 use App\Http\Controllers\LiveStreaming\GetLivestreamSubscriberTokenController;
 use App\Http\Controllers\LiveStreaming\LivestreamController;
@@ -43,7 +44,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::post('/resend-otp', [OTPAuthController::class, 'resendOtp']);    //Resending OTP
     Route::post('/seller/register', [UserController::class, 'application']);    //Seller registration
     Route::middleware('auth:sanctum')->post('/seller/application', [UserController::class, 'applyForSeller']); //Regular user to seller application
-    Route::post('/login', [AuthenticatedSessionController::class, 'storeapi']); //Login to the system
+    Route::post('/     ', [AuthenticatedSessionController::class, 'storeapi']); //Login to the system
 
     //Logout from the system
     Route::middleware('auth:sanctum')->post('/logout', [AuthenticatedSessionController::class, 'destroyapi']);
@@ -73,29 +74,30 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
 
     Route::get('/vendorlist ', [UserVendorController::class, 'vendorlist']);            //Show all sellers in list form
     Route::get('/vendorlist/{vendor} ', [UserVendorController::class, 'vendorData']);   //Show a particular seller data
-
     //Show products based on price range
     Route::get('/vendorlist/{vendor}/product/in-price-range ', [UserProductController::class, 'getProductsByPriceRange']);
-
     //Show products on price category like low, medium, high
     Route::get('/vendorlist/{vendor}/product/in-price-category', [UserProductController::class, 'getProductsInPriceCategory']);
-
     //Show all product of a particular seller
     Route::get('/vendorlist/{vendor}/allproduct ', [UserProductController::class, 'getAllProducts']);
-
     //Show short videos of a particular seller
     Route::get('/vendorlist/{vendor}/shortvideo ', [UserVendorController::class, 'getShortVideos']);
 
     Route::middleware(['auth:sanctum'])->group(function () {
-        Route::post('/vendor/{vendor_id}/review', [UserVendorReviewController::class, 'store']);            //Giving a review to a seller
-        Route::delete('/vendor/review/{review_id}/delete', [UserVendorReviewController::class, 'delete']);  //Removing review from a seller
+        //Giving a review to a seller
+        Route::post('/vendor/{vendor_id}/review', [UserVendorReviewController::class, 'store']);
+        //Removing review from a seller
+        Route::delete('/vendor/review/{review_id}/delete', [UserVendorReviewController::class, 'delete']);
     });
-    Route::get('/vendor/{vendor_id}/reviews', [UserVendorReviewController::class, 'index']);                //See all reviews of a seller
-
+    //See all reviews of a seller
+    Route::get('/vendor/{vendor_id}/reviews', [UserVendorReviewController::class, 'index']);
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/vendor/{vendor_id}/follow', [UserVendorFollowController::class, 'follow']);        //Follow a Seller
         Route::get('/vendor/{vendor_id}/unfollow ', [UserVendorFollowController::class, 'unfollow']);   //Unfollow a seller
     });
+
+    Route::get('/get-categories', [CategoryController::class, 'getCategories'])->name('get.categories');
+    Route::get('/get-random-tags', [TagController::class, 'getTagsRandom'])->name('get.random.tags');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/size-template/create', [SizeTemplateController::class, 'store']);              // Create a size template

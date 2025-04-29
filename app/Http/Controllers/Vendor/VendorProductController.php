@@ -159,7 +159,7 @@ class VendorProductController extends Controller
 
         try {
             $validated = $request->validate([
-                'category_id' => 'required|exists:categories,id',
+                'category_id' => 'nullable|exists:categories,id',
                 'name' => 'nullable|string|max:255',
                 'long_description' => 'nullable|string',
                 'short_description' => 'nullable|string',
@@ -203,6 +203,19 @@ class VendorProductController extends Controller
                         'alt_text' => $request->input('alt_text', ''),
                     ]);
                 }
+            }
+
+            // 🆕 Save tags to seller_tags table (add new tags only)
+            if (!empty($request->tags)) {
+                $sellerTag = SellerTags::firstOrNew([
+                    'vendor_id' => auth()->id(),
+                ]);
+
+                $existingTags = $sellerTag->tags ?? []; // old tags (casted to array)
+                $mergedTags = array_unique(array_merge($existingTags, $request->tags));
+
+                $sellerTag->tags = $mergedTags;
+                $sellerTag->save();
             }
 
             return $request->wantsJson()

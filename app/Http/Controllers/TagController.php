@@ -14,4 +14,13 @@ class TagController extends Controller
         $tags = Category::where('parent_id', $categoryId)->get();
         return response()->json($tags);
     }
+
+    public function getTagsRandom(Request $request)
+    {
+        $tags = Category::whereNotNull('parent_id')
+            ->inRandomOrder()
+            ->get(['id', 'name']);
+
+        return response()->json($tags);
+    }
 }

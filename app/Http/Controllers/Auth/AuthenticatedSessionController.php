@@ -149,12 +149,6 @@ class AuthenticatedSessionController extends Controller
         // Retrieve the OTP from the cache
         $cacheOtp = Cache::get('otp_' . $user->phone_number);  // Cache key using phone_number
 
-        // Debugging: Log the cache OTP
-        \Log::info('Cache OTP: ' . $cacheOtp);
-
-        // Debugging: Log the provided OTP
-        \Log::info('Provided OTP: ' . $request->otp);
-
         // Check if OTP exists in cache
         if (!$cacheOtp) {
             return response()->json(['message' => 'OTP has expired or is not set'], 400);

@@ -52,7 +52,6 @@ class EmailController extends Controller
 
             // Prepare email content
             $emailContent = "
-            <h2>New Customer Message</h2>
             <p><strong>Name:</strong> {$validated['customer_name']}</p>
             <p><strong>Email:</strong> {$validated['customer_email']}</p>
             <p><strong>Message:</strong><br>{$validated['message_body']}</p>
