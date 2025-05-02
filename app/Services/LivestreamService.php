@@ -32,7 +32,7 @@ class LivestreamService
         return Pipeline::send($data)
             ->through([
                 function (GeneratePublisherTokenData $data, Closure $next): string {
-                /** @var string */
+                    /** @var string */
                     $roomToken = Cache::get($data->roomName);
 
                     if ($roomToken) {
@@ -96,7 +96,7 @@ class LivestreamService
         return Pipeline::send($data->roomName)
             ->through([
                 function (string $roomName, Closure $next): string {
-                /** @var string */
+                    /** @var string */
                     $roomToken = Cache::get($roomName);
 
                     if ($roomToken) {
@@ -130,7 +130,7 @@ class LivestreamService
     }
     public function startRecording(string $roomName, string $outputPath)
     {
-        $fileOutput = resolve(EncodedFileOutput::class)
+           $fileOutput = resolve(EncodedFileOutput::class)
             ->setFileType(EncodedFileType::MP4)
             ->setFilepath($outputPath);
         $imageOutput = resolve(ImageOutput::class);

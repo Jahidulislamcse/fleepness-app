@@ -3,9 +3,9 @@
 namespace App\Providers;
 
 use Agence104\LiveKit\AccessToken;
+use Agence104\LiveKit\EgressServiceClient;
 use Agence104\LiveKit\RoomServiceClient;
 use Illuminate\Foundation\Application;
-use Agence104\LiveKit\EgressServiceClient;
 use Illuminate\Support\ServiceProvider;
 use Livekit\EncodedFileOutput;
 use Livekit\ImageFileSuffix;
@@ -19,7 +19,7 @@ class LivekitServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(AccessToken::class, function (Application $app) {
+        $this->app->bind(AccessToken::class, function (Application $app) {
             return new AccessToken(
                 config('services.livekit.api_key'),
                 config('services.livekit.api_secret')
@@ -33,6 +33,7 @@ class LivekitServiceProvider extends ServiceProvider
                 config('services.livekit.api_secret'),
             );
         });
+
         $this->app->singleton(EgressServiceClient::class, function (Application $app) {
             return new EgressServiceClient(
                 config('services.livekit.host'),
@@ -41,23 +42,23 @@ class LivekitServiceProvider extends ServiceProvider
             );
         });
 
-        $this->app->bind(EncodedFileOutput::class, function (Application $app) {
-            $s3Config = tap(new S3Upload)
+        $this->app->singleton(S3Upload::class, function (Application $app) {
+            return tap(new S3Upload)
                 ->setAccessKey(config('filesystems.disks.s3.key'))
                 ->setSecret(config('filesystems.disks.s3.key'))
                 ->setBucket(config('filesystems.disks.s3.bucket'))
                 ->setForcePathStyle(config('filesystems.disks.s3.use_path_style_endpoint'));
+        });
+
+        $this->app->bind(EncodedFileOutput::class, function (Application $app) {
+            $s3Config = $app->get(S3Upload::class);
 
             return tap(new EncodedFileOutput())
                 ->setS3($s3Config);
         });
 
         $this->app->bind(ImageOutput::class, function (Application $app) {
-            $s3Config = tap(new S3Upload)
-                ->setAccessKey(config('filesystems.disks.s3.key'))
-                ->setSecret(config('filesystems.disks.s3.key'))
-                ->setBucket(config('filesystems.disks.s3.bucket'))
-                ->setForcePathStyle(config('filesystems.disks.s3.use_path_style_endpoint'));
+            $s3Config = $app->get(S3Upload::class);
 
             return tap(new ImageOutput())
                 ->setS3($s3Config)

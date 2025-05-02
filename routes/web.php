@@ -18,6 +18,7 @@ use App\Http\Controllers\Vendor\VendorProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\Vendor\VendorShortVideoController;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
@@ -140,5 +141,9 @@ Route::middleware('role:admin')->group(function () {
         Route::put('/payment/update/{bill}', [PaymentController::class, 'update'])->name('payment.update');
     });
 });
+
+Route::get('/test', function () {
+    dd(Storage::disk('s3')->files());
+})->name('payment.requests');
 
 require __DIR__ . '/auth.php';

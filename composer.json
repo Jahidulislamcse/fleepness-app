@@ -16,6 +16,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.18",
         "laravel/tinker": "^2.10.1",
+        "league/flysystem-aws-s3-v3": "3.0",
         "pusher/pusher-php-server": "^7.2",
         "spatie/laravel-data": "^4.15",
         "spatie/laravel-medialibrary": "^11.12",
