@@ -69,7 +69,6 @@ class UserVendorController extends Controller
 
         if ($sellerTags && is_array($sellerTags->tags)) {
             $tags = Category::whereIn('id', $sellerTags->tags)
-                ->select('id', 'name')
                 ->get();
         }
 

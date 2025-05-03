@@ -111,20 +111,24 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::get('/size-templates', [SizeTemplateController::class, 'getTemplates']);         // Get all size templates for the authenticated seller
         Route::delete('/size-templates/{id}', [SizeTemplateController::class, 'destroy']);      // Delete a size template
 
-        Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
-        Route::post('/product/create', [VendorProductController::class, 'store']);              //store product
-        Route::get('/product/index', [VendorProductController::class, 'show']);                 //show products
-        Route::post('/products/{id}', [VendorProductController::class, 'update']);              //Update Product
-        Route::post('/products/soft-delete/{id}', [VendorProductController::class, 'destroy']); //Soft Deleting a product
-        Route::post('/products/inactive/{id}', [VendorProductController::class, 'inactive']);   //Inactivating a product
-        Route::post('/products/active/{id}', [VendorProductController::class, 'active']);       //Activating a product
+        Route::middleware(['role:vendor'])->group(function () {
+            Route::post('/product/create', [VendorProductController::class, 'store']);              //store product
+            Route::get('/product/index', [VendorProductController::class, 'show']);                 //show products
+            Route::post('/products/{id}', [VendorProductController::class, 'update']);              //Update Product
+            Route::post('/products/soft-delete/{id}', [VendorProductController::class, 'destroy']); //Soft Deleting a product
+            Route::post('/products/inactive/{id}', [VendorProductController::class, 'inactive']);   //Inactivating a product
+            Route::post('/products/active/{id}', [VendorProductController::class, 'active']);       //Activating a product
+        });
 
-        Route::get('/shop-categories', [ShopCategoryController::class, 'index']);          // List all categories
+        Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
+
         Route::post('/shop-categories', [ShopCategoryController::class, 'store']);         // Create new category
-        Route::get('/shop-categories/{id}', [ShopCategoryController::class, 'show']);      // View single category
         Route::put('/shop-categories/{id}', [ShopCategoryController::class, 'update']);    // Update category
         Route::delete('/shop-categories/{id}', [ShopCategoryController::class, 'destroy']); // Delete category
     });
+
+    Route::get('/shop-categories', [ShopCategoryController::class, 'index']);          // List all categories
+    Route::get('/shop-categories/{id}', [ShopCategoryController::class, 'show']);      // View single category
 
     // GET /api/livestreams
     Route::get('livestreams', [LivestreamController::class, 'index'])->name('livestreams.index');
