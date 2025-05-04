@@ -24,11 +24,11 @@ return new class extends Migration
             $table->string('cover_image')->nullable();
             $table->string('pickup_location')->nullable();
             $table->string('address')->nullable();
-            $table->string('contact_number ')->nullable();
+            $table->string('contact_number')->nullable();
             $table->string('description')->nullable();
             $table->boolean('payment_bkash')->default(false);
             $table->boolean('payment_nagad')->default(false);
-            $table->string('payment_number ')->nullable();
+            $table->string('payment_number')->nullable();
             $table->string('role')->default('user');
             $table->string('status')->nullable();
             $table->unsignedInteger('order_count')->nullable();

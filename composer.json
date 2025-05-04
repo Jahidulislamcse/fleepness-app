@@ -21,6 +21,7 @@
         "spatie/laravel-data": "^4.15",
         "spatie/laravel-medialibrary": "^11.12",
         "spatie/laravel-model-status": "^1.18",
+        "spatie/laravel-permission": "^6.17",
         "spatie/laravel-query-builder": "^6.3"
     },
     "require-dev": {
