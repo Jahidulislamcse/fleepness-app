@@ -19,7 +19,7 @@ class TagController extends Controller
     {
         $tags = Category::whereNotNull('parent_id')
             ->inRandomOrder()
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'profile_img', 'cover_img']);
 
         return response()->json($tags);
     }

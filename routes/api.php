@@ -27,11 +27,6 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\Vendor\VendorProductController;
 
-// Route::get('/livestreams/{livestream:id}', function (Livestream $livestream) {
-//     dd($livestream);
-//     return $livestream;
-// });
-
 RateLimiter::for('api', function (Request $request) {
     return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
 });
@@ -50,7 +45,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::post('/resend-otp', [OTPAuthController::class, 'resendOtp']);    //Resending OTP
     Route::post('/seller/register', [UserController::class, 'application']);    //Seller registration
     Route::middleware('auth:sanctum')->post('/seller/application', [UserController::class, 'applyForSeller']); //Regular user to seller application
-    Route::post('/     ', [AuthenticatedSessionController::class, 'storeapi']); //Login to the system
+    Route::post('/', [AuthenticatedSessionController::class, 'storeapi']); //Login to the system
 
     //Logout from the system
     Route::middleware('auth:sanctum')->post('/logout', [AuthenticatedSessionController::class, 'destroyapi']);
@@ -60,7 +55,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::get('/seller/status', [UserController::class, 'checkStatus']);
 
         //Checking Seller profile info, specially role for determining UI
-        Route::get('/user/profile', [UserController::class, 'checkProfile']);
+        Route::get('/me/role', [UserController::class, 'checkProfile']);
         Route::get('/notifications', [NotificationController::class, 'getNotifications']);  //fetching Notifications
         Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead']);  //Marking a notification as read
 
