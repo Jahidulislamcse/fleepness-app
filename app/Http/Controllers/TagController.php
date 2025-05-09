@@ -15,6 +15,12 @@ class TagController extends Controller
         return response()->json($tags);
     }
 
+        public function getTagInfo(Request $request, $id)
+    {
+        $tag = Category::findOrFail($id);
+        return response()->json($tag);
+    }
+
     public function getTagsRandom(Request $request)
     {
         $tags = Category::whereNotNull('parent_id')
