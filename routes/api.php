@@ -100,6 +100,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('/get-categories', [CategoryController::class, 'getCategories'])->name('get.categories');
     Route::get('/get-random-tags', [TagController::class, 'getTagsRandom'])->name('get.random.tags');
     Route::get('/get-tag-info/{id}', [TagController::class, 'getTagInfo'])->name('get.tag.info');
+    Route::get('/get-product-by-tag/{id}', [TagController::class, 'getProductByTag'])->name('get.product.by.tag');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/size-template/create', [SizeTemplateController::class, 'store']);              // Create a size template
