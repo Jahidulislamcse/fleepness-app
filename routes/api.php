@@ -25,6 +25,7 @@ use App\Http\Controllers\user\UserSearchController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\user\UserProfileController;
 use App\Http\Controllers\Vendor\VendorProductController;
 
 RateLimiter::for('api', function (Request $request) {
@@ -51,6 +52,8 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::middleware('auth:sanctum')->post('/logout', [AuthenticatedSessionController::class, 'destroyapi']);
 
     Route::middleware(['auth:sanctum'])->group(function () {
+        Route::get('/user/profile', [UserProfileController::class, 'show']); // Show user profile
+        Route::post('/seller/profile', [UserProfileController::class, 'update']); // Update user profile
         //Checking seller approval status for determining UI
         Route::get('/seller/status', [UserController::class, 'checkStatus']);
 

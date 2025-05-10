@@ -105,6 +105,7 @@ class OTPAuthController extends Controller
 
         // Generate a new OTP
         $otp = rand(1000, 9999);
+        // dd($otp);
 
         // Store the new OTP in cache
         Cache::put('register_otp_' . $user->id, $otp, now()->addMinutes(10));
@@ -118,6 +119,7 @@ class OTPAuthController extends Controller
 
         return response()->json([
             'message' => 'New OTP sent to your phone_number.',
+            'otp' => $otp,
         ]);
     }
 }
