@@ -31,7 +31,7 @@ class UserProfileController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request)
+    public function updateSeller(Request $request)
     {
 
         $user = Auth::user(); // Get the logged-in user
@@ -86,6 +86,30 @@ class UserProfileController extends Controller
             // Update the user's cover_image field
             $validatedData['cover_image'] = 'upload/user/' . $name_gen;
         }
+
+        // Update the user's profile
+        $user->update($validatedData);
+
+        // Return success response
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully',
+            'user' => $user
+        ]);
+    }
+    public function updateUser(Request $request)
+    {
+
+        $user = Auth::user(); // Get the logged-in user
+
+        // Validate the input
+        $validatedData = $request->validate([
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
+            'phone_number' => 'nullable|string|max:15',
+            'address' => 'nullable|string',
+            'contact_number' => 'nullable|string|max:15',
+        ]);
 
         // Update the user's profile
         $user->update($validatedData);
