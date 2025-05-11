@@ -16,7 +16,6 @@ class AdminSettingController extends Controller
         return view('admin.settings', $data);
     }
 
-
     public function Update(Request $request)
     {
         $request->validate([
@@ -24,13 +23,13 @@ class AdminSettingController extends Controller
             'address' => 'required',
             'phone' => 'required|max:15',
             'email' => 'required|email',
-
             'footer_copyright_by' => 'required',
             'footer_copyright_url' => 'required',
             // 'shipping_charge' => 'required',
         ]);
 
         $data = Setting::first();
+
         // Logo
         if ($request->hasFile('logo')) {
             $request->validate([
@@ -40,13 +39,13 @@ class AdminSettingController extends Controller
                 unlink(public_path($data->logo));
             }
             $photo = $request->file('logo');
-            $manager = new ImageManager();
-                $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-                $img = $manager->make($photo);
-                $img->fit(670, 720);
-                $img->encode('jpg', 80)->save(public_path('upload/setting/' . $name_gen));
-                $photo_url = 'upload/setting/' . $name_gen;
-            $data->logo = $photo_url;
+            $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
+            $folder = 'upload/setting/';
+            if (!file_exists(public_path($folder))) {
+                mkdir(public_path($folder), 0777, true);
+            }
+            $photo->move(public_path($folder), $name_gen);
+            $data->logo = $folder . $name_gen;
         }
 
         // Footer Logo
@@ -58,14 +57,13 @@ class AdminSettingController extends Controller
                 unlink(public_path($data->footer_logo));
             }
             $photo = $request->file('footer_logo');
-            $manager = new ImageManager();
-              $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-              $img = $manager->make($photo);
-              $img->fit(670, 720);
-              $img->encode('jpg', 80)->save(public_path('upload/setting/' . $name_gen));
-              $photo_url = 'upload/setting/' . $name_gen;
-
-            $data->footer_logo = $photo_url;
+            $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
+            $folder = 'upload/setting/';
+            if (!file_exists(public_path($folder))) {
+                mkdir(public_path($folder), 0777, true);
+            }
+            $photo->move(public_path($folder), $name_gen);
+            $data->footer_logo = $folder . $name_gen;
         }
 
         // Favicon
@@ -76,19 +74,17 @@ class AdminSettingController extends Controller
             if (file_exists($data->favicon)) {
                 unlink(public_path($data->favicon));
             }
-
             $photo = $request->file('favicon');
-            $manager = new ImageManager();
-              $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-              $img = $manager->make($photo);
-              $img->fit(670, 720);
-              $img->encode('jpg', 80)->save(public_path('upload/setting/' . $name_gen));
-              $photo_url = 'upload/setting/' . $name_gen;
-
-            $data->favicon = $photo_url;
+            $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
+            $folder = 'upload/setting/';
+            if (!file_exists(public_path($folder))) {
+                mkdir(public_path($folder), 0777, true);
+            }
+            $photo->move(public_path($folder), $name_gen);
+            $data->favicon = $folder . $name_gen;
         }
 
-        // Favicon
+        // Footer Background Image
         if ($request->hasFile('footer_bg_image')) {
             $request->validate([
                 'footer_bg_image' => 'image|mimes:jpeg,JPG,jpg,png,gif,svg,webp,bmp|max:2048',
@@ -96,18 +92,17 @@ class AdminSettingController extends Controller
             if (file_exists($data->footer_bg_image)) {
                 unlink(public_path($data->footer_bg_image));
             }
-
             $photo = $request->file('footer_bg_image');
-            $manager = new ImageManager();
-              $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-              $img = $manager->make($photo);
-              $img->fit(670, 720);
-              $img->encode('jpg', 80)->save(public_path('upload/setting/' . $name_gen));
-              $photo_url = 'upload/setting/' . $name_gen;
-
-            $data->footer_bg_image = $photo_url;
+            $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
+            $folder = 'upload/setting/';
+            if (!file_exists(public_path($folder))) {
+                mkdir(public_path($folder), 0777, true);
+            }
+            $photo->move(public_path($folder), $name_gen);
+            $data->footer_bg_image = $folder . $name_gen;
         }
 
+        // Update other settings fields
         $data->title = $request->title;
         $data->address = $request->address;
         $data->phone = $request->phone;
@@ -121,7 +116,10 @@ class AdminSettingController extends Controller
         // $data->TC = $request->TC;
         // $data->about_us = $request->about_us;
 
+        // Update the setting in the database
         $data->update();
+
+        // Return success notification
         $notification = array(
             'message' => 'Updated Successfully',
             'alert-type' => 'success'

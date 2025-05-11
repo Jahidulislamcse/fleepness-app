@@ -115,10 +115,6 @@
                         <div class="row mb-3">
                             <div class="col-sm-3">
                             </div>
-                            <div class="col-sm-9 text-secondary">
-                                <img id="footer_bg_image" src="{{ asset($setting->footer_bg_image) }}" alt="footer_bg_image"
-                                    style="width: 100px;">
-                            </div>
                         </div>
                         {{-- End footer_bg_image --}}
 

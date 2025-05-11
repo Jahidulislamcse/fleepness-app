@@ -110,10 +110,8 @@ class VendorProductController extends Controller
                     'vendor_id' => auth()->id(),
                 ]);
 
-                $existingTags = $sellerTag->tags ?? []; // old tags (casted to array)
-                $mergedTags = array_unique(array_merge($existingTags, $request->tags));
-
-                $sellerTag->tags = $mergedTags;
+                // Simply store the tags without removing duplicates
+                $sellerTag->tags = array_merge($sellerTag->tags ?? [], $request->tags);
                 $sellerTag->save();
             }
 
@@ -211,10 +209,8 @@ class VendorProductController extends Controller
                     'vendor_id' => auth()->id(),
                 ]);
 
-                $existingTags = $sellerTag->tags ?? []; // old tags (casted to array)
-                $mergedTags = array_unique(array_merge($existingTags, $request->tags));
-
-                $sellerTag->tags = $mergedTags;
+                // Simply store the tags without removing duplicates
+                $sellerTag->tags = array_merge($sellerTag->tags ?? [], $request->tags);
                 $sellerTag->save();
             }
 

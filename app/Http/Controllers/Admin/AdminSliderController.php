@@ -30,6 +30,17 @@ class AdminSliderController extends Controller
         return response()->json($tags);
     }
 
+    public function getAllSliders()
+    {
+        // Fetch all sliders
+        $sliders = Slider::all();
+
+        // Return the sliders as a JSON response
+        return response()->json([
+            'sliders' => $sliders
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -46,29 +57,36 @@ class AdminSliderController extends Controller
      */
     public function store(Request $request)
     {
-
         $data = new Slider();
+
+        // Validate the image upload
         if ($request->file('photo')) {
             $request->validate(
                 [
-                    'photo' => 'required|image|mimes:jpeg,JPG,jpg,png,gif,svg,webp,bmp',
+                    'photo' => 'required|image|mimes:jpeg,jpg,png,gif,svg,webp,bmp',
                 ]
             );
-            $manager = new ImageManager();
-            $name_gen = hexdec(uniqid()) . '.' . $request->file('photo')->getClientOriginalExtension();
-            $img = $manager->make($request->file('photo'));
-            $img->fit(1920, 1280);
 
+            // Generate a unique name for the image file
+            $name_gen = hexdec(uniqid()) . '.' . $request->file('photo')->getClientOriginalExtension();
+
+            // Define the folder path where the image will be stored
             $folder = 'slider/';
+
+            // Check if the folder exists, if not create it
             if (!file_exists(public_path('upload/' . $folder))) {
                 mkdir(public_path('upload/' . $folder), 0777, true);
             }
-            $img->encode('jpg', 80)->save(public_path('upload/' . $folder . $name_gen));
-            $save_url = 'upload/' . $folder . $name_gen;
 
+            // Move the uploaded file to the folder
+            $request->file('photo')->move(public_path('upload/' . $folder), $name_gen);
+
+            // Set the file path to the slider's photo field
+            $save_url = 'upload/' . $folder . $name_gen;
             $data->photo = $save_url;
         }
 
+        // Save other fields from the request
         $data->photo_alt = $request->photo_alt;
         $data->title = $request->title;
         $data->category_id = $request->category_id;
@@ -77,15 +95,19 @@ class AdminSliderController extends Controller
         $data->btn_name = $request->btn_name;
         $data->btn_url = $request->btn_url;
 
+        // Save the data to the database
         $data->save();
 
-
+        // Notification message
         $notification = array(
             'message' => 'Data Saved Successfully',
             'alert-type' => 'success'
         );
+
+        // Redirect back with the success message
         return redirect()->back()->with($notification);
     }
+
 
     /**
      * Display the specified resource.
@@ -118,35 +140,43 @@ class AdminSliderController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $data = Slider::find($id);
 
-        $data =  Slider::find($id);
-
+        // Validate the uploaded photo
         if ($request->file('photo')) {
             $request->validate(
                 [
                     'photo' => 'required|image|mimes:jpeg,JPG,jpg,png,gif,svg,webp,bmp',
                 ]
             );
-            if (file_exists($data->photo)) {
+
+            // Delete the old photo if it exists
+            if (file_exists(public_path($data->photo))) {
                 unlink(public_path($data->photo));
             }
-            $manager = new ImageManager();
+
+            // Generate a unique file name for the new photo
             $name_gen = hexdec(uniqid()) . '.' . $request->file('photo')->getClientOriginalExtension();
-            $img = $manager->make($request->file('photo'));
-            $img->fit(1200, 630);
 
-
+            // Define the folder path where the image will be stored
             $folder = 'slider/';
+
+            // Check if the folder exists, if not, create it
             if (!file_exists(public_path('upload/' . $folder))) {
                 mkdir(public_path('upload/' . $folder), 0777, true);
             }
 
-            $img->encode('jpg', 80)->save(public_path('upload/' . $folder . $name_gen));
+            // Move the uploaded photo to the folder
+            $request->file('photo')->move(public_path('upload/' . $folder), $name_gen);
+
+            // Set the file path to the slider's photo field
             $save_url = 'upload/' . $folder . $name_gen;
 
+            // Assign the new photo URL to the model's `photo` attribute
             $data->photo = $save_url;
         }
 
+        // Update other slider fields
         $data->photo_alt = $request->photo_alt;
         $data->title = $request->title;
         $data->category_id = $request->edit_category_id;
@@ -155,16 +185,17 @@ class AdminSliderController extends Controller
         $data->btn_name = $request->btn_name;
         $data->btn_url = $request->btn_url;
 
-
-
+        // Save the updated data
         $data->update();
 
+        // Return success notification
         $notification = array(
             'message' => 'Updated Successfully',
             'alert-type' => 'success'
         );
         return redirect()->back()->with($notification);
     }
+
 
     /**
      * Remove the specified resource from storage.

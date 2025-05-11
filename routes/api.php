@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminSliderController;
 use App\Models\Livestream;
 use App\Http\Controllers\Admin\ShopCategoryController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -77,6 +78,9 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
 
     Route::get('/search/product', [UserProductController::class, 'search']); //Searching a product
     Route::get('/search', [UserSearchController::class, 'search']); //Searching by seller/tag
+    Route::get('user/{userId}/tags/most-used', [TagController::class, 'getMostUsedTags']);
+    Route::get('sliders', [AdminSliderController::class, 'getAllSliders']);
+
 
     Route::get('/vendorlist ', [UserVendorController::class, 'vendorlist']);            //Show all sellers in list form
     Route::get('/vendorlist/{vendor} ', [UserVendorController::class, 'vendorData']);   //Show a particular seller data
