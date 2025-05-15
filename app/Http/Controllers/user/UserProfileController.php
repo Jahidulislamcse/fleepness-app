@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\PaymentMethod;
+
 
 class UserProfileController extends Controller
 {
@@ -49,10 +51,29 @@ class UserProfileController extends Controller
             'address' => 'nullable|string',
             'contact_number' => 'nullable|string|max:15',
             'description' => 'nullable|string',
-            'payment_bkash' => 'nullable|boolean',
-            'payment_nagad' => 'nullable|boolean',
-            'payment_number' => 'nullable|string|max:20',
+            'payments' => 'nullable|array',
+            'payments.*' => 'nullable|string|max:20',
         ]);
+
+        
+        // Handle payment methods update:
+        if (!empty($validatedData['payments'])) {
+            // Delete existing payment methods to avoid duplicates
+            $user->payments()->delete();
+
+            // Add new payment methods
+            foreach ($validatedData['payments'] as $method => $number) {
+                if ($number) {
+                    $user->payments()->create([
+                        'user_id' => $user->id,
+                        'payment_method_id' => ucfirst($method),
+                        'account_number' => $number,
+                    ]);
+                }
+            }
+        }
+
+        unset($validatedData['payments']);
 
         // Handle file uploads if any
         if ($request->hasFile('banner_image')) {

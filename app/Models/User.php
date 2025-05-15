@@ -60,4 +60,9 @@ class User extends Authenticatable
         return $this->belongsTo(ShopCategory::class, 'shop_category');
         // 'shop_category' is the foreign key in users table
     }
+
+    public function payments()
+    {
+        return $this->hasMany(UserPayment::class);
+    }
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\Vendor\ProductController;
+use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Vendor\VendorDashboardController;
@@ -139,6 +140,13 @@ Route::middleware('role:admin')->group(function () {
         Route::get('/payment/requests', [PaymentController::class, 'PaymentRequests'])->name('payment.requests');
         Route::get('/payment/history', [PaymentController::class, 'AdminPaymentHistory'])->name('payment.history');
         Route::put('/payment/update/{bill}', [PaymentController::class, 'update'])->name('payment.update');
+
+        Route::get('payment-methods', [PaymentMethodController::class, 'index'])->name('payment-methods.index');
+        Route::get('payment-methods/create', [PaymentMethodController::class, 'create'])->name('payment-methods.create');
+        Route::post('payment-methods', [PaymentMethodController::class, 'store'])->name('payment-methods.store');
+        Route::get('payment-methods/{id}/edit', [PaymentMethodController::class, 'edit'])->name('payment-methods.edit');
+        Route::put('payment-methods/{id}', [PaymentMethodController::class, 'update'])->name('payment-methods.update');
+        Route::delete('payment-methods/{id}', [PaymentMethodController::class, 'destroy'])->name('payment-methods.destroy');
     });
 });
 

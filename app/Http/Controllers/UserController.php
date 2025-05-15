@@ -6,7 +6,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\SMSService;
 use App\Events\SellerStatusUpdated;
+use App\Models\PaymentMethod;
 use Carbon\Carbon;
+use App\Models\UserPayment;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -62,9 +64,8 @@ class UserController extends Controller
             'shop_name' => 'required|string|max:255',
             'shop_category' => 'nullable|exists:shop_categories,id',
             'contact_number' => 'required|string|max:20',
-            'payment_bkash' => 'nullable|boolean',
-            'payment_nagad' => 'nullable|boolean',
-            'payment_number' => 'nullable|string|max:20',
+            'payments' => 'nullable|array', // this should be like ['payment_method_id' => 'account_number', ...]
+            'payments.*' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
             'pickup_location' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:255',
@@ -84,15 +85,25 @@ class UserController extends Controller
             'shop_name' => $request->shop_name,
             'shop_category' => $request->shop_category,
             'contact_number' => $request->contact_number,
-            'payment_bkash' => $request->boolean('payment_bkash'),
-            'payment_nagad' => $request->boolean('payment_nagad'),
-            'payment_number' => $request->payment_number,
             'address' => $request->address,
             'pickup_location' => $request->pickup_location,
             'description' => $request->description,
             'status' => 'pending', // pending admin approval
         ]);
 
+        // Store user payment methods
+        if (!empty($validated['payments'])) {
+            foreach ($validated['payments'] as $payment_method_id => $account_number) {
+                if ($account_number) {
+                    UserPayment::create([
+                        'user_id' => $user->id,
+                        'payment_method_id' => $payment_method_id,
+                        'account_number' => $account_number,
+                    ]);
+                }
+            }
+        }
+        
         // Handle banner image
         if ($request->hasFile('banner_image')) {
             $banner_image = $request->file('banner_image');
@@ -138,13 +149,12 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'shop_name' => 'required|string|max:255',
-            'shop_category' => 'nullable|exists:shop_categories,id',
+            'shop_category' => 'nullable',
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|string|max:20|unique:users,phone_number',
             'contact_number' => 'required|string|max:20',
-            'payment_bkash' => 'nullable|boolean',
-            'payment_nagad' => 'nullable|boolean',
-            'payment_number' => 'nullable|string|max:20',
+            'payments' => 'nullable|array', // this should be like ['payment_method_id' => 'account_number', ...]
+            'payments.*' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:255',
             'pickup_location' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:255',
@@ -165,9 +175,6 @@ class UserController extends Controller
             'shop_name' => $validated['shop_name'],
             'shop_category' => $validated['shop_category'] ?? null,
             'contact_number' => $validated['contact_number'],
-            'payment_bkash' => $request->boolean('payment_bkash'),
-            'payment_nagad' => $request->boolean('payment_nagad'),
-            'payment_number' => $validated['payment_number'] ?? null,
             'pickup_location' => $validated['pickup_location'] ?? null,
             'description' => $validated['description'] ?? null,
             'email' => $validated['email'],
@@ -179,6 +186,18 @@ class UserController extends Controller
             'otp_expires_at' => $otp_expiry,
         ]);
 
+        // Store user payment methods
+        if (!empty($validated['payments'])) {
+            foreach ($validated['payments'] as $payment_method_id => $account_number) {
+                if ($account_number) {
+                    UserPayment::create([
+                        'user_id' => $user->id,
+                        'payment_method_id' => $payment_method_id,
+                        'account_number' => $account_number,
+                    ]);
+                }
+            }
+        }
 
         // Save single image after user is created
         if ($request->hasFile('banner_image')) {

@@ -19,7 +19,7 @@ class OTPAuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|digits_between:10,15|unique:users',
-            'name' => 'required|string|max:255',
+            'name' => 'nullable|string|max:255',
             // 'password' => 'required|min:6', // If needed later
         ]);
 
