@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\PaymentMethod;
-
+use App\Models\UserPayment;
 
 class UserProfileController extends Controller
 {
@@ -55,7 +55,7 @@ class UserProfileController extends Controller
             'payments.*' => 'nullable|string|max:20',
         ]);
 
-        
+
         // Handle payment methods update:
         if (!empty($validatedData['payments'])) {
             // Delete existing payment methods to avoid duplicates
@@ -118,6 +118,47 @@ class UserProfileController extends Controller
             'user' => $user
         ]);
     }
+
+    public function getPaymentAccounts()
+    {
+        $user = auth()->user()->load('payments.paymentMethod');
+        return response()->json([
+            'payments' => $user->payments,
+        ]);
+    }
+
+    public function updatePaymentAccounts(Request $request)
+    {
+        // Validate input
+        $validated = $request->validate([
+            'payments' => 'required|array', // e.g. ['payment_method_id' => 'account_number', ...]
+            'payments.*' => 'nullable|string|max:20',
+        ]);
+
+        // Get authenticated user
+        $user = auth()->user();
+
+        // Delete old payment accounts
+        UserPayment::where('user_id', $user->id)->delete();
+
+        // Insert updated payment accounts
+        foreach ($validated['payments'] as $payment_method_id => $account_number) {
+            if ($account_number) {
+                UserPayment::create([
+                    'user_id' => $user->id,
+                    'payment_method_id' => $payment_method_id,
+                    'account_number' => $account_number,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Payment accounts updated successfully',
+            'payments' => $user->payments()->get(), // Return updated payment accounts
+        ]);
+    }
+
+
     public function updateUser(Request $request)
     {
 

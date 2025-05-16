@@ -56,6 +56,8 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::get('/user/profile', [UserProfileController::class, 'show']); // Show user profile
         Route::post('/seller/profile', [UserProfileController::class, 'updateSeller']); // Update Seller profile
         Route::post('/user/profile', [UserProfileController::class, 'updateUser']); // Update user profile
+        Route::post('/my/payments', [UserProfileController::class, 'updatePaymentAccounts']);
+        Route::get('/my/payments', [UserProfileController::class, 'getPaymentAccounts']);
 
         //Checking seller approval status for determining UI
         Route::get('/seller/status', [UserController::class, 'checkStatus']);

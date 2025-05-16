@@ -132,7 +132,12 @@
                                     <span class="sub-item">Sliders</span>
                                 </a>
                             </li>
-                        </ul>
+                            <li class="">
+                                <a href="{{ route('admin.payment-methods.index') }}">
+                                    <span class="sub-item">Payment methods</span>
+                                </a>
+                            </li>
+                        </ul> 
                     </div>
                 </li>
             </ul>
