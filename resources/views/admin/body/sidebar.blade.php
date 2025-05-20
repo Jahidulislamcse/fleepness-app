@@ -137,7 +137,12 @@
                                     <span class="sub-item">Payment methods</span>
                                 </a>
                             </li>
-                        </ul> 
+                            <li class="">
+                                <a href="{{ route('admin.delivery.models.index') }}">
+                                    <span class="sub-item">Delivery Models</span>
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                 </li>
             </ul>

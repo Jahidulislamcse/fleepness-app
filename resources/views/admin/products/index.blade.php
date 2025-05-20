@@ -204,7 +204,8 @@
                                 <th>Photo</th>
                                 <th>Name</th>
                                 <th>Category</th>
-                                <th>Price</th>
+                                <th>Selling Price</th>
+                                <th>Discount Price</th>
                                 <th>Quantity</th>
                                 <th>Status</th>
                                 <th>Admin Approval</th>
@@ -231,7 +232,8 @@
                                 <td>{{ $product->name }}</td>
                                 <td>{{ optional($product->category)->name ?? 'No Category' }}</td>
                                 <td>{{ $product->selling_price }}</td>
-                                <td>{{ $countQty }}</td>
+                                <td>{{ $product->discount_price }}</td>
+                                <td>{{ $product->quantity }}</td>
                                 <td>{{ $product->status }}</td>
                                 <td>{{ $product->admin_approval }}</td>
                                 <td style="display: flex;gap:5px ">

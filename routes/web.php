@@ -18,6 +18,7 @@ use App\Http\Controllers\Vendor\VendorOrderController;
 use App\Http\Controllers\Vendor\VendorProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\SocialLoginController;
+use App\Http\Controllers\DeliveryModelController;
 use App\Http\Controllers\Vendor\VendorShortVideoController;
 use Illuminate\Support\Facades\Storage;
 
@@ -149,6 +150,17 @@ Route::middleware('role:admin')->group(function () {
         Route::delete('payment-methods/{id}', [PaymentMethodController::class, 'destroy'])->name('payment-methods.destroy');
     });
 });
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+    Route::get('/delivery/models', [DeliveryModelController::class, 'index'])->name('admin.delivery.models.index');
+    Route::get('/delivery/models/create', [DeliveryModelController::class, 'create'])->name('admin.delivery.models.create');
+    Route::post('/delivery/models', [DeliveryModelController::class, 'store'])->name('admin.delivery.models.store');
+    Route::get('/delivery/models/{model}/edit', [DeliveryModelController::class, 'edit'])->name('admin.delivery.models.edit');
+    Route::put('/delivery/models/{model}', [DeliveryModelController::class, 'update'])->name('admin.delivery.models.update');
+    Route::delete('/delivery/models/{model}', [DeliveryModelController::class, 'destroy'])->name('admin.delivery.models.destroy');
+});
+
+
 
 Route::get('/test', function () {
     dd(Storage::disk('s3')->files());

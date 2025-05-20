@@ -48,6 +48,17 @@ class Product extends Model
     {
         return $this->belongsToMany(Livestream::class)->withTimestamps();
     }
+    public function firstImage()
+    {
+        return $this->hasOne(ProductImage::class)->oldestOfMany();
+    }
+
+    public function getImageUrlAttribute()
+    {
+        return $this->firstImage ? asset($this->firstImage->path) : null;
+    }
+
+
 
 
     // Automatically set the slug attribute

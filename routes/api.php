@@ -28,6 +28,9 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\user\UserProfileController;
 use App\Http\Controllers\Vendor\VendorProductController;
+use App\Http\Controllers\user\CartController;
+use App\Http\Controllers\user\AddressController;
+use App\Http\Controllers\DeliveryModelController;
 
 RateLimiter::for('api', function (Request $request) {
     return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
@@ -138,16 +141,25 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('/shop-categories', [ShopCategoryController::class, 'index']);          // List all categories
     Route::get('/shop-categories/{id}', [ShopCategoryController::class, 'show']);      // View single category
 
-    // GET /api/livestreams
+    // Cart Routes (Auth Required)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/cart', [CartController::class, 'addOrUpdate']);
+        Route::get('/cart', [CartController::class, 'index']);
+        Route::delete('/cart/{item}', [CartController::class, 'destroy']);
+        Route::get('/cart/summary', [CartController::class, 'summary']);
+
+        // Addresses
+        Route::post('/addresses', [AddressController::class, 'store']);
+        Route::get('/addresses', [AddressController::class, 'index']);
+        Route::put('/addresses/{address}', [AddressController::class, 'update']);
+
+        // Delivery options for users
+        Route::get('/delivery/models', [DeliveryModelController::class, 'userIndex']);
+    });
+
     Route::get('livestreams', [LivestreamController::class, 'index'])->name('livestreams.index');
-
-    // GET /api/livestreams/{livestream}
     Route::get('livestreams/{livestream}', [LivestreamController::class, 'show'])->name('livestreams.show');
-
-    // POST /api/livestreams
     Route::post('livestreams', [LivestreamController::class, 'store'])->name('livestreams.store');
-
-    // PUT/PATCH /api/livestreams/{livestream}
     Route::match(['put', 'patch'], 'livestreams/{livestream}', [LivestreamController::class, 'update'])->name('livestreams.update');
 
     Route::get('livestreams/{livestream}/publisher-token', GetLivestreamPublisherTokenController::class)
