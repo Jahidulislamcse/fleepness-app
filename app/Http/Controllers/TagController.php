@@ -19,21 +19,23 @@ class TagController extends Controller
     public function getProductByTag($id)
     {
         try {
-            // Fetch products where the tag ID is in the 'tags' JSON column
-            $products = Product::whereJsonContains('tags', $id)->get();
+            $products = Product::all()->filter(function ($product) use ($id) {
+                $tags = json_decode($product->tags, true) ?: [];
+                return in_array($id, $tags);
+            })->values();
 
-            // Return response as JSON or normal view depending on request
-                return response()->json([
-                    'success' => true,
-                    'products' => $products
-                ]);
+            return response()->json([
+                'success' => true,
+                'products' => $products,
+            ]);
         } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $e->getMessage()
-                ], 500);
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
+
 
     public function getMostUsedTags($userId)
     {

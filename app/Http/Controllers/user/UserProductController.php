@@ -37,6 +37,17 @@ class UserProductController extends Controller
         ]);
     }
 
+    public function getProductByTag($tag)
+    {
+        $products = Product::where('tags', 'LIKE', '%"' . $tag . '"%')->get();
+
+        return response()->json([
+            'success' => true,
+            'tag' => $tag,
+            'products' => $products,
+        ]);
+    }
+
     public function getProductsByPriceRange(Request $request, $vendor)
     {
         // Get minPrice and maxPrice from query parameters

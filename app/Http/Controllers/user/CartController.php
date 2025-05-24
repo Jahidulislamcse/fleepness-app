@@ -13,12 +13,13 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class CartController extends Controller
 {
     use AuthorizesRequests;
+
     public function addOrUpdate(Request $request)
     {
-        // dd($request->all());
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer',
+            'size_id' => 'nullable|exists:size_template_items,id', 
         ]);
 
         $user = Auth::user();
@@ -32,16 +33,25 @@ class CartController extends Controller
             return response()->json(['message' => 'Quantity exceeds available stock.'], 400);
         }
 
+        // Add size_id to the unique constraint for updateOrCreate to handle different sizes separately
         $cartItem = CartItem::updateOrCreate(
-            ['user_id' => $user->id, 'product_id' => $product->id],
-            ['quantity' => $request->quantity]
+            [
+                'user_id' => $user->id,
+                'product_id' => $product->id,
+                'size_id' => $request->size_id,
+            ],
+            [
+                'quantity' => $request->quantity,
+                'selected' => true,
+            ]
         );
 
         return response()->json([
-            'message' => 'Cart item created',
+            'message' => 'Cart item created or updated',
             'cart_item' => [
                 'id' => $cartItem->id,
                 'product_id' => $cartItem->product_id,
+                'size_id' => $cartItem->size_id,
                 'quantity' => $cartItem->quantity,
             ]
         ]);
@@ -50,7 +60,9 @@ class CartController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $cartItems = CartItem::with('product.firstImage')->where('user_id', $user->id)->get();
+
+        // Load size relationship
+        $cartItems = CartItem::with(['product.firstImage', 'size'])->where('user_id', $user->id)->get();
 
         return response()->json([
             'cart_items' => $cartItems->map(function ($item) {
@@ -63,19 +75,20 @@ class CartController extends Controller
                         'image_url' => $item->product->image_url,
                         'description' => $item->product->short_description,
                     ],
+                    'size' => $item->size ? [
+                        'id' => $item->size->id,
+                        // add other size fields as needed
+                        'name' => $item->size->name ?? null,
+                    ] : null,
                     'quantity' => $item->quantity,
                 ];
             }),
         ]);
     }
 
-
-
-
     public function destroy($id)
     {
         $authUserId = Auth::id();
-        // dd($item->user_id);
         $item = CartItem::findOrFail($id);
         if ($authUserId !== $item->user_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
@@ -85,7 +98,6 @@ class CartController extends Controller
 
         return response()->json(['message' => 'Item removed from cart']);
     }
-
 
     public function summary(Request $request)
     {

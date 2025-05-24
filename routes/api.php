@@ -31,6 +31,7 @@ use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\user\CartController;
 use App\Http\Controllers\user\AddressController;
 use App\Http\Controllers\DeliveryModelController;
+use App\Http\Controllers\Vendor\VendorShortVideoController;
 
 RateLimiter::for('api', function (Request $request) {
     return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
@@ -128,7 +129,15 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
             Route::post('/products/{id}', [VendorProductController::class, 'update']);              //Update Product
             Route::post('/products/soft-delete/{id}', [VendorProductController::class, 'destroy']); //Soft Deleting a product
             Route::post('/products/inactive/{id}', [VendorProductController::class, 'inactive']);   //Inactivating a product
-            Route::post('/products/active/{id}', [VendorProductController::class, 'active']);       //Activating a product
+            Route::post('/products/active/{id}', [VendorProductController::class, 'active']);
+
+            Route::prefix('short-videos')->group(function () {
+                Route::get('/', [VendorShortVideoController::class, 'index_api']);
+                Route::post('/', [VendorShortVideoController::class, 'store_api']);
+                Route::get('/{id}', [VendorShortVideoController::class, 'show_api']);
+                Route::post('/{id}', [VendorShortVideoController::class, 'update_api']);
+                Route::delete('/{id}', [VendorShortVideoController::class, 'destroy_api']);
+            });
         });
 
         Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
