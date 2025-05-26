@@ -103,6 +103,7 @@ class Livestream extends Model implements HasMedia
 
     public function startRecording()
     {
+        // dd($this->getRoomName());
         $this->started_at = now();
         $egress = FacadesLivestream::startRecording($this->getRoomName(), $this->getEncodedFileOutputName());
         $this->fill([

@@ -20,7 +20,6 @@ class GetLivestreamSubscriberTokenController extends Controller
         $livestream = Livestream::find($livestreamId);
         // $livestream->load('vendor');
         // $this->authorize(GateNames::GET_LIVESTREAM_SUBSCRIBER_TOKEN->value, $livestream);
-
         $userId = auth()->id() ?? 'public';
         $displayName = auth()->user()?->name ?? 'public';
 
@@ -31,7 +30,8 @@ class GetLivestreamSubscriberTokenController extends Controller
             identity: $userId,
             displayName: $displayName,
             isPublic: $userId === 'public',
-            userData: auth()->user() ? UserData::from(auth()->user()) : null
+            metadata: auth()->check() ? auth()->user()->toArray() : []
+
         );
 
         $roomToken = FacadesLivestream::generateSubscriberToken($data);

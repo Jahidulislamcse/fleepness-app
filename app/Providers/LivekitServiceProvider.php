@@ -44,10 +44,12 @@ class LivekitServiceProvider extends ServiceProvider
 
         $this->app->singleton(S3Upload::class, function (Application $app) {
             return tap(new S3Upload)
-                ->setAccessKey(config('filesystems.disks.r2.key'))
-                ->setSecret(config('filesystems.disks.r2.key'))
-                ->setBucket(config('filesystems.disks.r2.bucket'))
-                ->setForcePathStyle(config('filesystems.disks.r2.use_path_style_endpoint'));
+                ->setAccessKey(config('services.livekit.egress.r2.key'))
+                ->setSecret(config('services.livekit.egress.r2.secret'))
+                ->setRegion(config('services.livekit.egress.r2.region'))
+                ->setBucket(config('services.livekit.egress.r2.bucket'))
+                ->setEndpoint(config('services.livekit.egress.r2.endpoint'))
+                ->setForcePathStyle(config('services.livekit.egress.r2.use_path_style_endpoint'));
         });
 
         $this->app->bind(EncodedFileOutput::class, function (Application $app) {

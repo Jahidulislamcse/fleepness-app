@@ -63,10 +63,8 @@ class UserController extends Controller
             'name' => 'nullable|string|max:255',
             'shop_name' => 'required|string|max:255',
             'shop_category' => 'nullable|exists:shop_categories,id',
-            'contact_number' => 'required|string|max:20',
             'payments' => 'nullable|array', // this should be like ['payment_method_id' => 'account_number', ...]
             'payments.*' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
             'pickup_location' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:255',
             'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -84,8 +82,6 @@ class UserController extends Controller
             'name' => $request->name,
             'shop_name' => $request->shop_name,
             'shop_category' => $request->shop_category,
-            'contact_number' => $request->contact_number,
-            'address' => $request->address,
             'pickup_location' => $request->pickup_location,
             'description' => $request->description,
             'status' => 'pending', // pending admin approval
@@ -103,7 +99,7 @@ class UserController extends Controller
                 }
             }
         }
-        
+
         // Handle banner image
         if ($request->hasFile('banner_image')) {
             $banner_image = $request->file('banner_image');
@@ -152,10 +148,8 @@ class UserController extends Controller
             'shop_category' => 'nullable',
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|string|max:20|unique:users,phone_number',
-            'contact_number' => 'required|string|max:20',
             'payments' => 'nullable|array', // this should be like ['payment_method_id' => 'account_number', ...]
             'payments.*' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
             'pickup_location' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:255',
             // 'role' => 'nullable|in:vendor,admin,rider',
@@ -174,12 +168,10 @@ class UserController extends Controller
             'name' => $validated['name'],
             'shop_name' => $validated['shop_name'],
             'shop_category' => $validated['shop_category'] ?? null,
-            'contact_number' => $validated['contact_number'],
             'pickup_location' => $validated['pickup_location'] ?? null,
             'description' => $validated['description'] ?? null,
             'email' => $validated['email'],
             'phone_number' => $validated['phone'],
-            'address' => $validated['address'] ?? null,
             // 'role' => $validated['role'] ?? 'vendor',  // default vendor if role not passed
             'status' => 'pending',
             'otp' => $otp,

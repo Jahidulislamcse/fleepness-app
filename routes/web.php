@@ -163,7 +163,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
 
 Route::get('/test', function () {
-    dd(Storage::disk('s3')->files());
+    dd(Storage::disk('r2')->files());
 })->name('payment.requests');
 
 require __DIR__ . '/auth.php';
