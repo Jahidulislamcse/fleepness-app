@@ -57,7 +57,7 @@ class OTPAuthController extends Controller
     public function verifyOtp(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
+            'phone_number' => 'required|string|exists:users,phone_number',
             'otp' => 'required|digits:4'
         ]);
 
@@ -65,9 +65,15 @@ class OTPAuthController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = User::find($request->user_id);
+        // Find user by phone number
+        $user = User::where('phone_number', $request->phone_number)->first();
 
-        $cachedOtp = Cache::get('register_otp_' . $user->id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        // Get OTP from cache by phone number
+        $cachedOtp = Cache::get('register_otp_' . $user->phone_number);
 
         if (!$cachedOtp) {
             return response()->json(['message' => 'OTP expired.'], 400);
@@ -77,10 +83,10 @@ class OTPAuthController extends Controller
             return response()->json(['message' => 'Invalid OTP.'], 400);
         }
 
-        // OTP verified, remove OTP from cache
-        Cache::forget('register_otp_' . $user->id);
+        // OTP verified, remove from cache
+        Cache::forget('register_otp_' . $user->phone_number);
 
-        // Create and return a token
+        // Create and return token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -88,6 +94,7 @@ class OTPAuthController extends Controller
             'token' => $token,
         ]);
     }
+
 
 
     // Resend OTP
