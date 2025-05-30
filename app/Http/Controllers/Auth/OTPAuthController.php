@@ -38,7 +38,7 @@ class OTPAuthController extends Controller
         $otp = rand(1000, 9999);
 
         // Store OTP in cache with expiry time (e.g., 10 minutes)
-        Cache::put('register_otp_' . $user->id, $otp, now()->addMinutes(10));
+        Cache::put('otp_' . $user->id, $otp, now()->addMinutes(10));
 
         // Send OTP via SMS
         $smsController = new SMSController();
@@ -50,6 +50,7 @@ class OTPAuthController extends Controller
         return response()->json([
             'message' => 'OTP sent to your phone_number.',
             'user_id' => $user->id,
+            'otp' => $otp,
         ]);
     }
 
@@ -65,15 +66,9 @@ class OTPAuthController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Find user by phone number
         $user = User::where('phone_number', $request->phone_number)->first();
 
-        if (!$user) {
-            return response()->json(['message' => 'User not found.'], 404);
-        }
-
-        // Get OTP from cache by phone number
-        $cachedOtp = Cache::get('register_otp_' . $user->phone_number);
+        $cachedOtp = Cache::get('otp_' . $user->id);
 
         if (!$cachedOtp) {
             return response()->json(['message' => 'OTP expired.'], 400);
@@ -83,10 +78,10 @@ class OTPAuthController extends Controller
             return response()->json(['message' => 'Invalid OTP.'], 400);
         }
 
-        // OTP verified, remove from cache
-        Cache::forget('register_otp_' . $user->phone_number);
+        // OTP verified, remove OTP from cache
+        Cache::forget('otp_' . $user->id);
 
-        // Create and return token
+        // Create and return a token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -115,7 +110,7 @@ class OTPAuthController extends Controller
         // dd($otp);
 
         // Store the new OTP in cache
-        Cache::put('register_otp_' . $user->id, $otp, now()->addMinutes(10));
+        Cache::put('otp_' . $user->id, $otp, now()->addMinutes(10));
 
         // Send new OTP via SMS
         $smsController = new SMSController();

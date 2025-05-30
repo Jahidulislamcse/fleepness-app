@@ -43,13 +43,12 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
 
     //Facebook and google authentication callback
     Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
-    Route::post('/register', [OTPAuthController::class, 'register']);   //Otp based registration
-    Route::post('/send-sms', [SMSController::class, 'sendSMS']);     //Sending sms to phone number
-    Route::post('/send-login-otp', [AuthenticatedSessionController::class, 'apiSendOtp']);
-    Route::post('/verify-cache-otp', [AuthenticatedSessionController::class, 'verifyCacheOtp']);    //Verifying OTP
-    Route::post('/verify-otp', [OTPAuthController::class, 'verifyOtp']);    //Verifying OTP
-    Route::post('/resend-otp', [OTPAuthController::class, 'resendOtp']);    //Resending OTP
-    Route::post('/seller/register', [UserController::class, 'application']);    //Seller registration
+    Route::post('/register', [OTPAuthController::class, 'register']);   //Otp based registration 1
+    Route::post('/send-sms', [SMSController::class, 'sendSMS']);     //Sending sms to phone number 1
+    Route::post('/send-login-otp', [AuthenticatedSessionController::class, 'apiSendOtp']); //
+    Route::post('/verify-otp', [OTPAuthController::class, 'verifyOtp']);    //Verifying OTP 1
+    Route::post('/resend-otp', [OTPAuthController::class, 'resendOtp']);    //Resending OTP 1
+    Route::post('/seller/register', [UserController::class, 'application']);    //Seller registration 1
     Route::middleware('auth:sanctum')->post('/seller/application', [UserController::class, 'applyForSeller']); //Regular user to seller application
     Route::post('/', [AuthenticatedSessionController::class, 'storeapi']); //Login to the system
 

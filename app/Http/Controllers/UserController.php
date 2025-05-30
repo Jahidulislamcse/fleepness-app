@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\SMSService;
 use App\Events\SellerStatusUpdated;
 use App\Models\PaymentMethod;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use App\Models\UserPayment;
 use Illuminate\Support\Facades\Validator;
@@ -161,7 +162,6 @@ class UserController extends Controller
 
         // Generate OTP and expiry
         $otp = rand(1000, 9999);
-        $otp_expiry = Carbon::now()->addMinutes(10);
 
         // Create user with pending status and unverified
         $user = User::create([
@@ -174,9 +174,10 @@ class UserController extends Controller
             'phone_number' => $validated['phone'],
             // 'role' => $validated['role'] ?? 'vendor',  // default vendor if role not passed
             'status' => 'pending',
-            'otp' => $otp,
-            'otp_expires_at' => $otp_expiry,
         ]);
+
+        Cache::put('otp_' . $user->id, $otp, now()->addMinutes(10));
+
 
         // Store user payment methods
         if (!empty($validated['payments'])) {
@@ -235,7 +236,8 @@ class UserController extends Controller
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => 'OTP sent to your phone. Please verify to complete registration.',
-                'user_id' => $user->id
+                'user_id' => $user->id,
+                'otp' => $otp,
             ], 201);
         }
 
