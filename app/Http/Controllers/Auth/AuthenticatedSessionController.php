@@ -62,12 +62,21 @@ class AuthenticatedSessionController extends Controller
 
     public function apiSendOtp(Request $request): JsonResponse
     {
-        // Validate the phone number
-        $validated = $request->validate([
-            'phone' => ['required', 'string', 'regex:/^[0-9]{10,15}$/'],
+        $validator = Validator::make($request->all(), [
+            'phone' => ['required', 'digits:11'],
+        ], [
+            'phone.digits' => 'Phone number must be exactly 11 digits.',
+            'phone.required' => 'Phone number is required.',
         ]);
 
-        $phone = $validated['phone'];
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors()->first('phone'),
+                'status' => false,
+            ], 422);
+        }
+
+        $phone = $request->input('phone');
 
         // Check if the phone number exists in the database
         $user = User::where('phone_number', $phone)->first();
@@ -77,6 +86,7 @@ class AuthenticatedSessionController extends Controller
             return response()->json([
                 'message' => 'Phone number is not registered.',
                 'status' => false,
+                'is_exist' => false,
             ], 404);
         }
 

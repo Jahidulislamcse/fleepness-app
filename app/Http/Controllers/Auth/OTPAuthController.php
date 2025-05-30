@@ -17,32 +17,38 @@ class OTPAuthController extends Controller
     // Register user and send OTP via SMS
     public function register(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'phone_number' => 'required|digits_between:10,15|unique:users',
+        $rules = [
+            'phone_number' => 'required|digits:11|unique:users,phone_number',
             'name' => 'nullable|string|max:255',
-            // 'password' => 'required|min:6', // If needed later
-        ]);
+        ];
+
+        $messages = [
+            'phone_number.digits' => 'Invalid number. Phone number must be exactly 11 digits.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
 
         if ($validator->fails()) {
+            if (
+                $validator->errors()->has('phone_number') &&
+                str_contains($validator->errors()->first('phone_number'), 'Invalid number')
+            ) {
+                return response()->json(['message' => $validator->errors()->first('phone_number')], 400);
+            }
+
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Create the user but do not store OTP in database
         $user = User::create([
             'name' => $request->name,
             'phone_number' => $request->phone_number,
-            // 'password' => Hash::make($request->password),
         ]);
 
-        // Generate OTP
         $otp = rand(1000, 9999);
 
-        // Store OTP in cache with expiry time (e.g., 10 minutes)
-        Cache::put('otp_' . $user->id, $otp, now()->addMinutes(10));
+        Cache::put('otp_' . $user->phone_number, $otp, now()->addMinutes(10));
 
-        // Send OTP via SMS
-        $smsController = new SMSController();
-        $smsController->sendSMS(new Request([
+        (new SMSController)->sendSMS(new Request([
             'Message' => "Your OTP is: $otp",
             'MobileNumbers' => $user->phone_number,
         ]));
@@ -50,9 +56,10 @@ class OTPAuthController extends Controller
         return response()->json([
             'message' => 'OTP sent to your phone_number.',
             'user_id' => $user->id,
-            'otp' => $otp,
+            'phone_number' => $user->phone_number,
         ]);
     }
+
 
     // Verify OTP
     public function verifyOtp(Request $request): JsonResponse

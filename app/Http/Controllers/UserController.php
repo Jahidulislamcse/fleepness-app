@@ -10,8 +10,8 @@ use App\Models\PaymentMethod;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use App\Models\UserPayment;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
-
 class UserController extends Controller
 {
     protected $smsService;
@@ -141,38 +141,48 @@ class UserController extends Controller
 
     public function application(Request $request)
     {
-        // Validate the request data
-        // dd($request->all());
-        $validated = $request->validate([
+        $messages = [
+            'phone.digits' => 'Invalid phone number. It must be exactly 11 digits.',
+        ];
+
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'shop_name' => 'required|string|max:255',
             'shop_category' => 'nullable',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string|max:20|unique:users,phone_number',
-            'payments' => 'nullable|array', // this should be like ['payment_method_id' => 'account_number', ...]
+            'phone' => ['required', 'digits:11', 'unique:users,phone_number'],
+            'payments' => 'nullable|array',
             'payments.*' => 'nullable|string|max:20',
             'pickup_location' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:255',
-            // 'role' => 'nullable|in:vendor,admin,rider',
             'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ]);
+        ], $messages);
 
-        // dd($validated);
+        if ($validator->fails()) {
+            if (
+                $validator->errors()->has('phone') &&
+                str_contains($validator->errors()->first('phone'), 'Invalid number')
+            ) {
+                return response()->json(['message' => $validator->errors()->first('phone')], 400);
+            }
 
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+        $validatedData = $validator->validated();
         // Generate OTP and expiry
         $otp = rand(1000, 9999);
 
         // Create user with pending status and unverified
         $user = User::create([
-            'name' => $validated['name'],
-            'shop_name' => $validated['shop_name'],
-            'shop_category' => $validated['shop_category'] ?? null,
-            'pickup_location' => $validated['pickup_location'] ?? null,
-            'description' => $validated['description'] ?? null,
-            'email' => $validated['email'],
-            'phone_number' => $validated['phone'],
-            // 'role' => $validated['role'] ?? 'vendor',  // default vendor if role not passed
+            'name' => $validatedData['name'],
+            'shop_name' => $validatedData['shop_name'],
+            'shop_category' => $validatedData['shop_category'] ?? null,
+            'pickup_location' => $validatedData['pickup_location'] ?? null,
+            'description' => $validatedData['description'] ?? null,
+            'email' => $validatedData['email'],
+            'phone_number' => $validatedData['phone'],
+            // 'role' => $validatedData['role'] ?? 'vendor',  // default vendor if role not passed
             'status' => 'pending',
         ]);
 
@@ -180,8 +190,8 @@ class UserController extends Controller
 
 
         // Store user payment methods
-        if (!empty($validated['payments'])) {
-            foreach ($validated['payments'] as $payment_method_id => $account_number) {
+        if (!empty($validatedData['payments'])) {
+            foreach ($validatedData['payments'] as $payment_method_id => $account_number) {
                 if ($account_number) {
                     UserPayment::create([
                         'user_id' => $user->id,
