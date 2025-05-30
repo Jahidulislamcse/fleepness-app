@@ -50,7 +50,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::post('/resend-otp', [OTPAuthController::class, 'resendOtp']);    //Resending OTP 1
     Route::post('/seller/register', [UserController::class, 'application']);    //Seller registration 1
     Route::middleware('auth:sanctum')->post('/seller/application', [UserController::class, 'applyForSeller']); //Regular user to seller application
-    Route::post('/', [AuthenticatedSessionController::class, 'storeapi']); //Login to the system
+    // Route::post('/', [AuthenticatedSessionController::class, 'storeapi']); //Login to the system
 
     //Logout from the system
     Route::middleware('auth:sanctum')->post('/logout', [AuthenticatedSessionController::class, 'destroyapi']);
