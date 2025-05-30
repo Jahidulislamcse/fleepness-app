@@ -101,14 +101,14 @@ class OTPAuthController extends Controller
     public function resendOtp(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id'
+            'phone_number' => 'required|string|exists:users,phone_number',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = User::find($request->user_id);
+        $user = User::where('phone_number', $request->phone_number)->first();
 
         // Generate a new OTP
         $otp = rand(1000, 9999);
