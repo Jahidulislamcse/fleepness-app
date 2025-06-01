@@ -20,14 +20,14 @@ class UserSearchController extends Controller
         // Search in Products table
         $sellers = User::where('shop_name', 'LIKE', "%{$query}%")
             ->where('status', 'approved')
-            ->select('name', 'shop_name')
+            ->select('name', 'shop_name','shop_category', 'banner_image', 'cover_image', 'description' )
             ->limit(10)
             ->get();
 
         // Search in Categories table
-        $tags = Category::whereNotNull('parent_id')  
+        $tags = Category::whereNotNull('parent_id')
             ->where('name', 'LIKE', "%{$query}%")
-            ->select('name', 'store_title')
+            ->select('name', 'store_title', 'profile_img', 'cover_img', 'description',)
             ->limit(10)
             ->get();
 

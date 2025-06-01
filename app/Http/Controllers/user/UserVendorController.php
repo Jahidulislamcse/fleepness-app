@@ -14,21 +14,26 @@ use Illuminate\Http\Request;
 
 class UserVendorController extends Controller
 {
-    public function vendorlist()
+    public function vendorlist(Request $request)
     {
-        // Fetch vendors sorted by order_count in descending order
-        $vendors = User::where('role', 'vendor')
-            ->orderByDesc('order_count')
-            ->select('id', 'name', 'email', 'order_count', 'profile_image') // Select only needed fields
-            ->get();
+        $perPage = (int) $request->input('per_page', 10);
 
-        // Return JSON response for React Native
+        $paginated = User::where('role', 'vendor')
+            ->orderByDesc('order_count')
+            ->select('id', 'name', 'email', 'order_count', 'profile_image')
+            ->paginate($perPage);
+
         return response()->json([
-            'success' => true,
-            'vendors' => $vendors
+            'success'    => true,
+            'vendors'    => $paginated->items(),
+            'pagination' => [
+                'current_page' => $paginated->currentPage(),
+                'per_page'     => $paginated->perPage(),
+                'total'        => $paginated->total(),
+                'last_page'    => $paginated->lastPage(),
+            ],
         ], 200);
     }
-
     public function vendorData($vendor)
     {
         // Fetch vendor basic info

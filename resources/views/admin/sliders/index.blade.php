@@ -43,6 +43,19 @@
                                         <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
                                     </div>
+                                    <div class="form-group">
+                                        <label for="description">Slider Description</label>
+                                        <textarea
+                                            name="description"
+                                            id="description"
+                                            rows="3"
+                                            class="p-3 form-control @error('description') is-invalid @enderror"
+                                            placeholder="Slider description"
+                                        >{{ old('description') }}</textarea>
+                                        @error('description')
+                                            <div class="alert alert-danger">{{ $message }}</div>
+                                        @enderror
+                                    </div>
 
                                     <div class="form-group">
                                         <label for="photo">Slider Photo <span class="text-danger">*</span> </label>
@@ -119,7 +132,7 @@
                                 </tr>
 
                                 <tr id="editSliderRow_{{ $slider->id }}" style="display: none;">
-                                    <td colspan="4">
+                                    <td colspan="5">
                                         <form class="myForm" action="{{ route('admin.sliders.update', $slider->id) }}" method="POST" enctype="multipart/form-data">
                                             @csrf
                                             @method('PUT')
@@ -132,6 +145,21 @@
                                                         <div class="alert alert-danger">{{ $message }}</div>
                                                         @enderror
                                                     </div>
+
+                                                    <div class="form-group">
+                                                        <label for="description">Slider Description</label>
+                                                        <textarea
+                                                            name="description"
+                                                            id="description"
+                                                            rows="3"
+                                                            class="p-3 form-control @error('description') is-invalid @enderror"
+                                                            placeholder="Slider description"
+                                                        >{{ old('description', $slider->description) }}</textarea>
+                                                        @error('description')
+                                                            <div class="alert alert-danger">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+
 
                                                     <div class="form-group">
                                                         <label for="photo">Slider Photo <span class="text-danger">*</span> </label>

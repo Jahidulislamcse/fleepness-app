@@ -26,6 +26,29 @@ class Product extends Model
         'tags' => 'array',
     ];
 
+    public function tagCategories()
+    {
+        // 1) Get raw tags value (could be array or JSON string)
+        $raw = $this->tags;
+
+        // 2) If it’s a string, decode it. If it’s already an array, leave it.
+        if (is_string($raw)) {
+            $decoded = json_decode($raw, true);
+            $ids = is_array($decoded) ? $decoded : [];
+        } elseif (is_array($raw)) {
+            $ids = $raw;
+        } else {
+            $ids = [];
+        }
+
+        // 3) Finally, if $ids is non‐empty, fetch matching categories
+        if (count($ids) === 0) {
+            return collect(); // empty Collection
+        }
+
+        return Category::whereIn('id', $ids)->get();
+    }
+
     public function images()
     {
         return $this->hasMany(ProductImage::class);
@@ -34,6 +57,17 @@ class Product extends Model
     {
         return $this->hasMany(Stock::class);
     }
+
+    public function sizes()
+    {
+        return $this->hasMany(ProductSize::class, 'product_id');
+    }
+
+    public function sizeTemplate()
+    {
+        return $this->belongsTo(SizeTemplate::class, 'size_template_id');
+    }
+
     public function imagesProduct()
     {
         return $this->hasOne(ProductImage::class);

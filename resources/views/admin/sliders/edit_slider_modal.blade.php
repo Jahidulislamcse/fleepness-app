@@ -56,6 +56,21 @@
                                 @enderror
                             </div>
 
+                            <div class="form-group">
+                                <label for="description">Slider Description</label>
+                                <textarea
+                                    name="description"
+                                    id="description"
+                                    rows="3"
+                                    class="p-3 form-control @error('description') is-invalid @enderror"
+                                    placeholder="Slider description"
+                                >{{ old('description', $slider->description) }}</textarea>
+                                @error('description')
+                                    <div class="alert alert-danger">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+
                             <!-- Other fields here -->
                             <div class="form-group">
                                 <label for="category_id">Category</label>

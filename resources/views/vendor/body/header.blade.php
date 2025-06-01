@@ -60,7 +60,9 @@
                                 class="avatar-img rounded-circle" />
                         </div>
                         <span class="profile-username">
-                            <span class="fw-bold">{{ Auth::user()->name }}</span>
+                            @if(Auth::check() && Auth::user()->name)
+                                <span class="fw-bold">{{ Auth::user()->name }}</span>
+                            @endif
                         </span>
                     </a>
                     <ul class="dropdown-menu dropdown-user animated fadeIn">
@@ -72,8 +74,12 @@
                                             class="avatar-img rounded" />
                                     </div>
                                     <div class="u-text">
+                                    @if(Auth::check() && Auth::user()->name)
                                         <h4>{{ Auth::user()->name }}</h4>
-                                        <p class="text-muted">{{ Auth::user()->email }}</p>
+                                    @endif
+                                    @if(Auth::check() && Auth::user()->email)
+                                         <p class="text-muted">{{ Auth::user()->email }}</p>
+                                    @endif
                                     </div>
                                 </div>
                             </li>

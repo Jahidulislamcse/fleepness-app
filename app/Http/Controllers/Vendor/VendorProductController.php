@@ -25,19 +25,35 @@ class VendorProductController extends Controller
         return view('vendor.products.index', $data);
     }
 
+
     public function show()
     {
-        $products = Product::with('category')
+        $products = Product::with([
+                'category',
+                'sizes',
+                'sizeTemplate.items' // eager-load template + its items
+            ])
             ->latest()
             ->whereNull('deleted_at')
             ->where('user_id', auth()->id())
             ->get();
 
+        // If you also want to append full tag data:
+        $products->transform(function($product) {
+            $data = $product->toArray();
+
+            // Add resolved categories for tags (if any)
+            $data['tags_data'] = $product->tagCategories();
+
+            return $data;
+        });
+
         return response()->json([
-            'success' => true,
+            'success'  => true,
             'products' => $products,
         ]);
     }
+
 
 
     protected function generateUniqueCode()

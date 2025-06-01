@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use App\Models\Setting;
 use App\Models\SellerTags;
 use App\Models\Product;
 
@@ -37,33 +38,41 @@ class TagController extends Controller
     }
 
 
-    public function getMostUsedTags($userId)
+   public function getMostUsedTags($userId)
     {
-        // Fetch the seller tags for the user
+        // 1) Fetch the seller tags row for this vendor
         $sellerTag = SellerTags::where('vendor_id', $userId)->first();
 
         if (!$sellerTag || empty($sellerTag->tags)) {
             return response()->json(['message' => 'No tags found for this user.'], 404);
         }
 
-        // Assuming tags are stored as a JSON or array
-        $tags = $sellerTag->tags ?? [];
+        // 2) Decode tags array (assuming it’s stored as JSON)
+        $tags = json_decode($sellerTag->tags, true) ?: [];
 
-        // Flatten the array of tags and count their occurrences
+        // 3) Count occurrences of each tag ID
         $tagCounts = array_count_values($tags);
 
-        // Sort the tags by frequency in descending order
+        // 4) Sort by frequency descending
         arsort($tagCounts);
 
-        // Get the top 3 most used tags (only the keys, which are the tag names)
-        $mostUsedTags = array_keys(array_slice($tagCounts, 0, 3, true));
+        // 5) Take the top 3 tag IDs
+        $mostUsedTagIds = array_keys(array_slice($tagCounts, 0, 3, true));
 
-        // Return the top 3 most used tags only (no counts)
+        if (empty($mostUsedTagIds)) {
+            return response()->json(['message' => 'No tags found for this user.'], 404);
+        }
+
+        // 6) Fetch full Category records for those tag IDs
+        $tags = Category::whereIn('id', $mostUsedTagIds)->get();
+
+        // 7) Return user ID + full tag data
         return response()->json([
-            'user_id' => $userId,
-            'most_used_tags' => $mostUsedTags
+            'user_id'        => $userId,
+            'most_used_tags' => $tags
         ]);
     }
+
 
         public function getTagInfo(Request $request, $id)
     {
@@ -72,11 +81,21 @@ class TagController extends Controller
     }
 
     public function getTagsRandom(Request $request)
-    {
-        $tags = Category::whereNotNull('parent_id')
-            ->inRandomOrder()
-            ->get(['id', 'name', 'profile_img', 'cover_img']);
+{
+    $setting = Setting::first() ?? new Setting();
 
-        return response()->json($tags);
+    $limit = (int) $setting->num_of_tag;
+
+    if ($limit < 1) {
+        return response()->json([]);
     }
+
+    $tags = Category::whereNotNull('parent_id')
+        ->inRandomOrder()
+        ->take($limit)
+        ->get(['id', 'name', 'profile_img', 'cover_img']);
+
+    return response()->json($tags);
+}
+
 }
