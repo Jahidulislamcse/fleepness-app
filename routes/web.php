@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\PodcastProcessed;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminProductController;
@@ -21,6 +22,18 @@ use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\DeliveryModelController;
 use App\Http\Controllers\Vendor\VendorShortVideoController;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Broadcast;
+use App\Models\User;
+use App\Notifications\NewMessageNotification;
+
+Broadcast::routes(['middleware' => ['auth']]);
+
+Route::get('/test-notify', function () {
+    Log::info('Route /test-notify hit');
+    broadcast(new PodcastProcessed());
+
+    return 'Notification sent!';
+});
 
 Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
@@ -98,6 +111,8 @@ Route::get('/create-vendor-account', [ProfileController::class, 'createVendor'])
 Route::post('vendor/application', [UserController::class, 'application'])->name('vendor.application');
 Route::get('create-rider-account', [ProfileController::class, 'createRider'])->name('create.rider.account');
 Route::post('rider/application', [UserController::class, 'riderApplication'])->name('rider.application');
+
+Route::get('/admin/categories/children/{parentId}', [AdminCategoryController::class, 'getChildren']);
 
 
 Route::middleware('role:admin')->group(function () {

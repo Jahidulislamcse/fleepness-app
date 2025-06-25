@@ -38,56 +38,56 @@ class TagController extends Controller
     }
 
 
-public function getMostUsedTags($userId)
-{
-    // 1) Fetch the seller tags row for this vendor
-    $sellerTag = SellerTags::where('vendor_id', $userId)->first();
+    public function getMostUsedTags($userId)
+    {
+        // 1) Fetch the seller tags row for this vendor
+        $sellerTag = SellerTags::where('vendor_id', $userId)->first();
 
-    if (!$sellerTag || empty($sellerTag->tags)) {
-        return response()->json(['message' => 'No tags found for this user.'], 404);
+        if (!$sellerTag || empty($sellerTag->tags)) {
+            return response()->json(['message' => 'No tags found for this user.'], 404);
+        }
+
+        // 2) Ensure $tagsArr is always an array
+        $raw = $sellerTag->tags;
+        if (is_string($raw)) {
+            $decoded = json_decode($raw, true);
+            $tagsArr = is_array($decoded) ? $decoded : [];
+        } elseif (is_array($raw)) {
+            $tagsArr = $raw;
+        } else {
+            $tagsArr = [];
+        }
+
+        if (count($tagsArr) === 0) {
+            return response()->json(['message' => 'No tags found for this user.'], 404);
+        }
+
+        // 3) Count occurrences of each tag ID
+        $tagCounts = array_count_values($tagsArr);
+
+        // 4) Sort by frequency descending
+        arsort($tagCounts);
+
+        // 5) Take the top 3 tag IDs
+        $mostUsedTagIds = array_keys(array_slice($tagCounts, 0, 3, true));
+
+        if (empty($mostUsedTagIds)) {
+            return response()->json(['message' => 'No tags found for this user.'], 404);
+        }
+
+        // 6) Fetch full Category records for those tag IDs
+        $tags = Category::whereIn('id', $mostUsedTagIds)->get();
+
+        // 7) Return user ID + full tag data
+        return response()->json([
+            'user_id'        => $userId,
+            'most_used_tags' => $tags
+        ]);
     }
 
-    // 2) Ensure $tagsArr is always an array
-    $raw = $sellerTag->tags;
-    if (is_string($raw)) {
-        $decoded = json_decode($raw, true);
-        $tagsArr = is_array($decoded) ? $decoded : [];
-    } elseif (is_array($raw)) {
-        $tagsArr = $raw;
-    } else {
-        $tagsArr = [];
-    }
-
-    if (count($tagsArr) === 0) {
-        return response()->json(['message' => 'No tags found for this user.'], 404);
-    }
-
-    // 3) Count occurrences of each tag ID
-    $tagCounts = array_count_values($tagsArr);
-
-    // 4) Sort by frequency descending
-    arsort($tagCounts);
-
-    // 5) Take the top 3 tag IDs
-    $mostUsedTagIds = array_keys(array_slice($tagCounts, 0, 3, true));
-
-    if (empty($mostUsedTagIds)) {
-        return response()->json(['message' => 'No tags found for this user.'], 404);
-    }
-
-    // 6) Fetch full Category records for those tag IDs
-    $tags = Category::whereIn('id', $mostUsedTagIds)->get();
-
-    // 7) Return user ID + full tag data
-    return response()->json([
-        'user_id'        => $userId,
-        'most_used_tags' => $tags
-    ]);
-}
 
 
-
-        public function getTagInfo(Request $request, $id)
+    public function getTagInfo(Request $request, $id)
     {
         $tag = Category::findOrFail($id);
         return response()->json($tag);

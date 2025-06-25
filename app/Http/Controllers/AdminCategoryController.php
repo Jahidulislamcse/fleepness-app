@@ -12,15 +12,24 @@ use Intervention\Image\ImageManager;
 class AdminCategoryController extends Controller
 {
     public function index()
-    {
-        $categories = Category::with(['children' => function ($query) {
-            $query->orderBy('order', 'asc');
-        }])
+        {
+            // Get categories and their children (with nested relationships)
+            $categories = Category::with(['children' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }])
             ->whereNull('parent_id')
             ->orderBy('order', 'asc')
             ->get();
-        return view('admin/categories.index', compact('categories'));
-    }
+
+            return view('admin.categories.index', compact('categories'));
+        }
+
+        public function getChildren($parentId)
+        {
+            $parent = Category::find($parentId);
+            return response()->json($parent->children);
+        }
+
 
     // public function create()
     // {
@@ -31,7 +40,6 @@ class AdminCategoryController extends Controller
     public function store(Request $request)
     {
         // dd($request->all());
-        // Validate input fields
         $request->validate([
             'name' => [
                 'required',
@@ -42,13 +50,14 @@ class AdminCategoryController extends Controller
                 }),
             ],
             'store_title' => 'nullable|string',
+            'mark' => 'nullable|string',
             'description' => 'nullable|string',
             'parent_id' => 'nullable|exists:categories,id',
             'profile_img' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg,webp,bmp|max:2048',
             'cover_img' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg,webp,bmp|max:2048',
         ]);
 
-        $data = $request->only(['name', 'description', 'parent_id', 'store_title']);
+        $data = $request->only(['name', 'description', 'parent_id', 'store_title','mark',]);
 
         // Determine the next `order` value
         if ($request->parent_id) {
@@ -195,17 +204,17 @@ class AdminCategoryController extends Controller
 
 
 
-    // public function destroy(Category $category)
-    // {
-    //     $subCategory = Category::where('parent_id', $category->id)->count('id');
-    //     if ($subCategory > 0) {
-    //         return redirect()->route('categories.index')->with('success', 'You can not deleted this category.Please First Delete all Child Category!');
-    //     }
-    //     $product = Product::where('category_id', $category->id)->count('id');
-    //     if ($product > 0) {
-    //         return redirect()->route('categories.index')->with('success', 'You can not deleted this category.Please First Delete all Product under this Subcategory!');
-    //     }
-    //     $category->delete();
-    //     return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
-    // }
+    public function destroy(Category $category)
+    {
+        // $subCategory = Category::where('parent_id', $category->id)->count('id');
+        // if ($subCategory > 0) {
+        //     return redirect()->route('categories.index')->with('success', 'You can not deleted this category.Please First Delete all Child Category!');
+        // }
+        // $product = Product::where('category_id', $category->id)->count('id');
+        // if ($product > 0) {
+        //     return redirect()->route('categories.index')->with('success', 'You can not deleted this category.Please First Delete all Product under this Subcategory!');
+        // }
+        $category->delete();
+        return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully.');
+    }
 }

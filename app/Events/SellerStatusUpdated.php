@@ -2,7 +2,6 @@
 
 namespace App\Events;
 
-use App\Models\Notification;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Queue\SerializesModels;
@@ -18,13 +17,6 @@ class SellerStatusUpdated implements ShouldBroadcast
     {
         $this->sellerId = $sellerId;
         $this->message = $message;
-
-        // Store notification in the database
-        Notification::create([
-            'user_id' => $this->sellerId,
-            'message' => $this->message,
-            'status' => 'unread'
-        ]);
     }
 
     public function broadcastOn()
@@ -34,8 +26,12 @@ class SellerStatusUpdated implements ShouldBroadcast
 
     public function broadcastWith()
     {
-        return [
-            'message' => $this->message
-        ];
+        \Log::info("Broadcasting to seller-status-{$this->sellerId}", ['message' => $this->message]);
+        return ['message' => $this->message];
+    }
+
+    public function broadcastAs()
+    {
+        return 'SellerStatusUpdated';
     }
 }

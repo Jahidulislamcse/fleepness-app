@@ -423,7 +423,7 @@ class UserController extends Controller
             'MobileNumbers' => $seller->phone_number,
         ]));
 
-        // Send notification
+        // 🔔 Send real-time notification
         event(new SellerStatusUpdated($seller->id, "Your seller request has been approved! 🎉"));
 
         return response()->json(['message' => 'Seller approved successfully']);

@@ -1,4 +1,5 @@
 @extends('admin.admin_dashboard')
+
 @section('main')
 <div class="page-inner">
     <div class="page-header">
@@ -6,7 +7,7 @@
             <li class="nav-home">
                 <a href="{{ route('admin.dashboard') }}">
                     <i class="icon-home"></i>
-                    Dashbard
+                    Dashboard
                 </a>
             </li>
             <li class="separator">
@@ -31,17 +32,17 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <!-- Modal -->
+                    <!-- Modal for Adding Category -->
                     <div class="modal fade" id="addRowModal" tabindex="-1" aria-labelledby="exampleModalLabel"
                         aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Add New</h1>
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Add New Category</h1>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                                 </div>
-                                <form action="{{ route('admin.categories.store') }}" method="POST" enctype="multipart/form-data">
+                                <form action="{{ route('admin.categories.store') }}" method="POST" enctype="multipart/form-data" id="categoryForm">
                                     @csrf
                                     <div class="modal-body">
                                         <div class="row">
@@ -52,16 +53,22 @@
                                                     <select name="parent_id" id="parent_id" class="form-control">
                                                         <option value="">None</option>
                                                         @foreach ($categories as $parentCategory)
-                                                        <option value="{{ $parentCategory->id }}" {{ old('parent_id') == $parentCategory->id ? 'selected' : '' }}>
-                                                            {{ $parentCategory->name }}
-                                                        </option>
+                                                            <option value="{{ $parentCategory->id }}" {{ old('parent_id') == $parentCategory->id ? 'selected' : '' }}>{{ $parentCategory->name }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
 
-                                                <!-- Category Name (Dynamic Label) -->
+                                                <!-- Child Category Selection -->
+                                                <div class="form-group" id="childCategoryDiv" style="display:none;">
+                                                    <label for="child_id">Select Sub Category</label>
+                                                    <select name="child_id" id="child_id" class="form-control">
+                                                        <option value="">Select a parent category first</option>
+                                                    </select>
+                                                </div>
+
+                                                 <!-- Category Name -->
                                                 <div class="form-group">
-                                                    <label for="name" id="nameLabel">Category Name <span class="text-danger">*</span></label>
+                                                    <label for="name" id="nameLabel">Name <span class="text-danger">*</span></label>
                                                     <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror"
                                                         value="{{ old('name') }}" required>
                                                     @error('name')
@@ -69,44 +76,52 @@
                                                     @enderror
                                                 </div>
 
-                                                <div class="form-group">
-                                                    <label for="name" id="store_titleLabel">Store Title </label>
-                                                    <input type="text" name="store_title" id="store_title" class="form-control @error('store_title') is-invalid @enderror"
-                                                        value="{{ old('store_title') }}">
-                                                    @error('store_title')
-                                                    <div class="alert alert-danger">{{ $message }}</div>
-                                                    @enderror
+                                                <!-- Additional Fields -->
+                                                <div id="additionalFields" style="display:none;">
+                                                    <div class="form-group">
+                                                        <label for="store_title">Store Title </label>
+                                                        <input type="text" name="store_title" id="store_title" class="form-control @error('store_title') is-invalid @enderror"
+                                                            value="{{ old('store_title') }}">
+                                                        @error('store_title')
+                                                        <div class="alert alert-danger">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+
+                                                    <!-- Description -->
+                                                    <div class="form-group">
+                                                        <label for="description" id="descriptionLabel">Description</label>
+                                                        <textarea name="description" id="description" class="form-control">{{ old('description') }}</textarea>
+                                                    </div>
+
+                                                    <!-- Profile Image -->
+                                                    <div class="form-group">
+                                                        <label for="profile_img">Profile Image</label>
+                                                        <input type="file" name="profile_img" id="profile_img" class="form-control @error('profile_img') is-invalid @enderror">
+                                                        @error('profile_img')
+                                                        <div class="alert alert-danger">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+
+                                                    <!-- Cover Image -->
+                                                    <div class="form-group">
+                                                        <label for="cover_img">Cover Image</label>
+                                                        <input type="file" name="cover_img" id="cover_img" class="form-control @error('cover_img') is-invalid @enderror">
+                                                        @error('cover_img')
+                                                        <div class="alert alert-danger">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+
+                                                    <!-- Order -->
+                                                    <div class="form-group">
+                                                        <label for="order" id="orderLabel">Category Order</label>
+                                                        <input type="number" name="order" class="form-control" id="orderInput" placeholder="Enter Category Order" />
+                                                    </div>
                                                 </div>
 
-                                                <!-- Description -->
-                                                <div class="form-group">
-                                                    <label for="description" id="descriptionLabel">Description</label>
-                                                    <textarea name="description" id="description" class="form-control">{{ old('description') }}</textarea>
-                                                </div>
+                                                <!-- Hidden fields -->
+                                                <input type="hidden" name="parent_id" id="hiddenParentId">
+                                                <input type="hidden" name="mark" id="hiddenMark">
 
-                                                <!-- Profile Image -->
-                                                <div class="form-group">
-                                                    <label for="profile_img">Profile Image</label>
-                                                    <input type="file" name="profile_img" id="profile_img" class="form-control @error('profile_img') is-invalid @enderror">
-                                                    @error('profile_img')
-                                                    <div class="alert alert-danger">{{ $message }}</div>
-                                                    @enderror
-                                                </div>
-
-                                                <!-- Cover Image -->
-                                                <div class="form-group">
-                                                    <label for="cover_img">Cover Image</label>
-                                                    <input type="file" name="cover_img" id="cover_img" class="form-control @error('cover_img') is-invalid @enderror">
-                                                    @error('cover_img')
-                                                    <div class="alert alert-danger">{{ $message }}</div>
-                                                    @enderror
-                                                </div>
-
-                                                <!-- Order (Dynamic Label & Placeholder) -->
-                                                <div class="form-group">
-                                                    <label for="order" id="orderLabel">Category Order</label>
-                                                    <input type="number" name="order" class="form-control" id="orderInput" placeholder="Enter Category Order" />
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -120,80 +135,102 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive">
-                        <table id="" class="display table table-hover">
-                            <thead>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Profile Image</th>
-                                <th>Cover Image</th>
-                                <th>Index</th>
-                                <th>Actions</th>
+                    <!-- Showcase Table -->
+                   <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Subcategory</th>
+                                    <th>Tags</th>
+                                    <th>Profile Image</th>
+                                    <th>Cover Image</th>
+                                    <th>Order</th>
+                                    <th>Actions</th>
+                                </tr>
                             </thead>
                             <tbody>
                                 @foreach ($categories as $key => $category)
-                                <tr class="table-primary">
-                                    <td>{{ $key + 1 }}</td>
-                                    <td>{{ $category->name }}</td>
-                                    <td>
-                                        <img src="{{ asset($category->profile_img) }}" alt="" style="width:100px;">
-                                    </td>
-                                    <td>
-                                        <img src="{{ asset($category->cover_img) }}" alt="" style="width:100px;">
-                                    </td>
-                                    <td>{{ $category->order }}</td>
-                                    <td>
-                                        <a href="{{ route('admin.categories.edit', $category->id) }}"
-                                            data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Edit"
-                                            class="btn btn-warning btn-sm"> <i class="fa fa-edit"></i></a>
-                                        <form action="{{ route('admin.categories.destroy', $category->id) }}"
-                                            method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm"
-                                                data-bs-toggle="tooltip" data-bs-placement="top"
-                                                data-bs-title="Delete"
-                                                onclick="return confirm('Are you sure you want to delete this category?')"><i
-                                                    class="fa fa-times"></i></button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                @if ($category->children->count())
-                                <tr class="table-warning">
-                                    <td colspan="6">
-                                        <strong>Tags:</strong>
-                                    </td>
-                                </tr>
-                                @foreach ($category->children as $child)
-                                <tr class="table-warning">
-                                    <td></td>
-                                    <td class="text-muted">— {{ $child->name }}</td>
-                                    <td>
-                                        <img src="{{ asset($child->profile_img) }}" alt="" style="width:100px;">
-                                    </td>
-                                    <td>
-                                        <img src="{{ asset($child->cover_img) }}" alt="" style="width:100px;">
-                                    </td>
-                                    <td>{{ $child->order }}</td>
-                                    <td>
-                                        <a href="{{ route('admin.categories.edit', $child->id) }}"
-                                            data-bs-toggle="tooltip" data-bs-placement="top"
-                                            data-bs-title="Edit" class="btn btn-warning btn-sm"> <i
-                                                class="fa fa-edit"></i></a>
-                                        <form action="{{ route('admin.categories.destroy', $child->id) }}"
-                                            method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm"
-                                                data-bs-toggle="tooltip" data-bs-placement="top"
-                                                data-bs-title="Delete"
-                                                onclick="return confirm('Are you sure you want to delete this subcategory?')"><i
-                                                    class="fa fa-times"></i></button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                @endforeach
-                                @endif
+                                    <!-- Category Row -->
+                                    <tr class="table-primary">
+                                        <td>{{ $category->name }}</td>
+                                        <td></td> <!-- Empty initially for subcategory -->
+                                        <td></td> <!-- Empty initially for tags -->
+                                        <td>
+                                        </td>
+                                        <td>
+                                        </td>
+                                        <td>{{ $category->order }}</td>
+                                        <td>
+                                            <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </a>
+                                            <form action="{{ route('admin.categories.destroy', $category->id) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete" onclick="return confirm('Are you sure you want to delete this category?')">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Display subcategories -->
+                                    @foreach ($category->children as $childKey => $child)
+                                        <tr class="table-warning">
+                                            <td></td> <!-- Empty for Category -->
+                                            <td>{{ $child->name }}</td> <!-- Subcategory name -->
+                                            <td></td> <!-- Empty for tags -->
+                                            <td>
+                                            </td>
+                                            <td>
+                                            </td>
+                                            <td>{{ $child->order }}</td>
+                                            <td>
+                                                <a href="{{ route('admin.categories.edit', $child->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </a>
+                                                <form action="{{ route('admin.categories.destroy', $child->id) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete" onclick="return confirm('Are you sure you want to delete this subcategory?')">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+
+                                        <!-- Display tags (grandchildren) -->
+                                        @foreach ($child->children as $grandchildKey => $grandchild)
+                                            <tr class="table-secondary">
+                                                <td></td> <!-- Empty for Category -->
+                                                <td></td> <!-- Empty for Subcategory -->
+                                                <td>{{ $grandchild->name }}</td> <!-- Tag name -->
+                                                <td>
+                                                    <img src="{{ asset($grandchild->profile_img) }}" alt="" class="img-thumbnail" style="width:50px;">
+                                                </td>
+                                                <td>
+                                                    <img src="{{ asset($grandchild->cover_img) }}" alt="" class="img-thumbnail" style="width:50px;">
+                                                </td>
+                                                <td>{{ $grandchild->order }}</td>
+                                                <td>
+                                                    <a href="{{ route('admin.categories.edit', $grandchild->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                    </a>
+                                                    <form action="{{ route('admin.categories.destroy', $grandchild->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete" onclick="return confirm('Are you sure you want to delete this tag?')">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @endforeach
+                                    <tr>
+                                        <td colspan="7"></td> <!-- Empty row with colspan to span all columns -->
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
@@ -204,49 +241,65 @@
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let parentSelect = document.getElementById('parent_id');
-        let nameLabel = document.getElementById('nameLabel');
-        let orderLabel = document.getElementById('orderLabel');
-        let orderInput = document.getElementById('orderInput');
-        let description = document.getElementById('description');
+    $(document).ready(function() {
+    // When parent category is selected
+    $('#parent_id').change(function() {
+        var parentId = $(this).val();
+        // Update hidden parent ID based on parent selection
+        if (parentId) {
+            // Fetch child categories based on the selected parent category
+            $.ajax({
+                url: '/admin/categories/children/' + parentId,
+                type: 'GET',
+                success: function(data) {
+                    var childSelect = $('#child_id');
+                    childSelect.empty(); // Clear current options
+                    childSelect.append('<option value="">Select Sub Category</option>');
+                    data.forEach(function(child) {
+                        childSelect.append('<option value="' + child.id + '">' + child.name + '</option>');
+                    });
 
-        let profileImgField = document.querySelector('.form-group label[for="profile_img"]').parentElement;
-        let coverImgField = document.querySelector('.form-group label[for="cover_img"]').parentElement;
-
-        function toggleFields() {
-            if (parentSelect.value) {
-                // Parent category selected (acts as a tag)
-                nameLabel.innerHTML = "Tag Name <span class='text-danger'>*</span>";
-                store_titleLabel.style.display = 'block';
-                store_title.style.display = 'block';
-                orderLabel.style.display = 'none';
-                orderInput.style.display = 'none';
-                descriptionLabel.style.display = 'block';
-                description.style.display = 'block';
-                profileImgField.style.display = 'block';
-                coverImgField.style.display = 'block';
-            } else {
-                // No parent selected (acts as a main category)
-                nameLabel.innerHTML = "Category Name <span class='text-danger'>*</span>";
-                store_titleLabel.style.display = 'none';
-                store_title.style.display = 'none';
-                orderLabel.style.display = 'none';
-                orderInput.style.display = 'none';
-                profileImgField.style.display = 'none';
-                descriptionLabel.style.display = 'none';
-                description.style.display = 'none';
-                coverImgField.style.display = 'none';
-            }
+                    $('#childCategoryDiv').show(); // Show child category select
+                }
+            });
+            // If a parent is selected, set the hiddenParentId with parentId
+            $('#hiddenParentId').val(parentId);
+        } else {
+            $('#childCategoryDiv').hide(); // Hide child category select if no parent is selected
+            $('#hiddenParentId').val(''); // Clear hiddenParentId if no parent is selected
         }
-
-        // Initial check on page load
-        toggleFields();
-
-        // Add event listener for change event
-        parentSelect.addEventListener('change', toggleFields);
     });
+
+    // When child category is selected
+    $('#child_id').change(function() {
+        if ($(this).val()) {
+            // If a child is selected, update hiddenMark to 'T'
+            $('#hiddenMark').val('T');
+            // Set the selected child as parent_id in the hidden field
+            $('#hiddenParentId').val($(this).val());
+            $('#additionalFields').show(); // Show additional fields when a child is selected
+        } else {
+            // If no child is selected, revert hiddenMark and other fields accordingly
+            $('#hiddenMark').val(''); // Clear hiddenMark
+            var parentId = $('#parent_id').val();
+            if (parentId) {
+                $('#hiddenParentId').val(parentId); // Apply parent_id when no child is selected
+            } else {
+                $('#hiddenParentId').val(''); // Clear hiddenParentId if no parent is selected
+            }
+            $('#additionalFields').hide(); // Hide additional fields if no child is selected
+        }
+    });
+
+    // On page load, if a parent is selected, set the hidden field
+    if ($('#parent_id').val()) {
+        $('#hiddenParentId').val($('#parent_id').val());
+    }
+});
+
 </script>
 
 @endsection
