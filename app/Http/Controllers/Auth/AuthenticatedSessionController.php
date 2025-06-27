@@ -94,7 +94,7 @@ class AuthenticatedSessionController extends Controller
         $otp = rand(1000, 9999);
 
         // Store OTP in cache for 5 minutes
-        Cache::put('otp_' . $user->id, $otp, now()->addMinutes(10));
+        Cache::put('otp_' . $user->phone_number, $otp, now()->addMinutes(10));
         // Cache::put('otp_' . $user->id, $otp, now()->addMinutes(10));
 
         // Format the phone number (e.g., add country code '880' for Bangladesh)

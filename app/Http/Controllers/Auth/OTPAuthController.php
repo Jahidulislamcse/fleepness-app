@@ -118,7 +118,7 @@ class OTPAuthController extends Controller
         // dd($otp);
 
         // Store the new OTP in cache
-        Cache::put('otp_' . $user->id, $otp, now()->addMinutes(10));
+        Cache::put('otp_' . $user->phone_number, $otp, now()->addMinutes(10));
 
         // Send new OTP via SMS
         $smsController = new SMSController();
