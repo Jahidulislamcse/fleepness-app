@@ -62,6 +62,7 @@ class UserController extends Controller
 
         $validated = Validator::make($request->all(), [
             'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:users,email',
             'shop_name' => 'required|string|max:255',
             'shop_category' => 'nullable|exists:shop_categories,id',
             'payments' => 'nullable|array', // this should be like ['payment_method_id' => 'account_number', ...]
@@ -79,11 +80,12 @@ class UserController extends Controller
         }
 
         // Access validated data
-        $validatedData = $validated->validated(); 
+        $validatedData = $validated->validated();
 
         // Update the user
         $user->update([
             'name' => $validatedData['name'] ?? null,
+            'email' => $validatedData['email'],
             'shop_name' => $validatedData['shop_name'],
             'shop_category' => $validatedData['shop_category'],
             'pickup_location' => $validatedData['pickup_location'] ?? null,

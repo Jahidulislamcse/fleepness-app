@@ -18,14 +18,25 @@ class UserProfileController extends Controller
      */
     public function show()
     {
-        $user = Auth::user(); // Get the logged-in user data
+        $user = Auth::user()->load('payments.paymentMethod');
 
-        // Return the user profile data as JSON
+        // Format payments to show only the payment method name
+        $formattedPayments = $user->payments->map(function ($payment) {
+            return [
+                'payment_method' => $payment->paymentMethod->name, // Show only the name
+                'account_number' => $payment->account_number, // Optional, if you want to show account number
+            ];
+        });
+
+        // Return the user profile data along with the formatted payments
         return response()->json([
             'success' => true,
-            'user' => $user
+            'user' => $user->makeHidden(['payments']), // Hide payments from user object
+            'payments' => $formattedPayments, // Show only payment method name here
         ]);
     }
+
+
 
     /**
      * Update the logged-in user's profile.
@@ -49,7 +60,6 @@ class UserProfileController extends Controller
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',  // Validate image
             'pickup_location' => 'nullable|string',
             'address' => 'nullable|string',
-            'contact_number' => 'nullable|string|max:15',
             'description' => 'nullable|string',
             'payments' => 'nullable|array',
             'payments.*' => 'nullable|string|max:20',
@@ -122,8 +132,26 @@ class UserProfileController extends Controller
     public function getPaymentAccounts()
     {
         $user = auth()->user()->load('payments.paymentMethod');
+
+        // Format payments to show only the payment method name
+        $formattedPayments = $user->payments->map(function ($payment) {
+            return [
+                'payment_method' => $payment->paymentMethod->name, // Show only the name
+                'account_number' => $payment->account_number, // Optional, if you want to show account number
+            ];
+        });
+
         return response()->json([
-            'payments' => $user->payments,
+            'payments' => $formattedPayments,
+        ]);
+    }
+
+     public function getPaymenMethods()
+    {
+        $methods = PaymentMethod::all();
+        
+        return response()->json([
+            'methods' => $methods,
         ]);
     }
 
