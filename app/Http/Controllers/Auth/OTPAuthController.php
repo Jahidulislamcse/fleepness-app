@@ -57,6 +57,7 @@ class OTPAuthController extends Controller
             'message' => 'OTP sent to your phone_number.',
             'user_id' => $user->id,
             'phone_number' => $user->phone_number,
+            'otp' => $otp,
         ]);
     }
 
@@ -75,7 +76,7 @@ class OTPAuthController extends Controller
 
         $user = User::where('phone_number', $request->phone_number)->first();
 
-        $cachedOtp = Cache::get('otp_' . $user->id);
+        $cachedOtp = Cache::get('otp_' . $user->phone_number);
 
         if (!$cachedOtp) {
             return response()->json(['message' => 'OTP expired.'], 400);
@@ -86,7 +87,7 @@ class OTPAuthController extends Controller
         }
 
         // OTP verified, remove OTP from cache
-        Cache::forget('otp_' . $user->id);
+        Cache::forget('otp_' . $user->phone_number);
 
         // Create and return a token
         $token = $user->createToken('auth_token')->plainTextToken;

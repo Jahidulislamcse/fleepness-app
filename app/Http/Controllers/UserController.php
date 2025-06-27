@@ -78,19 +78,22 @@ class UserController extends Controller
             ], 422);
         }
 
+        // Access validated data
+        $validatedData = $validated->validated(); 
+
         // Update the user
         $user->update([
-            'name' => $request->name,
-            'shop_name' => $request->shop_name,
-            'shop_category' => $request->shop_category,
-            'pickup_location' => $request->pickup_location,
-            'description' => $request->description,
+            'name' => $validatedData['name'] ?? null,
+            'shop_name' => $validatedData['shop_name'],
+            'shop_category' => $validatedData['shop_category'],
+            'pickup_location' => $validatedData['pickup_location'] ?? null,
+            'description' => $validatedData['description'] ?? null,
             'status' => 'pending', // pending admin approval
         ]);
 
         // Store user payment methods
-        if (!empty($validated['payments'])) {
-            foreach ($validated['payments'] as $payment_method_id => $account_number) {
+        if (!empty($validatedData['payments'])) {
+            foreach ($validatedData['payments'] as $payment_method_id => $account_number) {
                 if ($account_number) {
                     UserPayment::create([
                         'user_id' => $user->id,
@@ -138,6 +141,7 @@ class UserController extends Controller
             'user' => $user,
         ], 200);
     }
+
 
     public function application(Request $request)
     {
