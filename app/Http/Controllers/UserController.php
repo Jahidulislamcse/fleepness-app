@@ -192,7 +192,7 @@ class UserController extends Controller
             'status' => 'pending',
         ]);
 
-        Cache::put('otp_' . $user->id, $otp, now()->addMinutes(10));
+        Cache::put('otp_' . $user->phone_number, $otp, now()->addMinutes(10));
 
 
         // Store user payment methods
