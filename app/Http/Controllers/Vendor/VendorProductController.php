@@ -134,14 +134,16 @@ class VendorProductController extends Controller
             DB::commit();
 
             $tags = json_decode($product->tags, true);
-            $tags = is_array($tags) ? $tags : [];
+            $tag = $tags ? $tags[0] : null; // Get the first tag (if available)
 
-            $tagNames = Category::whereIn('id', $tags) // Fetch the category names based on the tag IDs
-                                ->pluck('name')
-                                ->toArray();
+            // Fetch the category name based on the tag ID
+            $tagName = null;
+            if ($tag) {
+                $tagName = Category::where('id', $tag)->pluck('name')->first(); // Fetch single category name
+            }
             $productSizes = ProductSize::where('product_id', $product->id)->get();
 
-            return response()->json(['success' => true, 'message' => 'Product Created successfully', 'product' => $product, 'sizes' => $productSizes, 'tags' => $tagNames]);
+            return response()->json(['success' => true, 'message' => 'Product Created successfully', 'product' => $product, 'sizes' => $productSizes, 'tag' => $tagName]);
 
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
@@ -252,15 +254,17 @@ class VendorProductController extends Controller
         }
 
         $tags = json_decode($product->tags, true);
-        $tags = is_array($tags) ? $tags : [];
+        $tag = $tags ? $tags[0] : null; // Get the first tag (if available)
 
-        $tagNames = Category::whereIn('id', $tags) // Fetch the category names based on the tag IDs
-                            ->pluck('name')
-                            ->toArray();
+        // Fetch the category name based on the tag ID
+        $tagName = null;
+        if ($tag) {
+            $tagName = Category::where('id', $tag)->pluck('name')->first(); // Fetch single category name
+        }
 
         $productSizes = ProductSize::where('product_id', $product->id)->get();
 
-        return response()->json(['success' => true, 'message' => 'Product updated successfully', 'product' => $product, 'sizes' => $productSizes, 'tags' => $tagNames]);
+        return response()->json(['success' => true, 'message' => 'Product updated successfully', 'product' => $product, 'sizes' => $productSizes, 'tag' => $tagName]);
 
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
