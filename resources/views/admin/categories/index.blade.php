@@ -1,6 +1,7 @@
 @extends('admin.admin_dashboard')
 
 @section('main')
+
 <div class="page-inner">
     <div class="page-header">
         <ul class="breadcrumbs mb-3">
@@ -18,6 +19,21 @@
             </li>
         </ul>
     </div>
+     @if (session('success'))
+        <div class="alert alert-success" id="successMessage">
+            {{ session('success') }}
+        </div>
+
+        <script>
+            // Hide the success message after 3 seconds
+            setTimeout(function() {
+                var successMessage = document.getElementById('successMessage');
+                if (successMessage) {
+                    successMessage.style.display = 'none';
+                }
+            }, 3000);
+        </script>
+    @endif
     <div class="row">
         <div class="col-md-12">
             <div class="card">
@@ -145,7 +161,7 @@
                                     <th>Tags</th>
                                     <th>Profile Image</th>
                                     <th>Cover Image</th>
-                                    <th>Order</th>
+                                    <th>Index</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>

@@ -1,4 +1,5 @@
 @extends('admin.admin_dashboard')
+
 @section('main')
 <div class="page-inner">
     <div class="page-header">
@@ -16,6 +17,7 @@
             </li>
         </ul>
     </div>
+
     <div class="row">
         <div class="col-md-12">
             <div class="card">
@@ -27,70 +29,88 @@
                         </a>
                     </div>
                 </div>
+
                 <div class="card-body">
                     <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
-                        <!-- Parent Category -->
+                        <!-- Parent Category: Display logic based on the category's level -->
                         <div class="form-group">
-                            <label for="parent_id">Parent Category</label>
-                            <select name="parent_id" id="parent_id" class="form-control">
-                                <option value="">None</option>
-                                @foreach ($categories as $parentCategory)
-                                <option value="{{ $parentCategory->id }}"
-                                    {{ old('parent_id', $category->parent_id) == $parentCategory->id ? 'selected' : '' }}>
-                                    {{ $parentCategory->name }}
-                                </option>
-                                @endforeach
-                            </select>
+                            @if ($grandChildCategory)
+                                <!-- Grandchild: Show parent and grandparent as disabled -->
+                                <label for="parent_id">Category</label>
+                                <input type="text" class="form-control mt-2 mb-2" value="{{ $grandChildCategory->name }}" disabled>
+                                <label for="parent_id">Sub Category</label>
+                                <input type="text" class="form-control" value="{{ $parentCategory->name }}" disabled>
+                            @elseif ($parentCategory)
+                                <!-- Parent with no grandparent: Show parent as disabled -->
+                                <label for="parent_id">Category</label>
+                                <input type="text" class="form-control" value="{{ $parentCategory->name }}" disabled>
+                            @else
+                                <!-- Top level category: Show parent dropdown -->
+                            @endif
                         </div>
 
-                        <!-- Category Name -->
+                        <!-- Category Name (Always editable) -->
                         <div class="form-group">
+                            @if ($grandChildCategory)
+                            <label for="name" id="nameLabel">Tag Name <span class="text-danger">*</span></label>
+                            @elseif ($parentCategory)
+                            <label for="name" id="nameLabel">Sub Category Name <span class="text-danger">*</span></label>
+                            @else
                             <label for="name" id="nameLabel">Category Name <span class="text-danger">*</span></label>
-                            <input type="text" name="name" id="name" class="form-control" value="{{ old('name', $category->name) }}" required>
-                        </div>
-
-                        <!-- Store Title (For Tags Only) -->
-                        <div class="form-group" id="store_titleField">
-                            <label for="store_title" id="store_titleLabel">Store Title</label>
-                            <input type="text" name="store_title" id="store_title" class="form-control" value="{{ old('store_title', $category->store_title) }}">
-                        </div>
-
-                        <!-- Description -->
-                        <div class="form-group" id="descriptionField">
-                            <label for="description" id="descriptionLabel">Description</label>
-                            <textarea name="description" id="description" class="form-control">{{ old('description', $category->description) }}</textarea>
-                        </div>
-
-                        <!-- Profile Image -->
-                        <div class="form-group" id="profileImgField">
-                            <label for="profile_img">Profile Image</label>
-                            <input type="file" name="profile_img" id="profile_img" class="form-control">
-                            @if ($category->profile_img)
-                            <div class="mt-2">
-                                <img src="{{ asset($category->profile_img) }}" alt="Profile Image" style="width: 150px;">
-                            </div>
                             @endif
+                            <input type="text" name="name" class="form-control" value="{{ old('name', $category->name) }}" required
+                                   {{ $grandChildCategory ? '' : '' }}> <!-- Name is always editable -->
                         </div>
 
-                        <!-- Cover Image -->
-                        <div class="form-group" id="coverImgField">
-                            <label for="cover_img">Cover Image</label>
-                            <input type="file" name="cover_img" id="cover_img" class="form-control">
-                            @if ($category->cover_img)
-                            <div class="mt-2">
-                                <img src="{{ asset($category->cover_img) }}" alt="Cover Image" style="width: 150px;">
+                        <!-- Category Order -->
+                        <div class="form-group">
+                            <label for="order" id="orderLabel">Index</label>
+                            <input type="number" name="order" class="form-control" value="{{ old('order', $category->order) }}"/>
+                        </div>
+
+                        <!-- Store Title (Only for grandchildren, and allow editing) -->
+                        @if ($grandChildCategory)
+                            <div class="form-group" id="store_titleField">
+                                <label for="store_title" id="store_titleLabel">Store Title</label>
+                                <input type="text" name="store_title" id="store_title" class="form-control"
+                                       value="{{ old('store_title', $category->store_title) }}">
                             </div>
-                            @endif
-                        </div>
 
-                        <!-- Category Order (For Main Categories Only) -->
-                        <div class="form-group" id="orderField">
-                            <label for="order" id="orderLabel">Category Order</label>
-                            <input type="number" name="order" class="form-control" id="orderInput" value="{{ old('order', $category->order) }}">
-                        </div>
+                            <!-- Description (Only for grandchildren, and allow editing) -->
+                            <div class="form-group" id="descriptionField">
+                                <label for="description" id="descriptionLabel">Description</label>
+                                <textarea name="description" id="description" class="form-control">{{ old('description', $category->description) }}</textarea>
+                            </div>
+                        @endif
+
+                        <!-- Profile Image (Hide for grandparent and parent categories) -->
+                        @if ($grandChildCategory)
+                            <div class="form-group" id="profileImgField">
+                                <label for="profile_img">Profile Image</label>
+                                <input type="file" name="profile_img" id="profile_img" class="form-control">
+                                @if ($category->profile_img)
+                                    <div class="mt-2">
+                                        <img src="{{ asset($category->profile_img) }}" alt="Profile Image" style="width: 150px;">
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+
+                        <!-- Cover Image (Hide for grandparent and parent categories) -->
+                        @if ($grandChildCategory)
+                            <div class="form-group" id="coverImgField">
+                                <label for="cover_img">Cover Image</label>
+                                <input type="file" name="cover_img" id="cover_img" class="form-control">
+                                @if ($category->cover_img)
+                                    <div class="mt-2">
+                                        <img src="{{ asset($category->cover_img) }}" alt="Cover Image" style="width: 150px;">
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
 
                         <button type="submit" class="btn btn-success">Update Category</button>
                     </form>
@@ -100,46 +120,44 @@
     </div>
 </div>
 
-<!-- JavaScript to Dynamically Show/Hide Fields -->
+<!-- Script to handle dynamic form behavior -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let parentSelect = document.getElementById('parent_id');
-        let nameLabel = document.getElementById('nameLabel');
-        let orderLabel = document.getElementById('orderLabel');
-        let orderInput = document.getElementById('orderInput');
-        let descriptionField = document.getElementById('descriptionField');
-        let store_titleField = document.getElementById('store_titleField');
-        let profileImgField = document.getElementById('profileImgField');
-        let coverImgField = document.getElementById('coverImgField');
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get the parent select field
+        var parentSelect = document.getElementById('parent_id');
+        var nameInput = document.getElementById('name');
+        var orderInput = document.getElementById('order');
+        var storeTitleField = document.getElementById('store_titleField');
+        var descriptionField = document.getElementById('descriptionField');
+        var profileImgField = document.getElementById('profileImgField');
+        var coverImgField = document.getElementById('coverImgField');
 
-        function toggleFields() {
-            if (parentSelect.value) {
-                // When it's a child category (Tag)
-                nameLabel.innerHTML = "Tag Name <span class='text-danger'>*</span>";
-                heading.innerHTML = "Edit Tag";
-                store_titleField.style.display = 'block';
-                orderLabel.style.display = 'block';
-                orderInput.style.display = 'block';
-                descriptionField.style.display = 'block';
-                profileImgField.style.display = 'block';
-                coverImgField.style.display = 'block';
-            } else {
-                // When it's a main category
-                nameLabel.innerHTML = "Category Name <span class='text-danger'>*</span>";
-                store_titleField.style.display = 'none';
-                orderLabel.style.display = 'block';
-                orderInput.style.display = 'block';
-                descriptionField.style.display = 'none';
-                profileImgField.style.display = 'none';
-                coverImgField.style.display = 'none';
-            }
+        // Initially hide store title and description fields if there is a grandchild (third layer)
+        if ({{ $grandChildCategory ? 'true' : 'false' }}) {
+            storeTitleField.style.display = 'block';
+            descriptionField.style.display = 'block';
+            profileImgField.style.display = 'block';
+            coverImgField.style.display = 'block';
         }
 
-        // Initial check on page load
-        toggleFields();
+        // Disable fields if the category is a grandchild
+        if ({{ $grandChildCategory ? 'true' : 'false' }}) {
+            nameInput.disabled = false;  // Name should always be editable
+            orderInput.disabled = false;  // Order should be editable for grandchildren
+        }
 
-        // Add event listener for change event
-        parentSelect.addEventListener('change', toggleFields);
+        // Logic to show/hide fields dynamically based on the parent category
+        parentSelect.addEventListener('change', function() {
+            if (parentSelect.value) {
+                storeTitleField.style.display = 'block';  // Show store title
+                descriptionField.style.display = 'block'; // Show description
+                profileImgField.style.display = 'none';   // Hide profile image for parents and grandparent
+                coverImgField.style.display = 'none';    // Hide cover image for parents and grandparent
+            } else {
+                storeTitleField.style.display = 'none';   // Hide store title
+                descriptionField.style.display = 'none';  // Hide description
+            }
+        });
     });
 </script>
 @endsection

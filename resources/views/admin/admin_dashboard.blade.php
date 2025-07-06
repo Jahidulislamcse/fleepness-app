@@ -63,6 +63,7 @@
             @include('admin.body.header')
 
             <div class="container">
+               
                 @yield('main')
             </div>
 

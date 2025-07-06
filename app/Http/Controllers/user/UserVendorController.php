@@ -20,7 +20,7 @@ class UserVendorController extends Controller
 
         $paginated = User::where('role', 'vendor')
             ->orderByDesc('order_count')
-            ->select('id', 'name', 'email', 'order_count', 'profile_image')
+            ->select('id', 'name', 'email', 'order_count', 'cover_image')
             ->paginate($perPage);
 
         return response()->json([

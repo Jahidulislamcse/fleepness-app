@@ -133,27 +133,18 @@ class VendorProductController extends Controller
 
             DB::commit();
 
-            // 👇 Conditionally return redirect or JSON
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Product created successfully',
-                    'product' => $product,
-                ]);
-            } else {
-                return redirect()->route('vendor.products.index')
-                    ->with('success', 'Product created successfully');
-            }
+            $tags = json_decode($product->tags, true);
+            $tags = is_array($tags) ? $tags : [];
+
+            $tagNames = Category::whereIn('id', $tags) // Fetch the category names based on the tag IDs
+                                ->pluck('name')
+                                ->toArray();
+            $productSizes = ProductSize::where('product_id', $product->id)->get();
+
+            return response()->json(['success' => true, 'message' => 'Product Created successfully', 'product' => $product, 'sizes' => $productSizes, 'tags' => $tagNames]);
+
         } catch (\Exception $e) {
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $e->getMessage(),
-                ], 500);
-            } else {
-                return redirect()->back()
-                    ->with('error', 'Something went wrong: ' . $e->getMessage());
-            }
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -166,79 +157,119 @@ class VendorProductController extends Controller
         return view('vendor.products.product_edit', compact('product', 'categories', 'productImageCount'));
     }
 
-    public function update(Request $request, $id)
-    {
-        // dd($id);
-        // dd($request->all());
+   public function update(Request $request, $id)
+{
+    // dd($request->all());
+    try {
+        // Find the product
+        $product = Product::findOrFail($id);
 
-        try {
-            $validated = $request->validate([
-                'category_id' => 'nullable|exists:categories,id',
-                'name' => 'nullable|string|max:255',
-                'long_description' => 'nullable|string',
-                'short_description' => 'nullable|string',
-                'size_template_id' => 'nullable|exists:size_templates,id',
-                'quantity' => 'nullable|integer|min:0',
-                'selling_price' => 'nullable|numeric|min:0',
-                'discount_price' => 'nullable|numeric|min:0',
-            ]);
+        // Check if the product belongs to the logged-in user
+        if ($product->user_id !== auth()->id()) {
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => 'You are not authorized to update this product.'], 403)
+                : redirect()->back()->with('error', 'You are not authorized to update this product.');
+        }
 
-            $product = Product::findOrFail($id);
+        // Validate input
+        $validated = $request->validate([
+            'category_id' => 'nullable|exists:categories,id',
+            'name' => 'nullable|string|max:255',
+            'long_description' => 'nullable|string',
+            'short_description' => 'nullable|string',
+            'size_template_id' => 'nullable|exists:size_templates,id',
+            'quantity' => 'nullable|integer|min:0',
+            'selling_price' => 'nullable|numeric|min:0',
+            'discount_price' => 'nullable|numeric|min:0',
+        ]);
 
-            $validated['tags'] = json_encode($request->tags);
-            // $validated['user_id'] = auth()->id(); // optional
-            $product->update($validated);
+        // Update the product details
+        $validated['tags'] = json_encode($request->tags);
+        $product->update($validated);
 
-            // Handle sizes (retain only submitted size IDs)
-            if ($request->has('size_ids')) {
-                $submittedIds = $request->size_ids; // array of product_size IDs to keep
-                $existingIds = ProductSize::where('product_id', $product->id)->pluck('id')->toArray();
+        // Handle sizes (retain only submitted size IDs)
+        if ($request->has('sizes')) {
+            $submittedSizes = $request->sizes;
 
-                // Delete removed sizes
-                $toDelete = array_diff($existingIds, $submittedIds);
-                ProductSize::whereIn('id', $toDelete)->delete();
-            }
+            foreach ($submittedSizes as $sizeData) {
+                $sizeData['size_name'] = strtolower($sizeData['size_name']);  // Convert size name to lowercase
 
-            // Add new images if any
-            if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $photo) {
-                    $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-                    $path = public_path('upload/product');
+                // Check if the size already exists for the product
+                $size = ProductSize::where('product_id', $product->id)
+                    ->where('size_name', $sizeData['size_name'])
+                    ->first();
 
-                    if (!file_exists($path)) {
-                        mkdir($path, 0777, true);
+                // If the size exists, update its value if available is true
+                if ($size) {
+                    if ($sizeData['available'] === 'false') {
+                        // If available is false, delete the size
+                        $size->delete();
+                    } else {
+                        // Update the size value
+                        $size->size_value = $sizeData['size_value'];
+                        $size->save();
                     }
-
-                    $photo->move($path, $name_gen);
-
-                    ProductImage::create([
-                        'product_id' => $product->id,
-                        'path' => 'upload/product/' . $name_gen,
-                        'alt_text' => $request->input('alt_text', ''),
-                    ]);
+                } else {
+                    if ($sizeData['available'] === 'true') {
+                        ProductSize::create([
+                            'product_id' => $product->id,
+                            'size_name' => $sizeData['size_name'], // Ensure size name is lowercase
+                            'size_value' => $sizeData['size_value'],
+                        ]);
+                    }
                 }
             }
-
-            // 🆕 Save tags to seller_tags table (add new tags only)
-            if (!empty($request->tags)) {
-                $sellerTag = SellerTags::firstOrNew([
-                    'vendor_id' => auth()->id(),
-                ]);
-
-                // Simply store the tags without removing duplicates
-                $sellerTag->tags = array_merge($sellerTag->tags ?? [], $request->tags);
-                $sellerTag->save();
-            }
-
-            return $request->wantsJson()
-                ? response()->json(['success' => true, 'message' => 'Product updated successfully', 'product' => $product])
-                : redirect()->route('vendor.products.index')->with('success', 'Product updated successfully');
-        } catch (\Exception $e) {
-            return $request->wantsJson()
-                ? response()->json(['success' => false, 'error' => $e->getMessage()], 500)
-                : redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
         }
-    }
+
+        // Add new images if any
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $photo) {
+                $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
+                $path = public_path('upload/product');
+
+                if (!file_exists($path)) {
+                    mkdir($path, 0777, true);
+                }
+
+                $photo->move($path, $name_gen);
+
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'path' => 'upload/product/' . $name_gen,
+                    'alt_text' => $request->input('alt_text', ''),
+                ]);
+            }
+        }
+
+        // 🆕 Save tags to seller_tags table (add new tags only)
+        if (!empty($request->tags)) {
+            $sellerTag = SellerTags::firstOrNew([
+                'vendor_id' => auth()->id(),
+            ]);
+
+            $sellerTag->tags = array_merge($sellerTag->tags ?? [], $request->tags);
+            $sellerTag->save();
+        }
+
+        $tags = json_decode($product->tags, true);
+        $tags = is_array($tags) ? $tags : [];
+
+        $tagNames = Category::whereIn('id', $tags) // Fetch the category names based on the tag IDs
+                            ->pluck('name')
+                            ->toArray();
+
+        $productSizes = ProductSize::where('product_id', $product->id)->get();
+
+        return response()->json(['success' => true, 'message' => 'Product updated successfully', 'product' => $product, 'sizes' => $productSizes, 'tags' => $tagNames]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+}
+
+
+
+
 
 
 

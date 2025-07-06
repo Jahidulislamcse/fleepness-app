@@ -111,9 +111,17 @@ class AdminCategoryController extends Controller
 
     public function edit(Category $category)
     {
-        $categories = Category::whereNull('parent_id')->where('id', '!=', $category->id)->get(); // Exclude the category itself
-        return view('admin..categories.category_edit', compact('category', 'categories'));
+        $categories = Category::whereNull('parent_id')
+            ->where('id', '!=', $category->id) // Exclude the current category
+            ->get();
+
+        $parentCategory = $category->parent;
+
+        $grandChildCategory = $parentCategory ? $parentCategory->parent : null;
+
+        return view('admin.categories.category_edit', compact('category', 'categories', 'parentCategory', 'grandChildCategory'));
     }
+
 
     public function update(Request $request, Category $category)
     {
@@ -206,10 +214,10 @@ class AdminCategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        // $subCategory = Category::where('parent_id', $category->id)->count('id');
-        // if ($subCategory > 0) {
-        //     return redirect()->route('categories.index')->with('success', 'You can not deleted this category.Please First Delete all Child Category!');
-        // }
+        $subCategory = Category::where('parent_id', $category->id)->count('id');
+        if ($subCategory > 0) {
+            return redirect()->route('admin.categories.index')->with('success', 'You can not deleted this category. Please First Delete all Child Category!');
+        }
         // $product = Product::where('category_id', $category->id)->count('id');
         // if ($product > 0) {
         //     return redirect()->route('categories.index')->with('success', 'You can not deleted this category.Please First Delete all Product under this Subcategory!');

@@ -13,9 +13,42 @@ class TagController extends Controller
     public function getTags(Request $request)
     {
         $categoryId = $request->category_id;
-        $tags = Category::where('parent_id', $categoryId)->get();
+        $tags = Category::where('parent_id', $categoryId)->where('mark', 'T')->get();
         return response()->json($tags);
     }
+
+    public function getTagsByCategory($category_id)
+    {
+        // Find the category to ensure it exists
+        $category = Category::find($category_id);
+
+        if (!$category) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Category not found',
+            ], 404);
+        }
+
+        // Get all children (subcategories) of the selected category
+        $children = Category::where('parent_id', $category_id)->get();
+
+        // Prepare an array to hold all grandchildren
+        $grandchildren = [];
+
+        // For each child, get its own children (grandchildren)
+        foreach ($children as $child) {
+            // Retrieve grandchildren (children of this child)
+            $grandchildren = array_merge($grandchildren, $child->children()->get()->toArray());
+        }
+
+        // Return the grandchildren as a JSON response
+        return response()->json([
+            'status' => true,
+            'message' => 'Grandchildren fetched successfully',
+            'tags' => $grandchildren,
+        ]);
+    }
+
 
     public function getProductByTag($id)
     {
@@ -103,7 +136,7 @@ class TagController extends Controller
         return response()->json([]);
     }
 
-    $tags = Category::whereNotNull('parent_id')
+    $tags = Category::whereNotNull('parent_id')->where('mark', 'T')
         ->inRandomOrder()
         ->take($limit)
         ->get(['id', 'name', 'profile_img', 'cover_img']);

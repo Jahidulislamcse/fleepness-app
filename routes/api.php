@@ -127,7 +127,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
 
         Route::middleware(['role:vendor'])->group(function () {
             Route::post('/product/create', [VendorProductController::class, 'store']);              //store product
-            Route::get('/product/index', [VendorProductController::class, 'show']);                 //show products
+            Route::get('/product/my-products', [VendorProductController::class, 'show']);                 //show products
             Route::post('/products/{id}', [VendorProductController::class, 'update']);              //Update Product
             Route::post('/products/soft-delete/{id}', [VendorProductController::class, 'destroy']); //Soft Deleting a product
             Route::post('/products/inactive/{id}', [VendorProductController::class, 'inactive']);   //Inactivating a product
@@ -142,12 +142,13 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
             });
         });
 
-        Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
 
         Route::post('/shop-categories', [ShopCategoryController::class, 'store']);         // Create new category
         Route::put('/shop-categories/{id}', [ShopCategoryController::class, 'update']);    // Update category
         Route::delete('/shop-categories/{id}', [ShopCategoryController::class, 'destroy']); // Delete category
     });
+
+    Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
 
     Route::get('/shop-categories', [ShopCategoryController::class, 'index']);          // List all categories
     Route::get('/shop-categories/{id}', [ShopCategoryController::class, 'show']);      // View single category

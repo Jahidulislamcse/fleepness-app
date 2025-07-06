@@ -10,6 +10,7 @@ use App\Http\Controllers\AdminCategoryController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\SectionController;
 use App\Http\Controllers\Vendor\ProductController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\ProfileController;
@@ -113,10 +114,12 @@ Route::get('create-rider-account', [ProfileController::class, 'createRider'])->n
 Route::post('rider/application', [UserController::class, 'riderApplication'])->name('rider.application');
 
 Route::get('/admin/categories/children/{parentId}', [AdminCategoryController::class, 'getChildren']);
+Route::get('/categories/{category_id}/tags', [TagController::class, 'getTagsByCategory']);
 
 
 Route::middleware('role:admin')->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
+        Route::resource('sections', SectionController::class);
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::resource('categories', AdminCategoryController::class);
         Route::resource('products', AdminProductController::class);

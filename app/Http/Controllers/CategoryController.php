@@ -9,9 +9,14 @@ class CategoryController extends Controller
 {
     public function getCategories()
     {
-        $categories = Category::whereNull('parent_id')
+        $categories = Category::with(['children' => function ($query) {
+                $query->orderBy('order', 'asc')
+                     ->with('children');  
+            }])
+            ->whereNull('parent_id')
             ->orderBy('order', 'asc')
-            ->get();
+            ->get(['id', 'name', 'profile_img', 'cover_img']);
+
 
         return response()->json([
             'status' => true,
