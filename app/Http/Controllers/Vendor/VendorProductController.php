@@ -83,6 +83,7 @@ class VendorProductController extends Controller
 
             $validated['code'] = $this->generateUniqueCode();
             $validated['status'] = 'active';
+            $validated['admin_approval'] = 'approved';
             $validated['user_id'] = auth()->id();
             $validated['tags'] = json_encode($request->tags);
 

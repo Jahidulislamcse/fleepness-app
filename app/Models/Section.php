@@ -20,7 +20,7 @@ class Section extends Model
     // Section.php (Model)
     public function category()
     {
-        return $this->belongsTo(Category::class); // Assuming the foreign key is 'category_id'
+        return $this->belongsTo(Category::class); 
     }
 
 }

@@ -31,6 +31,7 @@ use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\user\CartController;
 use App\Http\Controllers\user\AddressController;
 use App\Http\Controllers\DeliveryModelController;
+use App\Http\Controllers\SectionController;
 use App\Http\Controllers\Vendor\VendorShortVideoController;
 
 RateLimiter::for('api', function (Request $request) {
@@ -168,6 +169,8 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         // Delivery options for users
         Route::get('/delivery/models', [DeliveryModelController::class, 'userIndex']);
     });
+
+    Route::get('/sections', [SectionController::class, 'sections']);
 
     Route::get('livestreams', [LivestreamController::class, 'index'])->name('livestreams.index');
     Route::get('livestreams/{livestream}', [LivestreamController::class, 'show'])->name('livestreams.show');

@@ -127,6 +127,11 @@
                                     <span class="sub-item">Generals</span>
                                 </a>
                             </li>
+                             <li class="">
+                                <a href="{{ route('admin.sections.index') }}">
+                                    <span class="sub-item">Sections</span>
+                                </a>
+                            </li>
                             <li class="">
                                 <a href="{{ route('admin.sliders.index') }}">
                                     <span class="sub-item">Sliders</span>

@@ -19,7 +19,7 @@ class SectionItem extends Model
     // SectionItem.php (Model)
     public function tag()
     {
-        return $this->belongsTo(Category::class, 'tag_id'); // 'tag_id' is the foreign key
+        return $this->belongsTo(Category::class, 'tag_id');
     }
 
 }

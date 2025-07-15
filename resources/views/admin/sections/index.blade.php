@@ -26,7 +26,7 @@
                             <td>{{ $section->section_name }}</td>
                             <td>{{ ucwords(str_replace('_', ' ', $section->section_type)) }}</td>
                             <td>{{ $section->category->name }}</td>
-                             <td><img src="{{ asset($section->background_image) }}" alt="back Image" width="200" /></td>
+                            <td><img src="{{ asset($section->background_image) }}" alt="back Image"  width="100" /></td>
                             <td>{{ $section->index }}</td>
                             <td>{{ $section->visibility ? 'Visible' : 'Hidden' }}</td>
 

@@ -18,14 +18,16 @@ class CreateSectionsTable extends Migration
             $table->integer('index')->nullable();
             $table->boolean('visibility')->default(true);
             $table->string('background_image')->nullable();
+            $table->string('banner_image')->nullable();
             $table->timestamps();
         });
 
-        // Create a table for section items (for storing images, tags, etc.)
         Schema::create('section_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('section_id')->constrained('sections');
             $table->string('image')->nullable();
+            $table->string('title')->nullable();
+            $table->string('bio')->nullable();
             $table->string('tag_id')->nullable();
             $table->integer('index')->nullable();
             $table->boolean('visibility')->default(true);
