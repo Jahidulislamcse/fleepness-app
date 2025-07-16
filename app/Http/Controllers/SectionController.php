@@ -57,33 +57,35 @@ class SectionController extends Controller
             'items.*.visibility' => 'nullable|boolean',
         ]);
 
+        // dd($validated);
+
         // Initialize background and banner image variables as null by default
         $background = null;
         $banner_img = null;
 
         // Handle the background image upload
-        if ($request->hasFile('background_image')) {
+       if ($request->hasFile('background_image')) {
             $photo = $request->file('background_image');
             $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-            $path = public_path('upload/sections');
-            if (!file_exists($path)) {
-                mkdir($path, 0777, true);
+            $folder = 'slider/';
+            if (!file_exists(public_path('upload/' . $folder))) {
+                mkdir(public_path('upload/' . $folder), 0777, true);
             }
-            $photo->move($path, $name_gen);
-            $background = 'upload/sections/' . $name_gen;
+            $photo->move(public_path('upload/' . $folder), $name_gen);
+            $background = 'upload/' . $folder . $name_gen;
         }
 
-        // Handle the banner image upload
         if ($request->hasFile('banner_image')) {
             $banner = $request->file('banner_image');
             $name_gen_banner = hexdec(uniqid()) . '.' . $banner->getClientOriginalExtension();
-            $path = public_path('upload/sections');
-            if (!file_exists($path)) {
-                mkdir($path, 0777, true);
+            $folder = 'slider/';
+            if (!file_exists(public_path('upload/' . $folder))) {
+                mkdir(public_path('upload/' . $folder), 0777, true);
             }
-            $banner->move($path, $name_gen_banner);
-            $banner_img = 'upload/sections/' . $name_gen_banner;
+            $banner->move(public_path('upload/' . $folder), $name_gen_banner);
+            $banner_img = 'upload/' . $folder . $name_gen_banner;
         }
+
 
         // Create the section record
         $section = Section::create([
@@ -100,22 +102,20 @@ class SectionController extends Controller
         // Handle storing the section items
         if (isset($validated['items']) && count($validated['items']) > 0) {
             foreach ($request->items as $index => $item) {
-                // Default values for item fields
                 $item_image = isset($item['image']) ? $item['image'] : null;
                 $image_path = null;
 
-                // Handle the item image upload
                 if ($item_image && $request->hasFile('items.' . $index . '.image')) {
                     $image_name = hexdec(uniqid()) . '.' . $item_image->getClientOriginalExtension();
-                    $image_path = public_path('upload/section_items');
+                    $folder = 'slider/';
+                    $image_path = public_path('upload/' . $folder);
                     if (!file_exists($image_path)) {
                         mkdir($image_path, 0777, true);
                     }
                     $item_image->move($image_path, $image_name);
-                    $item_image = 'upload/section_items/' . $image_name;
+                    $item_image = 'upload/' . $folder . $image_name;
                 }
 
-                // Store the item (nullable columns handled)
                 SectionItem::create([
                     'section_id' => $section->id,
                     'image' => $item_image,
@@ -127,6 +127,7 @@ class SectionController extends Controller
                 ]);
             }
         }
+
 
         return redirect()->route('admin.sections.index')->with('success', 'Section created successfully');
     }
@@ -165,27 +166,29 @@ class SectionController extends Controller
         ]);
 
         // === Background Image ===
-        $background = $section->background_image;
+       $background = $section->background_image;
         if ($request->hasFile('background_image')) {
             $photo = $request->file('background_image');
             $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-            $photo->move(public_path('upload/sections'), $name_gen);
-            $background = 'upload/sections/' . $name_gen;
+            $folder = 'slider/';
+            $photo->move(public_path('upload/' . $folder), $name_gen);
+            $background = 'upload/' . $folder . $name_gen;
         }
 
-        // === Banner Image ===
         $banner_img = $section->banner_image;
         if ($request->hasFile('banner_image')) {
             $banner = $request->file('banner_image');
             $name_gen_banner = hexdec(uniqid()) . '.' . $banner->getClientOriginalExtension();
-            $banner->move(public_path('upload/sections'), $name_gen_banner);
-            $banner_img = 'upload/sections/' . $name_gen_banner;
+            $folder = 'slider/';
+            $banner->move(public_path('upload/' . $folder), $name_gen_banner);
+            $banner_img = 'upload/' . $folder . $name_gen_banner;
         }
+
 
         // === Update Section ===
         $section->update([
             'section_name' => $validated['section_name'],
-            'section_type' => $validated['section_type'],
+            'section_type' => $validated['section_type'] ?? $section->section_type,
             'section_title' => $validated['section_title'],
             'category_id' => $validated['category_id'],
             'index' => $validated['index'],
@@ -202,12 +205,12 @@ class SectionController extends Controller
             $itemModel = $oldItems[$i] ?? new \App\Models\SectionItem();
             $itemModel->section_id = $section->id;
 
-            // Check if new image uploaded
             $uploadedImage = $request->file("items.$i.image");
             if ($uploadedImage) {
                 $imageName = hexdec(uniqid()) . '.' . $uploadedImage->getClientOriginalExtension();
-                $uploadedImage->move(public_path('upload/section_items'), $imageName);
-                $itemModel->image = 'upload/section_items/' . $imageName;
+                $folder = 'slider/';
+                $uploadedImage->move(public_path('upload/' . $folder), $imageName);
+                $itemModel->image = 'upload/' . $folder . $imageName;
             } elseif (!$itemModel->exists) {
                 $itemModel->image = null; // For new item with no image
             }
@@ -219,6 +222,7 @@ class SectionController extends Controller
             $itemModel->visibility = $itemData['visibility'] ?? 1;
             $itemModel->save();
         }
+
 
         // Optionally delete extra old items if new list is shorter
         if ($oldItems->count() > count($updatedItems)) {

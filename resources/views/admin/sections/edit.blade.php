@@ -42,7 +42,7 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="section_type">Section Type</label>
-                                    <select name="section_type" id="section_type" class="form-control" required>
+                                    <select name="section_type" id="section_type" class="form-control" required disabled>
                                         @foreach([
                                             'select_section_type', 'multiproduct_banner', 'single_banner', 'scrollable_product', 'lighting_deals', 'tag_box',
                                             'fancy_3x_box_grid', 'poster_section', 'scrollable_banners', 'smaller_4x_box_grid',
@@ -55,6 +55,7 @@
                                         @endforeach
                                     </select>
                                 </div>
+
 
                                 <div class="form-group">
                                     <label for="section_name">Section Name</label>
