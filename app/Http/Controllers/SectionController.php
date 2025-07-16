@@ -107,7 +107,7 @@ class SectionController extends Controller
 
                 if ($item_image && $request->hasFile('items.' . $index . '.image')) {
                     $image_name = hexdec(uniqid()) . '.' . $item_image->getClientOriginalExtension();
-                    $folder = 'section_items/';
+                    $folder = 'sections/';
                     $image_path = public_path('upload/' . $folder);
                     if (!file_exists($image_path)) {
                         mkdir($image_path, 0777, true);
@@ -205,7 +205,7 @@ class SectionController extends Controller
             $uploadedImage = $request->file("items.$i.image");
             if ($uploadedImage) {
                 $imageName = hexdec(uniqid()) . '.' . $uploadedImage->getClientOriginalExtension();
-                $folder = 'section_items/';
+                $folder = 'sections/';
                 $uploadedImage->move(public_path('upload/' . $folder), $imageName);
                 $itemModel->image = 'upload/' . $folder . $imageName;
             } elseif (!$itemModel->exists) {
