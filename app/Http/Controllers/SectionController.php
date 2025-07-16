@@ -67,7 +67,7 @@ class SectionController extends Controller
        if ($request->hasFile('background_image')) {
             $photo = $request->file('background_image');
             $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-            $folder = 'sections/';
+            $folder = 'slider/';
             if (!file_exists(public_path('upload/' . $folder))) {
                 mkdir(public_path('upload/' . $folder), 0777, true);
             }
@@ -78,7 +78,7 @@ class SectionController extends Controller
         if ($request->hasFile('banner_image')) {
             $banner = $request->file('banner_image');
             $name_gen_banner = hexdec(uniqid()) . '.' . $banner->getClientOriginalExtension();
-            $folder = 'sections/';
+            $folder = 'slider/';
             if (!file_exists(public_path('upload/' . $folder))) {
                 mkdir(public_path('upload/' . $folder), 0777, true);
             }
@@ -107,7 +107,7 @@ class SectionController extends Controller
 
                 if ($item_image && $request->hasFile('items.' . $index . '.image')) {
                     $image_name = hexdec(uniqid()) . '.' . $item_image->getClientOriginalExtension();
-                    $folder = 'sections/';
+                    $folder = 'slider/';
                     $image_path = public_path('upload/' . $folder);
                     if (!file_exists($image_path)) {
                         mkdir($image_path, 0777, true);
@@ -169,7 +169,7 @@ class SectionController extends Controller
         if ($request->hasFile('background_image')) {
             $photo = $request->file('background_image');
             $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-            $folder = 'sections/';
+            $folder = 'slider/';
             $photo->move(public_path('upload/' . $folder), $name_gen);
             $background = 'upload/' . $folder . $name_gen;
         }
@@ -178,7 +178,7 @@ class SectionController extends Controller
         if ($request->hasFile('banner_image')) {
             $banner = $request->file('banner_image');
             $name_gen_banner = hexdec(uniqid()) . '.' . $banner->getClientOriginalExtension();
-            $folder = 'sections/';
+            $folder = 'slider/';
             $banner->move(public_path('upload/' . $folder), $name_gen_banner);
             $banner_img = 'upload/' . $folder . $name_gen_banner;
         }
@@ -205,7 +205,7 @@ class SectionController extends Controller
             $uploadedImage = $request->file("items.$i.image");
             if ($uploadedImage) {
                 $imageName = hexdec(uniqid()) . '.' . $uploadedImage->getClientOriginalExtension();
-                $folder = 'sections/';
+                $folder = 'slider/';
                 $uploadedImage->move(public_path('upload/' . $folder), $imageName);
                 $itemModel->image = 'upload/' . $folder . $imageName;
             } elseif (!$itemModel->exists) {
