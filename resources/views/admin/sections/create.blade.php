@@ -206,7 +206,7 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="box1_image">Box 1 Image</label>
-                            <input type="file" name="items[0][image]" class="form-control">
+                            <input type="file" name="items[0][image]" class="form-control required">
                             <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                                 <option value="">Select Tag</option>
                             </select>
@@ -218,7 +218,7 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="box2_image">Box 2 Image</label>
-                            <input type="file" name="items[1][image]" class="form-control">
+                            <input type="file" name="items[1][image]" class="form-control required">
                             <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                                 <option value="">Select Tag</option>
                             </select>
@@ -230,7 +230,7 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="box3_image">Box 3 Image</label>
-                            <input type="file" name="items[2][image]" class="form-control">
+                            <input type="file" name="items[2][image]" class="form-control required">
                             <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                                 <option value="">Select Tag</option>
                             </select>
@@ -296,7 +296,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <textarea name="items[0][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -309,7 +309,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <textarea name="items[1][bio]" class="form-control" rows="5" placeholder="Bio" required></textarea>
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -326,7 +326,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -338,7 +338,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -350,7 +350,7 @@
                  <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 3 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control">
+                        <input type="file" name="items[2][image]" class="form-control required">
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -366,7 +366,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -378,7 +378,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -394,7 +394,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -406,7 +406,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -426,7 +426,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -438,7 +438,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -450,7 +450,7 @@
                  <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 3 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control">
+                        <input type="file" name="items[2][image]" class="form-control required">
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -462,7 +462,7 @@
                  <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 4 Image</label>
-                        <input type="file" name="items[3][image]" class="form-control">
+                        <input type="file" name="items[3][image]" class="form-control required">
                         <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -478,7 +478,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -490,7 +490,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -507,7 +507,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -519,7 +519,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -531,7 +531,7 @@
                  <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 3 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control">
+                        <input type="file" name="items[2][image]" class="form-control required">
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -543,7 +543,7 @@
                  <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 4 Image</label>
-                        <input type="file" name="items[3][image]" class="form-control">
+                        <input type="file" name="items[3][image]" class="form-control required">
                         <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -555,7 +555,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 5 Image</label>
-                        <input type="file" name="items[4][image]" class="form-control">
+                        <input type="file" name="items[4][image]" class="form-control required">
                         <select name="items[4][tag_id]" id="box5_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -567,7 +567,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 6 Image</label>
-                        <input type="file" name="items[5][image]" class="form-control">
+                        <input type="file" name="items[5][image]" class="form-control required">
                         <select name="items[5][tag_id]" id="box6_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -583,7 +583,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -595,7 +595,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -612,7 +612,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -624,7 +624,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -636,7 +636,7 @@
                  <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 3 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control">
+                        <input type="file" name="items[2][image]" class="form-control required">
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -648,7 +648,7 @@
                  <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 4 Image</label>
-                        <input type="file" name="items[3][image]" class="form-control">
+                        <input type="file" name="items[3][image]" class="form-control required">
                         <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -660,7 +660,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 5 Image</label>
-                        <input type="file" name="items[4][image]" class="form-control">
+                        <input type="file" name="items[4][image]" class="form-control required">
                         <select name="items[4][tag_id]" id="box5_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -672,7 +672,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 6 Image</label>
-                        <input type="file" name="items[5][image]" class="form-control">
+                        <input type="file" name="items[5][image]" class="form-control required">
                         <select name="items[5][tag_id]" id="box6_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -692,7 +692,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -704,7 +704,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -716,7 +716,7 @@
                  <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 3 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control">
+                        <input type="file" name="items[2][image]" class="form-control required">
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -728,7 +728,7 @@
                  <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 4 Image</label>
-                        <input type="file" name="items[3][image]" class="form-control">
+                        <input type="file" name="items[3][image]" class="form-control required">
                         <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -740,7 +740,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 5 Image</label>
-                        <input type="file" name="items[4][image]" class="form-control">
+                        <input type="file" name="items[4][image]" class="form-control required">
                         <select name="items[4][tag_id]" id="box5_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -752,7 +752,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 6 Image</label>
-                        <input type="file" name="items[5][image]" class="form-control">
+                        <input type="file" name="items[5][image]" class="form-control required">
                         <select name="items[5][tag_id]" id="box6_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
@@ -769,7 +769,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <textarea name="items[0][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -782,7 +782,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <textarea name="items[1][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -795,7 +795,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control">
+                        <input type="file" name="items[2][image]" class="form-control required">
                         <textarea name="items[2][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -808,7 +808,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[3][image]" class="form-control">
+                        <input type="file" name="items[3][image]" class="form-control required">
                         <textarea name="items[3][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
                         <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -821,7 +821,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[4][image]" class="form-control">
+                        <input type="file" name="items[4][image]" class="form-control required">
                         <textarea name="items[4][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
                         <select name="items[4][tag_id]" id="box5_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -834,7 +834,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[5][image]" class="form-control">
+                        <input type="file" name="items[5][image]" class="form-control required">
                         <textarea name="items[5][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
                         <select name="items[5][tag_id]" id="box6_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -847,7 +847,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[6][image]" class="form-control">
+                        <input type="file" name="items[6][image]" class="form-control required">
                         <textarea name="items[6][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
                         <select name="items[6][tag_id]" id="box7_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -860,7 +860,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[7][image]" class="form-control">
+                        <input type="file" name="items[7][image]" class="form-control required">
                         <textarea name="items[7][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
                         <select name="items[7][tag_id]" id="box8_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -878,7 +878,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <input type="text" name="items[0][title]" class="form-control" placeholder="Title" required>
                         <textarea name="items[0][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
@@ -892,7 +892,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <input type="text" name="items[1][title]" class="form-control" placeholder="Title" required>
                         <textarea name="items[1][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
@@ -926,7 +926,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control">
+                        <input type="file" name="items[0][image]" class="form-control required">
                         <input type="text" name="items[0][title]" class="form-control" placeholder="Title" required>
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -939,7 +939,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control">
+                        <input type="file" name="items[1][image]" class="form-control required">
                         <input type="text" name="items[1][title]" class="form-control" placeholder="Title" required>
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -952,7 +952,7 @@
                 <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 3 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control">
+                        <input type="file" name="items[2][image]" class="form-control required">
                         <input type="text" name="items[2][title]" class="form-control" placeholder="Title" required>
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
@@ -965,7 +965,7 @@
                  <div class="col-md-4">
                     <div class="form-group">
                         <label for="box2_image">Box 4 Image</label>
-                        <input type="file" name="items[3][image]" class="form-control">
+                        <input type="file" name="items[3][image]" class="form-control required">
                         <input type="text" name="items[3][title]" class="form-control" placeholder="Title" required>
                         <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
                             <option value="">Select Tag</option>
