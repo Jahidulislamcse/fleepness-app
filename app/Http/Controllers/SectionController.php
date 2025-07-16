@@ -41,7 +41,7 @@ class SectionController extends Controller
         // Validate the request data
         $validated = $request->validate([
             'section_name' => 'nullable|string|max:255',
-            'section_type' => 'nullable|string',
+            'section_type' => 'nullable|string|unique:sections,section_type',
             'section_title' => 'nullable|string|max:255',
             'category_id' => 'nullable|exists:categories,id',
             'index' => 'nullable|integer',
@@ -149,7 +149,7 @@ class SectionController extends Controller
 
         $validated = $request->validate([
             'section_name' => 'nullable|string|max:255',
-            'section_type' => 'nullable|string',
+            'section_type' => 'nullable|string|unique:sections,section_type,' . $id,
             'section_title' => 'nullable|string|max:255',
             'category_id' => 'nullable|exists:categories,id',
             'index' => 'nullable|integer',
