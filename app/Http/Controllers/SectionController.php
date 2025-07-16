@@ -137,7 +137,7 @@ class SectionController extends Controller
    public function edit($id)
     {
         $section = Section::with('items')->findOrFail($id);
-        $categories = Category::whereNull('parent_id')->get(); // Or however you're getting top-level categories
+        $categories = Category::whereNull('parent_id')->get(); 
 
         return view('admin.sections.edit', compact('section', 'categories'));
     }
@@ -165,7 +165,6 @@ class SectionController extends Controller
             'items.*.visibility' => 'nullable|boolean',
         ]);
 
-        // === Background Image ===
        $background = $section->background_image;
         if ($request->hasFile('background_image')) {
             $photo = $request->file('background_image');
@@ -185,7 +184,6 @@ class SectionController extends Controller
         }
 
 
-        // === Update Section ===
         $section->update([
             'section_name' => $validated['section_name'],
             'section_type' => $validated['section_type'] ?? $section->section_type,
@@ -197,7 +195,6 @@ class SectionController extends Controller
             'banner_image' => $banner_img,
         ]);
 
-        // === Handle Items ===
         $oldItems = $section->items()->get();
         $updatedItems = $request->input('items', []);
 
@@ -212,7 +209,7 @@ class SectionController extends Controller
                 $uploadedImage->move(public_path('upload/' . $folder), $imageName);
                 $itemModel->image = 'upload/' . $folder . $imageName;
             } elseif (!$itemModel->exists) {
-                $itemModel->image = null; // For new item with no image
+                $itemModel->image = null; 
             }
 
             $itemModel->title = $itemData['title'] ?? null;
@@ -224,7 +221,6 @@ class SectionController extends Controller
         }
 
 
-        // Optionally delete extra old items if new list is shorter
         if ($oldItems->count() > count($updatedItems)) {
             $oldItems->slice(count($updatedItems))->each->delete();
         }
