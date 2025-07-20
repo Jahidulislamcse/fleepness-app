@@ -55,6 +55,61 @@ class SizeTemplateController extends Controller
         ], 201);
     }
 
+    public function updateSize(Request $request, $templateId, $sizeItemId)
+    {
+        $request->validate([
+            'size_name' => 'nullable|string|max:50',  
+            'size_value' => 'nullable|string|max:255', 
+        ]);
+
+        $template = SizeTemplate::where('id', $templateId)
+            ->where('seller_id', auth()->id())
+            ->firstOrFail();
+
+        $sizeItem = SizeTemplateItem::where('id', $sizeItemId)
+            ->where('template_id', $template->id)
+            ->firstOrFail();
+
+        if ($request->has('size_name')) {
+            $sizeItem->size_name = $request->size_name;
+        }
+
+        if ($request->has('size_value')) {
+            $sizeItem->size_value = $request->size_value;
+        }
+
+        $sizeItem->save();
+
+        return response()->json([
+            'message' => 'Size item updated successfully',
+            'size_item' => $sizeItem
+        ], 200);
+    }
+
+    public function destroySizeItem($templateId, $sizeItemId)
+    {
+        $template = SizeTemplate::where('id', $templateId)
+            ->where('seller_id', auth()->id())
+            ->firstOrFail();
+
+        $sizeItem = SizeTemplateItem::where('template_id', $templateId)
+            ->where('id', $sizeItemId)
+            ->first();
+
+        if (!$sizeItem) {
+            return response()->json([
+                'message' => 'Size item not found.',
+            ], 404);
+        }
+
+        $sizeItem->delete();
+
+        return response()->json([
+            'message' => 'Size item deleted successfully',
+        ]);
+    }
+
+
     // Get all templates for the authenticated seller with their sizes
     public function getTemplates(Request $request)
     {

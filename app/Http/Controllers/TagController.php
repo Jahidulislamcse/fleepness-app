@@ -10,12 +10,45 @@ use App\Models\Product;
 
 class TagController extends Controller
 {
+
     public function getTags(Request $request)
     {
-        $categoryId = $request->category_id;
-        $tags = Category::where('parent_id', $categoryId)->where('mark', 'T')->get();
-        return response()->json($tags);
+        $category_id = $request->input('category_id');
+
+        if (!$category_id) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Category ID is required',
+            ], 400);
+        }
+
+        $category = Category::find($category_id);
+
+        if (!$category) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Category not found',
+            ], 404);
+        }
+
+        $children = Category::where('parent_id', $category_id)->get();
+
+        $grandchildren = [];
+
+        foreach ($children as $child) {
+            $childGrandchildren = $child->children()->get()->toArray();
+
+            $grandchildren = array_merge($grandchildren, $childGrandchildren);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Tags fetched successfully',
+            'tags' => $grandchildren,
+        ]);
     }
+
+
 
     public function getTagsByCategory($category_id)
     {
@@ -50,37 +83,75 @@ class TagController extends Controller
     }
 
 
-    public function getProductByTag($id)
-    {
-        try {
-            $products = Product::all()->filter(function ($product) use ($id) {
+public function getProductByTag($id)
+{
+    try {
+        // Fetch all products and filter by tag ID
+        $products = Product::whereNull('deleted_at')
+            ->get()
+            ->filter(function ($product) use ($id) {
                 $tags = json_decode($product->tags, true) ?: [];
                 return in_array($id, $tags);
-            })->values();
+            })
+            ->values();
 
-            return response()->json([
-                'success' => true,
-                'products' => $products,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        // Pagination settings
+        $perPage = 10;
+        $currentPage = request()->get('page', 1);
+        $offset = ($currentPage - 1) * $perPage;
+
+        // Slice the products for the current page
+        $paginatedProducts = $products->slice($offset, $perPage);
+
+        // Add tag names to the products
+        $paginatedProducts = $paginatedProducts->map(function ($product) {
+            $tags = json_decode($product->tags, true) ?: [];
+            $tagNames = Category::whereIn('id', $tags)->pluck('name')->toArray();
+            $product->tag_names = implode(', ', $tagNames);
+
+            return $product;
+        });
+
+        // Calculate total pages
+        $totalPages = ceil($products->count() / $perPage);
+
+        // Generate next and previous page URLs
+        $nextPageUrl = $currentPage < $totalPages ? url()->current() . '?page=' . ($currentPage + 1) : null;
+        $previousPageUrl = $currentPage > 1 ? url()->current() . '?page=' . ($currentPage - 1) : null;
+
+        return response()->json([
+            'success' => true,
+            'products' => $paginatedProducts,
+            'pagination' => [
+                'current_page' => $currentPage,
+                'per_page' => $perPage,
+                'total_pages' => $totalPages,
+                'total_products' => $products->count(),
+                'next_page_url' => $nextPageUrl,
+                'previous_page_url' => $previousPageUrl,
+            ],
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
+
+
+
+
 
 
     public function getMostUsedTags($userId)
     {
-        // 1) Fetch the seller tags row for this vendor
         $sellerTag = SellerTags::where('vendor_id', $userId)->first();
 
         if (!$sellerTag || empty($sellerTag->tags)) {
             return response()->json(['message' => 'No tags found for this user.'], 404);
         }
 
-        // 2) Ensure $tagsArr is always an array
         $raw = $sellerTag->tags;
         if (is_string($raw)) {
             $decoded = json_decode($raw, true);
@@ -95,28 +166,60 @@ class TagController extends Controller
             return response()->json(['message' => 'No tags found for this user.'], 404);
         }
 
-        // 3) Count occurrences of each tag ID
         $tagCounts = array_count_values($tagsArr);
 
-        // 4) Sort by frequency descending
         arsort($tagCounts);
 
-        // 5) Take the top 3 tag IDs
         $mostUsedTagIds = array_keys(array_slice($tagCounts, 0, 3, true));
 
         if (empty($mostUsedTagIds)) {
             return response()->json(['message' => 'No tags found for this user.'], 404);
         }
 
-        // 6) Fetch full Category records for those tag IDs
         $tags = Category::whereIn('id', $mostUsedTagIds)->get();
 
-        // 7) Return user ID + full tag data
         return response()->json([
             'user_id'        => $userId,
             'most_used_tags' => $tags
         ]);
     }
+
+    public function getAllUsedTags($userId)
+    {
+        $sellerTag = SellerTags::where('vendor_id', $userId)->first();
+
+        if (!$sellerTag || empty($sellerTag->tags)) {
+            return response()->json(['message' => 'No tags found for this user.'], 404);
+        }
+
+        $raw = $sellerTag->tags;
+        if (is_string($raw)) {
+            $decoded = json_decode($raw, true);
+            $tagsArr = is_array($decoded) ? $decoded : [];
+        } elseif (is_array($raw)) {
+            $tagsArr = $raw;
+        } else {
+            $tagsArr = [];
+        }
+
+        if (count($tagsArr) === 0) {
+            return response()->json(['message' => 'No tags found for this user.'], 404);
+        }
+
+        $tagsArr = array_unique($tagsArr);
+
+        $tags = Category::whereIn('id', $tagsArr)->get();
+
+        if ($tags->isEmpty()) {
+            return response()->json(['message' => 'No valid tags found for this user.'], 404);
+        }
+
+        return response()->json([
+            'user_id'    => $userId,
+            'used_tags'  => $tags
+        ]);
+    }
+
 
 
 

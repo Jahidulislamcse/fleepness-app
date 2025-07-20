@@ -28,10 +28,8 @@ class Product extends Model
 
     public function tagCategories()
     {
-        // 1) Get raw tags value (could be array or JSON string)
         $raw = $this->tags;
 
-        // 2) If it’s a string, decode it. If it’s already an array, leave it.
         if (is_string($raw)) {
             $decoded = json_decode($raw, true);
             $ids = is_array($decoded) ? $decoded : [];
@@ -41,7 +39,6 @@ class Product extends Model
             $ids = [];
         }
 
-        // 3) Finally, if $ids is non‐empty, fetch matching categories
         if (count($ids) === 0) {
             return collect(); // empty Collection
         }

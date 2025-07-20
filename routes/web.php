@@ -13,6 +13,7 @@ use App\Http\Controllers\TagController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\Vendor\ProductController;
 use App\Http\Controllers\Admin\PaymentMethodController;
+use App\Http\Controllers\Admin\ShopCategoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Vendor\VendorDashboardController;
@@ -120,6 +121,7 @@ Route::get('/categories/{category_id}/tags', [TagController::class, 'getTagsByCa
 Route::middleware('role:admin')->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('sections', SectionController::class);
+        Route::post('sections/reorder', [SectionController::class, 'reorderSectionItems'])->name('sections.reorder');
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::resource('categories', AdminCategoryController::class);
         Route::resource('products', AdminProductController::class);
@@ -168,6 +170,15 @@ Route::middleware('role:admin')->group(function () {
         Route::delete('payment-methods/{id}', [PaymentMethodController::class, 'destroy'])->name('payment-methods.destroy');
     });
 });
+
+    Route::middleware('auth:sanctum')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/shop-categories', [ShopCategoryController::class, 'index_view'])->name('shop-categories.index');
+        Route::get('/shop-categories/{id}', [ShopCategoryController::class, 'show'])->name('shop-categories.show');
+        Route::post('/shop-categories', [ShopCategoryController::class, 'view_store'])->name('shop-categories.store');
+        Route::put('/shop-categories/{id}', [ShopCategoryController::class, 'view_update'])->name('shop-categories.update');
+        Route::delete('/shop-categories/{id}', [ShopCategoryController::class, 'view_destroy'])->name('shop-categories.destroy');
+    });
+
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/delivery/models', [DeliveryModelController::class, 'index'])->name('admin.delivery.models.index');

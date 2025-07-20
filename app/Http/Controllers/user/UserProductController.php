@@ -123,17 +123,127 @@ class UserProductController extends Controller
             'data' => $products
         ], 200);
     }
-
-
-    public function getAllProducts($vendor)
+    public function show($id)
     {
-        // Search in Products table
-        $products = Product::where('user_id', $vendor)
-            ->limit(10)
-            ->get();
+        $product = Product::with([
+                'category',
+                'images'
+            ])
+            ->whereNull('deleted_at')
+            ->find($id);
+
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+
+        // Limit the data returned to specific fields for customers
+        $productData = $product->only(['name', 'selling_price', 'discount_price', 'long_description']);
+
+        // Add images and category information to the response
+        $productData['images'] = $product->images->map(function($image) {
+            return $image->path;  // Convert image path to a full URL
+        });
+
+        $productData['category_name'] = $product->category ? $product->category->name : null;
 
         return response()->json([
-            'products' => $products,
+            'success' => true,
+            'product' => $productData,
         ]);
     }
+
+
+    public function getAllProducts($vendor, Request $request)
+    {
+        $perPage = $request->input('per_page', 10);
+
+        $products = Product::where('user_id', $vendor)
+            ->paginate($perPage);
+
+        return response()->json([
+            'products' => $products->items(),
+            'pagination' => [
+                'current_page' => $products->currentPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+                'last_page' => $products->lastPage(),
+                'next_page_url' => $products->nextPageUrl(),
+                'prev_page_url' => $products->previousPageUrl(),
+            ],
+        ]);
+    }
+
+public function getSimilarProducts($id) 
+{
+    try {
+        // Fetch the current product by ID
+        $product = Product::with('category', 'images')
+            ->whereNull('deleted_at')
+            ->find($id);
+
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+
+        // Get the tag ID of the current product
+        $tags = json_decode($product->tags, true) ?: [];
+        $tagId = $tags ? $tags[0] : null; // Assuming only one tag per product
+
+        // If no tag is found, return an error
+        if (!$tagId) {
+            return response()->json(['message' => 'No tag found for this product'], 404);
+        }
+
+        // Fetch all products with the same tag (excluding the current one)
+        $similarProducts = Product::with(['category', 'images'])
+            ->whereNull('deleted_at')
+            ->where('id', '!=', $id)
+            ->get(); // Only fetch products, no need for whereRaw
+
+        // Filter products based on matching tags
+        $filteredProducts = $similarProducts->filter(function ($product) use ($tagId) {
+            $tags = json_decode($product->tags, true) ?: [];
+            return in_array($tagId, $tags); // Check if the tagId exists in the tags array
+        })->values(); // Reset keys after filtering
+
+        // If no similar products are found
+        if ($filteredProducts->isEmpty()) {
+            return response()->json(['message' => 'No similar products found'], 404);
+        }
+
+        // Prepare the product data for the response
+        $similarProductsData = $filteredProducts->map(function ($product) {
+            $productData = $product->only(['name', 'selling_price', 'discount_price', 'long_description']);
+
+            // Add images for the product
+            $productData['images'] = $product->images->map(function ($image) {
+                return $image->path;  // Convert image path to a full URL
+            });
+
+            // Add category name for the product
+            $productData['category_name'] = $product->category ? $product->category->name : null;
+
+            return $productData;
+        });
+
+        return response()->json([
+            'success' => true,
+            'similar_products' => $similarProductsData,
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+
+
+
+
+
+
+
 }

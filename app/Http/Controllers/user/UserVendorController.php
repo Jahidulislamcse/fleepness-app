@@ -24,16 +24,19 @@ class UserVendorController extends Controller
             ->paginate($perPage);
 
         return response()->json([
-            'success'    => true,
-            'vendors'    => $paginated->items(),
+            'success' => true,
+            'vendors' => $paginated->items(),
             'pagination' => [
                 'current_page' => $paginated->currentPage(),
-                'per_page'     => $paginated->perPage(),
-                'total'        => $paginated->total(),
-                'last_page'    => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+                'last_page' => $paginated->lastPage(),
+                'next_page_url' => $paginated->nextPageUrl(),
+                'prev_page_url' => $paginated->previousPageUrl(),
             ],
         ], 200);
     }
+
     public function vendorData($vendor)
     {
         // Fetch vendor basic info
@@ -44,8 +47,6 @@ class UserVendorController extends Controller
             'phone_number',
             'banner_image',
             'cover_image',
-            'address',
-            'contact_number',
             'total_sales'
         )->with('shopCategory:id,name')->find($vendor);
 
@@ -90,6 +91,34 @@ class UserVendorController extends Controller
             'tags' => $tags,
         ], 200);
     }
+
+    public function similarSellers($vendor)
+    {
+        // Fetch the vendor's shop category
+        $vendorInfo = User::select('shop_category')->find($vendor);
+
+        if (!$vendorInfo) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Vendor not found'
+            ], 404);
+        }
+
+        // Fetch other vendors with the same shop category
+        $similarVendors = User::where('shop_category', $vendorInfo->shop_category)
+            ->where('id', '!=', $vendor) // Exclude the current vendor
+            ->select('id', 'shop_name', 'phone_number', 'banner_image', 'cover_image', 'total_sales')
+            ->with('shopCategory:id,name')
+            ->get();
+
+        // Return the similar vendors as a response
+        return response()->json([
+            'status' => true,
+            'message' => 'Similar vendors retrieved successfully',
+            'similar_vendors' => $similarVendors,
+        ], 200);
+    }
+
 
     public function getShortVideos($vendor)
     {

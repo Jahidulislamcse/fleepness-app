@@ -16,7 +16,6 @@
                             <th>Background IMG</th>
                             <th>Index</th>
                             <th>Visibility</th>
-                            <th>Items</th> <!-- Display Items for each section -->
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -29,28 +28,8 @@
                             <td><img src="{{ asset($section->background_image) }}" alt="back Image"  width="100" /></td>
                             <td>{{ $section->index }}</td>
                             <td>{{ $section->visibility ? 'Visible' : 'Hidden' }}</td>
-
-                            <!-- Display Items for the current section -->
                             <td>
-                                @if ($section->items->isNotEmpty())
-                                    <ul>
-                                        @foreach ($section->items as $item)
-                                            <li>
-                                                <strong>Tag:</strong> {{ $item->tag->name }} <br>
-                                                <strong>Index:</strong> {{ $item->index }} <br>
-                                                <strong>Visibility:</strong> {{ $item->visibility ? 'Visible' : 'Hidden' }} <br>
-                                                <img src="{{ asset($item->image) }}" alt="Item Image" width="50" /> <!-- Show Image -->
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                @else
-                                    <span>No Items</span>
-                                @endif
-                            </td>
-
-                            <td>
-                                <a href="{{ route('admin.sections.edit', $section->id) }}" class="btn btn-warning">Edit</a>
-                                <!-- You can add delete functionality if needed -->
+                                <a href="{{ route('admin.sections.edit', $section->id) }}" class="btn btn-warning">View / Edit</a>
                             </td>
                         </tr>
                         @endforeach

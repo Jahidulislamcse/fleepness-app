@@ -85,13 +85,8 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="section_index">Section Index</label>
-                                    <input type="number" name="index" id="section_index" class="form-control" value="{{ old('section_index', $section->index ?? '') }}" required>
-                                </div>
-
-                                <div class="form-group">
                                     <label for="visibility">Visibility</label>
-                                    <input type="checkbox" name="visibility" id="visibility" value="1" {{ (isset($section) && $section->visibility) ? 'checked' : '' }}>
+                                   <input type="checkbox" name="visibility" id="visibility" value="1" {{ (isset($section) && $section->visibility) || !isset($section) ? 'checked' : '' }}>
                                 </div>
 
                                 <button type="submit" class="btn btn-success">Save Section</button>
@@ -210,7 +205,7 @@
                             <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                                 <option value="">Select Tag</option>
                             </select>
-                            <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                           
                             <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                         </div>
                     </div>
@@ -222,7 +217,7 @@
                             <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                                 <option value="">Select Tag</option>
                             </select>
-                            <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                            
                             <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                         </div>
                     </div>
@@ -234,7 +229,7 @@
                             <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                                 <option value="">Select Tag</option>
                             </select>
-                            <input type="number" name="items[2][index]" class="form-control" placeholder="Index" required>
+                           
                             <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                         </div>
                     </div>
@@ -301,7 +296,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                       <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -314,7 +309,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -330,7 +325,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                       <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -342,7 +337,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -354,7 +349,7 @@
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[2][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -370,7 +365,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -382,7 +377,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -398,7 +393,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -410,7 +405,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -430,7 +425,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -442,7 +437,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -454,7 +449,7 @@
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[2][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -466,7 +461,7 @@
                         <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[3][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[3][visibility]" value="1" {{ old('items[3][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -482,7 +477,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -494,7 +489,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -511,7 +506,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -523,7 +518,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -535,7 +530,7 @@
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[2][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -547,7 +542,7 @@
                         <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[3][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[3][visibility]" value="1" {{ old('items[3][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -559,7 +554,7 @@
                         <select name="items[4][tag_id]" id="box5_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[4][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[4][visibility]" value="1" {{ old('items[4][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -571,7 +566,7 @@
                         <select name="items[5][tag_id]" id="box6_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[5][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[5][visibility]" value="1" {{ old('items[5][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -587,7 +582,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -599,7 +594,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -616,7 +611,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -628,7 +623,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -640,7 +635,7 @@
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[2][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -652,7 +647,7 @@
                         <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[3][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[3][visibility]" value="1" {{ old('items[3][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -664,7 +659,7 @@
                         <select name="items[4][tag_id]" id="box5_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[4][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[4][visibility]" value="1" {{ old('items[4][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -676,7 +671,7 @@
                         <select name="items[5][tag_id]" id="box6_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[5][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[5][visibility]" value="1" {{ old('items[5][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -696,7 +691,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -708,7 +703,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -720,7 +715,7 @@
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[2][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -732,7 +727,7 @@
                         <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[3][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[3][visibility]" value="1" {{ old('items[3][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -744,7 +739,7 @@
                         <select name="items[4][tag_id]" id="box5_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[4][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[4][visibility]" value="1" {{ old('items[4][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -756,7 +751,7 @@
                         <select name="items[5][tag_id]" id="box6_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[5][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[5][visibility]" value="1" {{ old('items[5][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -774,7 +769,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -787,7 +782,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -800,7 +795,7 @@
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[2][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -813,7 +808,7 @@
                         <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[3][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[3][visibility]" value="1" {{ old('items[3][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -826,7 +821,7 @@
                         <select name="items[4][tag_id]" id="box5_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[4][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[4][visibility]" value="1" {{ old('items[4][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -839,7 +834,7 @@
                         <select name="items[5][tag_id]" id="box6_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[5][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[5][visibility]" value="1" {{ old('items[5][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -852,7 +847,7 @@
                         <select name="items[6][tag_id]" id="box7_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[6][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[6][visibility]" value="1" {{ old('items[6][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -865,7 +860,7 @@
                         <select name="items[7][tag_id]" id="box8_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[7][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[7][visibility]" value="1" {{ old('items[7][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -884,7 +879,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -898,7 +893,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -931,7 +926,7 @@
                         <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[0][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -944,7 +939,7 @@
                         <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[1][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -957,7 +952,7 @@
                         <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[2][index]" class="form-control" placeholder="Index" required>
+                       
                         <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>
@@ -970,7 +965,7 @@
                         <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
                             <option value="">Select Tag</option>
                         </select>
-                        <input type="number" name="items[3][index]" class="form-control" placeholder="Index" required>
+                        
                         <input type="checkbox" name="items[3][visibility]" value="1" {{ old('items[3][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
                     </div>
                 </div>

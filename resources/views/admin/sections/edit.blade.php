@@ -81,7 +81,13 @@
 
                                 <div class="form-group">
                                     <label for="section_index">Section Index</label>
-                                    <input type="number" name="index" class="form-control" value="{{ old('index', $section->index) }}" required>
+                                    <select name="index" id="section_index" class="form-control" required>
+                                        @for ($i = 1; $i <= count($availableIndices) + 1; $i++)
+                                            <option value="{{ $i }}" {{ $section->index == $i ? 'selected' : '' }}>
+                                                {{ $i }}
+                                            </option>
+                                        @endfor
+                                    </select>
                                 </div>
 
                                 <div class="form-group">
@@ -119,7 +125,9 @@
                                         </div>
                                         </div>
                                     @endif
-                                    <div id="dynamicFieldsContainer" class="row"></div>
+                                    <div id="dynamicFieldsContainer" class="row">
+                                        
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -132,6 +140,7 @@
 
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
 <!-- Dynamic Field Loader -->
 <script>
@@ -190,7 +199,8 @@
                         : '';
 
                     $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
+                        
+                        <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
                                 ${imagePreview}
@@ -198,7 +208,7 @@
                                 <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
                                     <option value="">Select Tag</option>
                                 </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" value="${item.index || ''}" required>
+                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" value="${item.index || ''}" required readonly>
                                 <input type="checkbox" name="items[${i}][visibility]" value="1" ${item.visibility ? 'checked' : ''}> Visibility
                             </div>
                         </div>
@@ -208,6 +218,7 @@
 
             case 'single_banner':
                 $('#dynamicFieldsContainer').append(`
+                    
                     <div class="col-md-4">
                         <div class="form-group">
                             <label>Tag</label>
@@ -221,6 +232,7 @@
 
             case 'scrollable_product':
                 $('#dynamicFieldsContainer').append(`
+                    
                     <div class="col-md-12">
                         <div class="form-group">
                             <label>Bio</label>
@@ -236,6 +248,7 @@
 
             case 'lighting_deals':
                 $('#dynamicFieldsContainer').append(`
+                
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Tag ID</label>
@@ -255,7 +268,8 @@
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
                     $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
+                    
+                        <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
                                 ${imagePreview}
@@ -264,7 +278,7 @@
                                 <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
                                     <option value="">Select Tag</option>
                                 </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
+                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required readonly>
                                 <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
                             </div>
                         </div>
@@ -273,6 +287,10 @@
                 break;
 
             case 'fancy_3x_box_grid':
+            case 'fancy_6x_product_grid':
+            case '8x_box_grid':
+            case '4x_box_section':
+            case 'smaller_4x_box_grid':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
                     const imagePath = item.image ? `/${item.image}` : '';
@@ -280,7 +298,8 @@
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
                     $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
+                    
+                        <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
                                 ${imagePreview}
@@ -288,7 +307,7 @@
                                 <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
                                     <option value="">Select Tag</option>
                                 </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
+                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required readonly>
                                 <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
                             </div>
                         </div>
@@ -304,7 +323,8 @@
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
                     $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
+                    
+                        <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
                                 ${imagePreview}
@@ -312,7 +332,7 @@
                                 <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
                                     <option value="">Select Tag</option>
                                 </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
+                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required readonly>
                                 <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
                             </div>
                         </div>
@@ -328,7 +348,8 @@
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
                     $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
+                    
+                        <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
                                 ${imagePreview}
@@ -336,227 +357,7 @@
                                 <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
                                     <option value="">Select Tag</option>
                                 </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
-                                <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
-                            </div>
-                        </div>
-                    `);
-                }
-                break;
-
-            case 'smaller_4x_box_grid':
-                for (let i = 0; i < existingItems.length; i++) {
-                    const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
-                    $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Box ${i + 1} Image</label>
-                                ${imagePreview}
-                                <input type="file" name="items[${i}][image]" class="form-control">
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
-                                    <option value="">Select Tag</option>
-                                </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
-                                <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
-                            </div>
-                        </div>
-                    `);
-                }
-                break;
-
-            case 'best_brands':
-                for (let i = 0; i < existingItems.length; i++) {
-                    const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
-                    $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Box ${i + 1} Image</label>
-                                ${imagePreview}
-                                <input type="file" name="items[${i}][image]" class="form-control">
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
-                                    <option value="">Select Tag</option>
-                                </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
-                                <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
-                            </div>
-                        </div>
-                    `);
-                }
-                break;
-
-            case '6x_box_grid':
-                for (let i = 0; i < existingItems.length; i++) {
-                    const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
-                    $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Box ${i + 1} Image</label>
-                                ${imagePreview}
-                                <input type="file" name="items[${i}][image]" class="form-control">
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
-                                    <option value="">Select Tag</option>
-                                </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
-                                <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
-                            </div>
-                        </div>
-                    `);
-                }
-                break;
-
-            case '2x_box_grid':
-                for (let i = 0; i < existingItems.length; i++) {
-                    const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
-                    $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Box ${i + 1} Image</label>
-                                ${imagePreview}
-                                <input type="file" name="items[${i}][image]" class="form-control">
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
-                                    <option value="">Select Tag</option>
-                                </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
-                                <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
-                            </div>
-                        </div>
-                    `);
-                }
-                break;
-
-            case 'u_shape_section':
-                for (let i = 0; i < existingItems.length; i++) {
-                    const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
-                    $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Box ${i + 1} Image</label>
-                                ${imagePreview}
-                                <input type="file" name="items[${i}][image]" class="form-control">
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
-                                    <option value="">Select Tag</option>
-                                </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
-                                <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
-                            </div>
-                        </div>
-                    `);
-                }
-                break;
-
-            case 'fancy_6x_product_grid':
-                for (let i = 0; i < existingItems.length; i++) {
-                    const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
-                    $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Box ${i + 1} Image</label>
-                                ${imagePreview}
-                                <input type="file" name="items[${i}][image]" class="form-control">
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
-                                    <option value="">Select Tag</option>
-                                </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
-                                <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
-                            </div>
-                        </div>
-                    `);
-                }
-                break;
-
-            case '8x_box_grid':
-                for (let i = 0; i < existingItems.length; i++) {
-                    const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
-                    $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Box ${i + 1} Image</label>
-                                ${imagePreview}
-                                <input type="file" name="items[${i}][image]" class="form-control">
-                                <textarea name="items[${i}][bio]" class="form-control" rows="4"></textarea>
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
-                                    <option value="">Select Tag</option>
-                                </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
-                                <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
-                            </div>
-                        </div>
-                    `);
-                }
-                break;
-
-            case 'problem_specific':
-                for (let i = 0; i < existingItems.length; i++) {
-                    const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
-                    $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Box ${i + 1} Image</label>
-                                ${imagePreview}
-                                <input type="file" name="items[${i}][image]" class="form-control">
-                                <input type="text" name="items[${i}][title]" class="form-control" required>
-                                <textarea name="items[${i}][bio]" class="form-control" rows="4"></textarea>
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
-                                    <option value="">Select Tag</option>
-                                </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
-                                <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
-                            </div>
-                        </div>
-                    `);
-                }
-                break;
-
-            case '4x_box_section':
-                for (let i = 0; i < existingItems.length; i++) {
-                    const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
-                    $('#dynamicFieldsContainer').append(`
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Box ${i + 1} Image</label>
-                                ${imagePreview}
-                                <input type="file" name="items[${i}][image]" class="form-control">
-                                <input type="text" name="items[${i}][title]" class="form-control" required>
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
-                                    <option value="">Select Tag</option>
-                                </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required>
+                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required readonly>
                                 <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
                             </div>
                         </div>
@@ -566,6 +367,7 @@
 
             case 'spotlight_deals':
                 $('#dynamicFieldsContainer').append(`
+                
                     <div class="col-md-12">
                         <div class="form-group">
                             <label>Bio</label>
@@ -579,9 +381,42 @@
                 `);
                 break;
 
-
-
+            case 'problem_specific':
+                for (let i = 0; i < existingItems.length; i++) {
+                    const item = existingItems[i] || {};
+                    const imagePath = item.image ? `/${item.image}` : '';
+                    const imagePreview = item.image
+                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
+                        : '';
+                    $('#dynamicFieldsContainer').append(`
+                    
+                        <div class="col-md-4" id="box-${i}">
+                            <div class="form-group">
+                                <label>Box ${i + 1} Image</label>
+                                ${imagePreview}
+                                <input type="file" name="items[${i}][image]" class="form-control">
+                                <input type="text" name="items[${i}][title]" class="form-control" required>
+                                <textarea name="items[${i}][bio]" class="form-control" rows="4"></textarea>
+                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                    <option value="">Select Tag</option>
+                                </select>
+                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required readonly> 
+                                <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
+                            </div>
+                        </div>
+                    `);
+                }
+                break;
         }
+
+        // Make the container sortable (drag-and-drop enabled)
+        new Sortable(document.getElementById('dynamicFieldsContainer'), {
+            handle: '.form-group', // Optional: Add a handle to make dragging easier, e.g., dragging the whole form group
+            onEnd: function(evt) {
+                // Update the indexes after the drag and drop is completed
+                updateIndexes();
+            }
+        });
 
         // Fill existing values
         existingItems.forEach((item, i) => {
@@ -591,5 +426,15 @@
             if (item.visibility != null) $(`[name="items[${i}][visibility]"]`).prop('checked', item.visibility == 1);
         });
     }
+
+    // Function to update index values of items after sorting
+    function updateIndexes() {
+        $('#dynamicFieldsContainer .col-md-4').each(function (index) {
+            const boxIndex = index + 1; // Starting from index 1
+            const inputIndexField = $(this).find('[name*="index"]');
+            inputIndexField.val(boxIndex); // Update the input field with new index
+        });
+    }
 </script>
+
 @endsection

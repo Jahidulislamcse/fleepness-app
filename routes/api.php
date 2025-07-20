@@ -88,11 +88,13 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('/search/product', [UserProductController::class, 'search']); //Searching a product
     Route::get('/search', [UserSearchController::class, 'search']); //Searching by seller/tag
     Route::get('user/{userId}/tags/most-used', [TagController::class, 'getMostUsedTags']);
+    Route::get('user/{userId}/tags/used', [TagController::class, 'getAllUsedTags']);
     Route::get('sliders', [AdminSliderController::class, 'getAllSliders']);
 
 
     Route::get('/vendorlist ', [UserVendorController::class, 'vendorlist']);            //Show all sellers in list form
     Route::get('/vendorlist/{vendor} ', [UserVendorController::class, 'vendorData']);   //Show a particular seller data
+    Route::get('/similarvendors/{vendor}', [UserVendorController::class, 'similarSellers']);
     //Show products based on price range
     Route::get('/vendorlist/{vendor}/product/in-price-range ', [UserProductController::class, 'getProductsByPriceRange']);
     //Show products on price category like low, medium, high
@@ -116,23 +118,36 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     });
 
     Route::get('/get-categories', [CategoryController::class, 'getCategories'])->name('get.categories');
+    Route::get('/categories', [CategoryController::class, 'getCategoriesWithTags']);
+
     Route::get('/get-random-tags', [TagController::class, 'getTagsRandom'])->name('get.random.tags');
     Route::get('/get-tag-info/{id}', [TagController::class, 'getTagInfo'])->name('get.tag.info');
     Route::get('/get-product-by-tag/{id}', [TagController::class, 'getProductByTag'])->name('get.product.by.tag');
+    Route::get('/product/{id}', [UserProductController::class, 'show']);  // show a single product by id
+
+    Route::get('/product/{id}/similar', [UserProductController::class, 'getSimilarProducts']);
+
+
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/size-template/create', [SizeTemplateController::class, 'store']);              // Create a size template
         Route::post('/size-templates/{templateId}/sizes', [SizeTemplateController::class, 'addSizeToTemplate']); // Add a size to a template
         Route::get('/size-templates', [SizeTemplateController::class, 'getTemplates']);         // Get all size templates for the authenticated seller
         Route::delete('/size-templates/{id}', [SizeTemplateController::class, 'destroy']);      // Delete a size template
+        Route::put('/size-template/{templateId}/size-item/{sizeItemId}', [SizeTemplateController::class, 'updateSize'])->name('size-template.update-size');
+        Route::delete('/size-template/{templateId}/size-item/{sizeItemId}', [SizeTemplateController::class, 'destroySizeItem']);
+
 
         Route::middleware(['role:vendor'])->group(function () {
             Route::post('/product/create', [VendorProductController::class, 'store']);              //store product
-            Route::get('/product/my-products', [VendorProductController::class, 'show']);                 //show products
+            Route::get('/my-products', [VendorProductController::class, 'getAllMyProducts']);
+            Route::get('/my-product/{id}', [VendorProductController::class, 'getSingleProduct']);  // show a single product by id
             Route::post('/products/{id}', [VendorProductController::class, 'update']);              //Update Product
             Route::post('/products/soft-delete/{id}', [VendorProductController::class, 'destroy']); //Soft Deleting a product
             Route::post('/products/inactive/{id}', [VendorProductController::class, 'inactive']);   //Inactivating a product
             Route::post('/products/active/{id}', [VendorProductController::class, 'active']);
+            Route::get('/search/my-product', [VendorProductController::class, 'search']); //Searching a product
+
 
             Route::prefix('short-videos')->group(function () {
                 Route::get('/', [VendorShortVideoController::class, 'index_api']);
