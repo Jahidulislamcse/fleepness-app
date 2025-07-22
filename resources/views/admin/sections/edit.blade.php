@@ -44,7 +44,7 @@
                                     <label for="section_type">Section Type</label>
                                     <select name="section_type" id="section_type" class="form-control" required disabled>
                                         @foreach([
-                                            'select_section_type', 'multiproduct_banner', 'single_banner', 'scrollable_product', 'lighting_deals', 'tag_box',
+                                            'select_section_type', 'multiproduct_banner', 'single_banner', 'search', 'scrollable_product', 'lighting_deals', 'tag_box',
                                             'fancy_3x_box_grid', 'poster_section', 'scrollable_banners', 'smaller_4x_box_grid',
                                             'best_brands', '6x_box_grid', '2x_box_grid', 'u_shape_section', 'fancy_6x_product_grid',
                                             '8x_box_grid', 'problem_specific', 'spotlight_deals', '4x_box_section'
@@ -94,8 +94,8 @@
                                     <label for="visibility">Visibility</label><br>
                                     <input type="checkbox" name="visibility" value="1" {{ $section->visibility ? 'checked' : '' }}> Show Section
                                 </div>
-                                
-                               
+
+
                                 <button type="submit" class="btn btn-success mt-3">Update Section</button>
                             </div>
 
@@ -126,7 +126,7 @@
                                         </div>
                                     @endif
                                     <div id="dynamicFieldsContainer" class="row">
-                                        
+
                                     </div>
                                 </div>
                             </div>
@@ -199,7 +199,7 @@
                         : '';
 
                     $('#dynamicFieldsContainer').append(`
-                        
+
                         <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
@@ -218,7 +218,7 @@
 
             case 'single_banner':
                 $('#dynamicFieldsContainer').append(`
-                    
+
                     <div class="col-md-4">
                         <div class="form-group">
                             <label>Tag</label>
@@ -230,9 +230,25 @@
                 `);
                 break;
 
+            case 'search':
+                $('#dynamicFieldsContainer').append(`
+
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Bio</label>
+                            <textarea name="items[0][bio]" class="form-control" rows="4"></textarea>
+                            <label>Tag</label>
+                            <select name="items[0][tag_id]" id="tag_id" class="form-control mt-1" required>
+                                <option value="">Select Tag</option>
+                            </select>
+                        </div>
+                    </div>
+                `);
+                break;
+
             case 'scrollable_product':
                 $('#dynamicFieldsContainer').append(`
-                    
+
                     <div class="col-md-12">
                         <div class="form-group">
                             <label>Bio</label>
@@ -248,7 +264,7 @@
 
             case 'lighting_deals':
                 $('#dynamicFieldsContainer').append(`
-                
+
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Tag ID</label>
@@ -268,7 +284,7 @@
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
                     $('#dynamicFieldsContainer').append(`
-                    
+
                         <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
@@ -298,7 +314,7 @@
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
                     $('#dynamicFieldsContainer').append(`
-                    
+
                         <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
@@ -323,7 +339,7 @@
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
                     $('#dynamicFieldsContainer').append(`
-                    
+
                         <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
@@ -348,7 +364,7 @@
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
                     $('#dynamicFieldsContainer').append(`
-                    
+
                         <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
@@ -367,7 +383,7 @@
 
             case 'spotlight_deals':
                 $('#dynamicFieldsContainer').append(`
-                
+
                     <div class="col-md-12">
                         <div class="form-group">
                             <label>Bio</label>
@@ -389,7 +405,7 @@
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
                     $('#dynamicFieldsContainer').append(`
-                    
+
                         <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
@@ -400,7 +416,7 @@
                                 <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
                                     <option value="">Select Tag</option>
                                 </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required readonly> 
+                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required readonly>
                                 <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
                             </div>
                         </div>

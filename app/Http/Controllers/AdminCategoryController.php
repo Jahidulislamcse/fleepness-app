@@ -125,6 +125,7 @@ class AdminCategoryController extends Controller
 
     public function update(Request $request, Category $category)
     {
+    //    dd($request->all());
         // Validate the incoming data
         $request->validate([
             'name' => [

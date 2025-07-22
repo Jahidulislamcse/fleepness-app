@@ -27,6 +27,12 @@ class SectionController extends Controller
         return SectionResource::collection($sections);
     }
 
+    public function searchSection()
+    {
+        $section = \App\Models\Section::where('section_type', 'search')->with(['category', 'items.tag'])->orderBy('index')->get();
+        return SectionResource::collection($section);
+    }
+
 
     public function create()
     {
@@ -81,7 +87,7 @@ class SectionController extends Controller
     }
 
     $lastIndex = Section::max('index');
-    $newIndex = $lastIndex + 1; 
+    $newIndex = $lastIndex + 1;
 
     // Create the section record
     $section = Section::create([
@@ -90,7 +96,7 @@ class SectionController extends Controller
         'section_title' => $validated['section_title'],
         'category_id' => $validated['category_id'],
         'visibility' => $validated['visibility'] ?? false,
-        'index' => $newIndex, 
+        'index' => $newIndex,
         'background_image' =>  $background,
         'banner_image' =>  $banner_img,
     ]);
@@ -304,11 +310,11 @@ class SectionController extends Controller
     public function reorderSectionItems(Request $request)
     {
         $orderedIds = $request->input('orderedIds');
-        
+
         foreach ($orderedIds as $index => $id) {
             $section = Section::find($id);
             if ($section) {
-                $section->index = $index + 1; 
+                $section->index = $index + 1;
                 $section->save();
             }
         }

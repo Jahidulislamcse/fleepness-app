@@ -40,13 +40,15 @@
                             @if ($grandChildCategory)
                                 <!-- Grandchild: Show parent and grandparent as disabled -->
                                 <label for="parent_id">Category</label>
-                                <input type="text" class="form-control mt-2 mb-2" value="{{ $grandChildCategory->name }}" disabled>
+                                <input type="text" class="form-control mt-2 mb-2" value="{{ $grandChildCategory->name }}" readonly>
                                 <label for="parent_id">Sub Category</label>
-                                <input type="text" class="form-control" value="{{ $parentCategory->name }}" disabled>
+                                <input type="text" class="form-control mt-2 mb-2" value="{{ $parentCategory->name }}" readonly>
+                                <input type="hidden" name="parent_id" value="{{ $parentCategory->id }}">
                             @elseif ($parentCategory)
-                                <!-- Parent with no grandparent: Show parent as disabled -->
+                                <!-- Parent with no grandparent: Show parent as readonly -->
                                 <label for="parent_id">Category</label>
-                                <input type="text" class="form-control" value="{{ $parentCategory->name }}" disabled>
+                               <input type="text" class="form-control mt-2 mb-2" value="{{ $parentCategory->name }}" readonly>
+                               <input type="hidden" name="parent_id" value="{{ $parentCategory->id }}">
                             @else
                                 <!-- Top level category: Show parent dropdown -->
                             @endif

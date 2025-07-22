@@ -186,6 +186,8 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     });
 
     Route::get('/sections', [SectionController::class, 'sections']);
+    Route::get('/search-section', [SectionController::class, 'searchSection']);
+
 
     Route::get('livestreams', [LivestreamController::class, 'index'])->name('livestreams.index');
     Route::get('livestreams/{livestream}', [LivestreamController::class, 'show'])->name('livestreams.show');
