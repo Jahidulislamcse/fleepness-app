@@ -31,14 +31,18 @@ use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\user\CartController;
 use App\Http\Controllers\user\AddressController;
 use App\Http\Controllers\DeliveryModelController;
+use App\Http\Controllers\FirebaseController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\Vendor\VendorShortVideoController;
+use App\Services\FirebaseService;
 
 RateLimiter::for('api', function (Request $request) {
     return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
 });
 
 Route::middleware(['api', 'throttle:api'])->group(function () {
+
+    Route::post('/firebase/test', [FirebaseController::class, 'testFirebase']);
 
     Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']); //Facebook and google authentication
 
@@ -144,6 +148,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
             Route::get('/my-product/{id}', [VendorProductController::class, 'getSingleProduct']);  // show a single product by id
             Route::post('/products/{id}', [VendorProductController::class, 'update']);              //Update Product
             Route::post('/products/soft-delete/{id}', [VendorProductController::class, 'destroy']); //Soft Deleting a product
+            Route::delete('/products/{id}/images/{img}', [VendorProductController::class, 'deleteImage']); // Deleting a product's image
             Route::post('/products/inactive/{id}', [VendorProductController::class, 'inactive']);   //Inactivating a product
             Route::post('/products/active/{id}', [VendorProductController::class, 'active']);
             Route::get('/search/my-product', [VendorProductController::class, 'search']); //Searching a product

@@ -459,8 +459,53 @@ class VendorProductController extends Controller
             }
     }
 
+    public function deleteImage($id, $img)
+    {
+        try {
+            // Find the product
+            $product = Product::findOrFail($id);
 
+            // Check if the authenticated user owns the product
+            if ($product->user_id !== auth()->id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized: You do not own this product.',
+                ], 403);
+            }
 
+            // Find the image by ID and ensure it belongs to the product
+            $image = ProductImage::where('id', $img)
+                                ->where('product_id', $product->id)
+                                ->firstOrFail();
+
+            // Delete the image file from the filesystem
+            $imagePath = public_path($image->path);
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+            }
+
+            // Delete the image record from the database
+            $image->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Image deleted successfully.',
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product or image not found.',
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while deleting the image.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
 
 
@@ -487,7 +532,6 @@ class VendorProductController extends Controller
 
         $product->update([
             'deleted_at' => now(),
-            'status' => 'inactive',
         ]);
 
         $message = 'Product deleted successfully.';
