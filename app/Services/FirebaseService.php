@@ -4,12 +4,10 @@ namespace App\Services;
 
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Contract\Auth;
-use Kreait\Firebase\Contract\Database;
 
 class FirebaseService
 {
     protected $auth;
-    protected $database;
 
     public function __construct()
     {
@@ -31,22 +29,14 @@ class FirebaseService
             \Log::info('Firebase credentials JSON is valid.');
         }
 
-        // Now try creating the Factory
+        // Create the Firebase Factory without database
         $factory = (new Factory)->withServiceAccount($credentialsPath);
 
         $this->auth = $factory->createAuth();
-        $this->database = $factory->createDatabase();
     }
-
-
 
     public function getAuth(): Auth
     {
         return $this->auth;
-    }
-
-    public function getDatabase(): Database
-    {
-        return $this->database;
     }
 }
