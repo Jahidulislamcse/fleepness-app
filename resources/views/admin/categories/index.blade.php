@@ -178,16 +178,18 @@
                                         </td>
                                         <td>{{ $category->order }}</td>
                                         <td>
-                                            <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
-                                                <i class="fa-solid fa-pen-to-square"></i>
-                                            </a>
-                                            <form action="{{ route('admin.categories.destroy', $category->id) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete" onclick="return confirm('Are you sure you want to delete this category?')">
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-                                            </form>
+                                            <div class="d-flex gap-2">
+                                                <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                </a>
+                                                <form action="{{ route('admin.categories.destroy', $category->id) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete" onclick="return confirm('Are you sure you want to delete this category?')">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
 
@@ -203,17 +205,20 @@
                                             </td>
                                             <td>{{ $child->order }}</td>
                                             <td>
-                                                <a href="{{ route('admin.categories.edit', $child->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
-                                                    <i class="fa-solid fa-pen-to-square"></i>
-                                                </a>
-                                                <form action="{{ route('admin.categories.destroy', $child->id) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete" onclick="return confirm('Are you sure you want to delete this subcategory?')">
-                                                        <i class="fa-solid fa-trash"></i>
-                                                    </button>
-                                                </form>
+                                                <div class="d-flex gap-2">
+                                                    <a href="{{ route('admin.categories.edit', $child->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                    </a>
+                                                    <form action="{{ route('admin.categories.destroy', $child->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this subcategory?')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </td>
+
                                         </tr>
 
                                         <!-- Display tags (grandchildren) -->
@@ -230,16 +235,18 @@
                                                 </td>
                                                 <td>{{ $grandchild->order }}</td>
                                                 <td>
-                                                    <a href="{{ route('admin.categories.edit', $grandchild->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
-                                                        <i class="fa-solid fa-pen-to-square"></i>
-                                                    </a>
-                                                    <form action="{{ route('admin.categories.destroy', $grandchild->id) }}" method="POST" class="d-inline">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete" onclick="return confirm('Are you sure you want to delete this tag?')">
-                                                            <i class="fa-solid fa-trash"></i>
-                                                        </button>
-                                                    </form>
+                                                    <div class="d-flex gap-2">
+                                                        <a href="{{ route('admin.categories.edit', $grandchild->id) }}" class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                                                            <i class="fa-solid fa-pen-to-square"></i>
+                                                        </a>
+                                                        <form action="{{ route('admin.categories.destroy', $grandchild->id) }}" method="POST" class="d-inline">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete" onclick="return confirm('Are you sure you want to delete this tag?')">
+                                                                <i class="fa-solid fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @endforeach
