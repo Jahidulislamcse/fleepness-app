@@ -127,6 +127,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('/get-random-tags', [TagController::class, 'getTagsRandom'])->name('get.random.tags');
     Route::get('/get-tag-info/{id}', [TagController::class, 'getTagInfo'])->name('get.tag.info');
     Route::get('/get-product-by-tag/{id}', [TagController::class, 'getProductByTag'])->name('get.product.by.tag');
+    Route::get('/get-own-product-by-tag/{id}', [TagController::class, 'getOwnProductByTag'])->name('get.own.product.by.tag');
     Route::get('/product/{id}', [UserProductController::class, 'show']);  // show a single product by id
 
     Route::get('/product/{id}/similar', [UserProductController::class, 'getSimilarProducts']);
@@ -199,18 +200,11 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::post('livestreams', [LivestreamController::class, 'store'])->name('livestreams.store');
     Route::match(['put', 'patch'], 'livestreams/{livestream}', [LivestreamController::class, 'update'])->name('livestreams.update');
 
-    Route::get('livestreams/{livestream}/publisher-token', GetLivestreamPublisherTokenController::class)
-        ->middleware('auth:sanctum')
-        ->name('livestreams.get-publisher-token');
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('livestreams/{livestream}/publisher-token', GetLivestreamPublisherTokenController::class)->name('livestreams.get-publisher-token');
+        Route::post('livestreams/{ls}/products', [LivestreamProductController::class, 'store'])->name('livestream-products.store');
+        Route::delete('livestreams/{livestream}/products', [LivestreamProductController::class, 'destroy'])->name('livestream-products.destroy');
+    });
 
-    Route::get('livestreams/{livestream}/subscriber-token', GetLivestreamSubscriberTokenController::class)
-        ->name('livestreams.get-subscriber-token');
-
-    Route::post('livestreams/{ls}/products', [LivestreamProductController::class, 'store'])
-        ->middleware('auth:sanctum')
-        ->name('livestream-products.store');
-
-    Route::delete('livestreams/{livestream}/products', [LivestreamProductController::class, 'destroy'])
-        ->middleware('auth:sanctum')
-        ->name('livestream-products.destroy');
+    Route::get('livestreams/{livestream}/subscriber-token', GetLivestreamSubscriberTokenController::class)->name('livestreams.get-subscriber-token');
 });

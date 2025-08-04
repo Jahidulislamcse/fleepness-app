@@ -14,9 +14,9 @@ class AdminDashboardController extends Controller
     public function index()
     {
 
-        $data['pending_order'] = MainOrder::where('status', 'pending')
-            ->count();
-        $data['total_sales'] = MainOrder::where('status', 'deliverd')->sum('amount');
+        // $data['pending_order'] = MainOrder::where('status', 'pending')
+        //     ->count();
+        // $data['total_sales'] = MainOrder::where('status', 'deliverd')->sum('amount');
         $data['total_products'] = Product::all()
             ->count();
         return view('admin.index', $data);

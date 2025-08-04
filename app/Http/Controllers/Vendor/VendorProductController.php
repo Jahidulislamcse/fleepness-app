@@ -132,39 +132,72 @@ class VendorProductController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('query');
+        $tag = $request->input('tag');
         $perPage = $request->input('per_page', 5);
+        $page = $request->input('page', 1);
 
-        if (!$query) {
-            return response()->json(['message' => 'Query parameter is required'], 400);
+        if (!$query && !$tag) {
+            return response()->json(['message' => 'Either query or tag parameter is required'], 400);
         }
 
-        $products = Product::where('user_id', auth()->id())
-            ->where(function($queryBuilder) use ($query) {
-                $queryBuilder->where('name', 'LIKE', "%{$query}%")
-                            ->orWhere('short_description', 'LIKE', "%{$query}%")
-                            ->orWhere('long_description', 'LIKE', "%{$query}%")
-                            ->orWhere('slug', 'LIKE', "%{$query}%");
-            })
-            ->paginate($perPage);
+        $products = collect();
+
+        // Search by query
+        if ($query) {
+            $productsByQuery = Product::where('user_id', auth()->id())
+                ->where(function ($queryBuilder) use ($query) {
+                    $queryBuilder->where('name', 'LIKE', "%{$query}%")
+                        ->orWhere('short_description', 'LIKE', "%{$query}%")
+                        ->orWhere('long_description', 'LIKE', "%{$query}%")
+                        ->orWhere('slug', 'LIKE', "%{$query}%");
+                })
+                ->get();
+
+            $products = $products->merge($productsByQuery);
+        }
+
+        // Search by tag
+        if ($tag) {
+            $productsByTag = Product::where('user_id', auth()->id())
+                ->get()
+                ->filter(function ($product) use ($tag) {
+                    $tags = json_decode($product->tags, true);
+                    if (is_string($tags)) {
+                        $tags = json_decode($tags, true);
+                    }
+                    return is_array($tags) && in_array($tag, $tags);
+                });
+
+            $products = $products->merge($productsByTag);
+        }
+
+        // Remove duplicates
+        $products = $products->unique('id')->values();
+
+        // Manual pagination
+        $sliced = $products->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            $sliced,
+            $products->count(),
+            $perPage,
+            $page,
+            ['path' => url()->current()]
+        );
 
         return response()->json([
             'success' => true,
-            'products' => $products->items(),
+            'products' => $paginated->items(),
             'pagination' => [
-                'current_page' => $products->currentPage(),
-                'per_page' => $products->perPage(),
-                'total' => $products->total(),
-                'last_page' => $products->lastPage(),
-                'next_page_url' => $products->nextPageUrl(),
-                'prev_page_url' => $products->previousPageUrl(),
+                'current_page' => $paginated->currentPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+                'last_page' => $paginated->lastPage(),
+                'next_page_url' => $paginated->nextPageUrl(),
+                'prev_page_url' => $paginated->previousPageUrl(),
             ],
         ]);
     }
-
-
-
-
-
 
 
 

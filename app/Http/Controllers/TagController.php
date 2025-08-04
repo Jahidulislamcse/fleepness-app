@@ -83,61 +83,117 @@ class TagController extends Controller
     }
 
 
-public function getProductByTag($id)
-{
-    try {
-        // Fetch all products and filter by tag ID
-        $products = Product::whereNull('deleted_at')
-            ->get()
-            ->filter(function ($product) use ($id) {
+    public function getProductByTag($id)
+    {
+        try {
+            // Fetch all products and filter by tag ID
+            $products = Product::whereNull('deleted_at')
+                ->get()
+                ->filter(function ($product) use ($id) {
+                    $tags = json_decode($product->tags, true) ?: [];
+                    return in_array($id, $tags);
+                })
+                ->values();
+
+            // Pagination settings
+            $perPage = 10;
+            $currentPage = request()->get('page', 1);
+            $offset = ($currentPage - 1) * $perPage;
+
+            // Slice the products for the current page
+            $paginatedProducts = $products->slice($offset, $perPage);
+
+            // Add tag names to the products
+            $paginatedProducts = $paginatedProducts->map(function ($product) {
                 $tags = json_decode($product->tags, true) ?: [];
-                return in_array($id, $tags);
-            })
-            ->values();
+                $tagNames = Category::whereIn('id', $tags)->pluck('name')->toArray();
+                $product->tag_names = implode(', ', $tagNames);
 
-        // Pagination settings
-        $perPage = 10;
-        $currentPage = request()->get('page', 1);
-        $offset = ($currentPage - 1) * $perPage;
+                return $product;
+            });
 
-        // Slice the products for the current page
-        $paginatedProducts = $products->slice($offset, $perPage);
+            // Calculate total pages
+            $totalPages = ceil($products->count() / $perPage);
 
-        // Add tag names to the products
-        $paginatedProducts = $paginatedProducts->map(function ($product) {
-            $tags = json_decode($product->tags, true) ?: [];
-            $tagNames = Category::whereIn('id', $tags)->pluck('name')->toArray();
-            $product->tag_names = implode(', ', $tagNames);
+            // Generate next and previous page URLs
+            $nextPageUrl = $currentPage < $totalPages ? url()->current() . '?page=' . ($currentPage + 1) : null;
+            $previousPageUrl = $currentPage > 1 ? url()->current() . '?page=' . ($currentPage - 1) : null;
 
-            return $product;
-        });
-
-        // Calculate total pages
-        $totalPages = ceil($products->count() / $perPage);
-
-        // Generate next and previous page URLs
-        $nextPageUrl = $currentPage < $totalPages ? url()->current() . '?page=' . ($currentPage + 1) : null;
-        $previousPageUrl = $currentPage > 1 ? url()->current() . '?page=' . ($currentPage - 1) : null;
-
-        return response()->json([
-            'success' => true,
-            'products' => $paginatedProducts,
-            'pagination' => [
-                'current_page' => $currentPage,
-                'per_page' => $perPage,
-                'total_pages' => $totalPages,
-                'total_products' => $products->count(),
-                'next_page_url' => $nextPageUrl,
-                'previous_page_url' => $previousPageUrl,
-            ],
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => $e->getMessage(),
-        ], 500);
+            return response()->json([
+                'success' => true,
+                'products' => $paginatedProducts,
+                'pagination' => [
+                    'current_page' => $currentPage,
+                    'per_page' => $perPage,
+                    'total_pages' => $totalPages,
+                    'total_products' => $products->count(),
+                    'next_page_url' => $nextPageUrl,
+                    'previous_page_url' => $previousPageUrl,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
-}
+
+    public function getOwnProductByTag($id)
+    {
+        try {
+            // Fetch all products and filter by tag ID
+            $products = Product::whereNull('deleted_at')->where('user_id', auth()->id())
+                ->get()
+                ->filter(function ($product) use ($id) {
+                    $tags = json_decode($product->tags, true) ?: [];
+                    return in_array($id, $tags);
+                })
+                ->values();
+
+            // Pagination settings
+            $perPage = 10;
+            $currentPage = request()->get('page', 1);
+            $offset = ($currentPage - 1) * $perPage;
+
+            // Slice the products for the current page
+            $paginatedProducts = $products->slice($offset, $perPage);
+
+            // Add tag names to the products
+            $paginatedProducts = $paginatedProducts->map(function ($product) {
+                $tags = json_decode($product->tags, true) ?: [];
+                $tagNames = Category::whereIn('id', $tags)->pluck('name')->toArray();
+                $product->tag_names = implode(', ', $tagNames);
+
+                return $product;
+            });
+
+            // Calculate total pages
+            $totalPages = ceil($products->count() / $perPage);
+
+            // Generate next and previous page URLs
+            $nextPageUrl = $currentPage < $totalPages ? url()->current() . '?page=' . ($currentPage + 1) : null;
+            $previousPageUrl = $currentPage > 1 ? url()->current() . '?page=' . ($currentPage - 1) : null;
+
+            return response()->json([
+                'success' => true,
+                'products' => $paginatedProducts,
+                'pagination' => [
+                    'current_page' => $currentPage,
+                    'per_page' => $perPage,
+                    'total_pages' => $totalPages,
+                    'total_products' => $products->count(),
+                    'next_page_url' => $nextPageUrl,
+                    'previous_page_url' => $previousPageUrl,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
 
 

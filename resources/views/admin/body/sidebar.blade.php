@@ -73,19 +73,7 @@
                         <p>Manage Order </p>
                         <span class="caret"></span>
                     </a>
-                    <div class="collapse " id="order">
-                        <ul class="nav nav-collapse">
-                            <li class=""><a href="{{ route('admin.order.index') }}">All Order</a></li>
-                            <li class=""> <a href="{{ route('admin.order.pending') }}">Pending Orders</a></li>
-                            <li class=""> <a href="{{ route('admin.order.confirmed') }}">Confirm Orders</a></li>
-                            <li class=""> <a href="{{ route('admin.order.processing') }}">Processing Orders</a></li>
-                            <li class=""> <a href="{{ route('admin.order.ready') }}">Ready Orders</a></li>
-                            <li class=""> <a href="{{ route('admin.order.shipped') }}">Shipped Orders</a></li>
-                            <li class=""> <a href="{{ route('admin.order.delivered') }}">Delivered Orders</a></li>
-                            <li class=""> <a href="{{ route('admin.order.completed') }}">Completed Orders</a></li>
-                            <li class=""> <a href="{{ route('admin.order.cancled') }}">Canceled Orders</a></li>
-                        </ul>
-                    </div>
+                    
                 </li>
 
                 <li class="nav-item ">
