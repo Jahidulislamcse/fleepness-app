@@ -11,15 +11,14 @@ class ProductImage extends Model
 
     protected $guarded = [];
 
-    protected $appends = ['full_path'];
+    public function getPathAttribute($value)
+    {
+        return url($value); // APP_URL + path
+    }
 
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function getFullPathAttribute()
-    {
-        return url($this->path); // Uses APP_URL automatically
-    }
 }

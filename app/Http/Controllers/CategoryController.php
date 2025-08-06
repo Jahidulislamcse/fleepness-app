@@ -8,43 +8,43 @@ use Illuminate\Http\Request;
 class CategoryController extends Controller
 {
     public function getCategories(){
-    $categories = Category::with(['children' => function ($query) {
-            $query->orderBy('order', 'asc')
-                ->with(['children' => function ($subQuery) {
-                    $subQuery->orderBy('order', 'asc');
-                }]);
-        }])
-        ->whereNull('parent_id')
-        ->orderBy('order', 'asc')
-        ->get(['id', 'name', 'profile_img', 'cover_img']);
+        $categories = Category::with(['children' => function ($query) {
+                $query->orderBy('order', 'asc')
+                    ->with(['children' => function ($subQuery) {
+                        $subQuery->orderBy('order', 'asc');
+                    }]);
+            }])
+            ->whereNull('parent_id')
+            ->orderBy('order', 'asc')
+            ->get(['id', 'name', 'profile_img', 'cover_img']);
 
-    $transformed = $categories->map(function ($category) {
-        return [
-            'id' => $category->id,
-            'name' => $category->name,
-            'subcategories' => $category->children->map(function ($subcat) {
-                return [
-                    'id' => $subcat->id,
-                    'name' => $subcat->name,
-                    'tags' => $subcat->children->map(function ($tag) {
-                        return [
-                            'id' => $tag->id,
-                            'name' => $tag->name,
-                            'profile_img' => $tag->profile_img,
-                            'cover_img' => $tag->cover_img,
-                            'description' => $tag->description,
-                            'store_title' => $tag->store_title,
-                        ];
-                    }),
-                ];
-            }),
-        ];
-    });
+        $transformed = $categories->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'subcategories' => $category->children->map(function ($subcat) {
+                    return [
+                        'id' => $subcat->id,
+                        'name' => $subcat->name,
+                        'tags' => $subcat->children->map(function ($tag) {
+                            return [
+                                'id' => $tag->id,
+                                'name' => $tag->name,
+                                'profile_img' => $tag->profile_img ? asset($tag->profile_img) : null,
+                                'cover_img' => $tag->cover_img ? asset($tag->cover_img) : null,
+                                'description' => $tag->description,
+                                'store_title' => $tag->store_title,
+                            ];
+                        }),
+                    ];
+                }),
+            ];
+        });
 
-    return response()->json([
-        'status' => true,
-        'categories' => $transformed,
-    ]);
+        return response()->json([
+            'status' => true,
+            'categories' => $transformed,
+        ]);
     }
 
 

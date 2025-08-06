@@ -15,6 +15,7 @@ use App\Models\SellerTags;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class VendorProductController extends Controller
 {
@@ -129,18 +130,19 @@ class VendorProductController extends Controller
 
 
 
-    public function search(Request $request)
+   public function search(Request $request)
     {
         $query = $request->input('query');
         $tag = $request->input('tag');
         $perPage = $request->input('per_page', 5);
         $page = $request->input('page', 1);
 
-        if (!$query && !$tag) {
-            return response()->json(['message' => 'Either query or tag parameter is required'], 400);
-        }
-
         $products = collect();
+
+        // If neither query nor tag is provided, return all products
+        if (!$query && !$tag) {
+            $products = Product::where('user_id', auth()->id())->get();
+        }
 
         // Search by query
         if ($query) {
@@ -201,6 +203,7 @@ class VendorProductController extends Controller
 
 
 
+
     protected function generateUniqueCode()
     {
         do {
@@ -214,16 +217,19 @@ class VendorProductController extends Controller
     public function store(Request $request)
     {
         try {
-            // Validate the request data
+            // Validate the request
             $validated = $request->validate([
-                'name' => 'nullable|string|max:255',
+                'name' => 'required|string|max:255',
                 'long_description' => 'nullable|string',
-                'short_description' => 'nullable|string',
-                'size_template_id' => 'nullable|exists:size_templates,id',
-                'quantity' => 'nullable|integer|min:0',
-                'selling_price' => 'nullable|numeric|min:0',
-                'discount_price' => 'nullable|numeric|min:0',
+                'short_description' => 'required|string',
+                'size_template_id' => 'required|exists:size_templates,id',
+                'quantity' => 'required|integer|min:0',
+                'selling_price' => 'required|numeric|min:0',
+                'discount_price' => 'required|numeric|min:0',
             ]);
+
+            // Start DB transaction after validation passes
+            DB::beginTransaction();
 
             // Set additional fields
             $validated['code'] = $this->generateUniqueCode();
@@ -235,16 +241,14 @@ class VendorProductController extends Controller
             // Create the product
             $product = Product::create($validated);
 
-            // Copy sizes from the template if size_template_id is provided
-            if ($request->size_template_id) {
-                $sizes = SizeTemplateItem::where('template_id', $request->size_template_id)->get();
-                foreach ($sizes as $size) {
-                    ProductSize::create([
-                        'product_id' => $product->id,
-                        'size_name' => $size->size_name,
-                        'size_value' => $size->size_value,
-                    ]);
-                }
+            // Copy sizes from the template
+            $sizes = SizeTemplateItem::where('template_id', $request->size_template_id)->get();
+            foreach ($sizes as $size) {
+                ProductSize::create([
+                    'product_id' => $product->id,
+                    'size_name' => $size->size_name,
+                    'size_value' => $size->size_value,
+                ]);
             }
 
             // Save images
@@ -267,7 +271,7 @@ class VendorProductController extends Controller
                 }
             }
 
-            // Save tags
+            // Save seller tags
             if (!empty($request->tags)) {
                 $sellerTag = SellerTags::firstOrNew([
                     'vendor_id' => auth()->id(),
@@ -277,65 +281,58 @@ class VendorProductController extends Controller
                 $sellerTag->save();
             }
 
-            DB::commit();
-
-            // Process the tags and categories
+            // Determine category from tag
             $tags = json_decode($product->tags, true);
-            $tag = $tags ? $tags[0] : null;
+            $tag = $tags[0] ?? null;
 
             $tagName = null;
             $categoryId = null;
 
             if ($tag) {
-                // Get tag name and category ID
                 $tagName = Category::where('id', $tag)->pluck('name')->first();
-                $tagCategory = Category::where('id', $tag)->first();
+                $tagCategory = Category::find($tag);
 
                 if ($tagCategory) {
-                    // Find the parent category
-                    $parentCategory = Category::where('id', $tagCategory->parent_id)->first();
+                    $parent = Category::find($tagCategory->parent_id);
+                    $grandParent = $parent ? Category::find($parent->parent_id) : null;
 
-                    if ($parentCategory) {
-                        // Find the grandparent category
-                        $grandParentCategory = Category::where('id', $parentCategory->parent_id)->first();
-
-                        if ($grandParentCategory) {
-                            // Set the category ID to the grandparent category
-                            $categoryId = $grandParentCategory->id;
-                        }
+                    if ($grandParent) {
+                        $categoryId = $grandParent->id;
                     }
                 }
             }
 
-            // Update the product with the correct category_id (store the ID in the database)
             if ($categoryId) {
-                $product->update([
-                    'category_id' => $categoryId,
-                ]);
+                $product->update(['category_id' => $categoryId]);
             }
 
-            // Fetch the product sizes
-            $productSizes = ProductSize::where('product_id', $product->id)->get();
-            $images = ProductImage::where('product_id', $product->id)->get();
+            // Commit DB transaction
+            DB::commit();
 
-
-            // Fetch the category name based on the category_id
-            $categoryName = $categoryId ? Category::where('id', $categoryId)->pluck('name')->first() : null;
-
-            // Return the product with category name in the response
+            // Return the response
             return response()->json([
                 'success' => true,
-                'message' => 'Product Created successfully',
+                'message' => 'Product created successfully',
                 'product' => $product,
-                'sizes' => $productSizes,
-                'images' =>  $images,
+                'sizes' => ProductSize::where('product_id', $product->id)->get(),
+                'images' => ProductImage::where('product_id', $product->id)->get(),
                 'tag' => $tagName,
-                'category_name' => $categoryName,  // Send the category name in the response
+                'category_name' => $categoryId ? Category::find($categoryId)?->name : null,
             ]);
 
-        } catch (\Exception $e) {
+        } catch (ValidationException $e) {
+            // Return validation errors with 422 status code
             return response()->json([
                 'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -548,20 +545,20 @@ class VendorProductController extends Controller
         $product = Product::findOrFail($id);
         // dd($product);
 
-        $order = OrderItem::where('product_id', $product->id)->count();
+        // $order = OrderItem::where('product_id', $product->id)->count();
 
-        if ($order > 0) {
-            $message = 'You cannot delete this product because it has related orders. Please delete the orders first.';
+        // if ($order > 0) {
+        //     $message = 'You cannot delete this product because it has related orders. Please delete the orders first.';
 
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $message,
-                ], 403);
-            }
+        //     if ($request->wantsJson()) {
+        //         return response()->json([
+        //             'success' => false,
+        //             'message' => $message,
+        //         ], 403);
+        //     }
 
-            return redirect()->route('vendor.products.index')->with('error', $message);
-        }
+        //     return redirect()->route('vendor.products.index')->with('error', $message);
+        // }
 
         $product->update([
             'deleted_at' => now(),

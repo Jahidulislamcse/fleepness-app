@@ -228,10 +228,10 @@
                                                 <td></td> <!-- Empty for Subcategory -->
                                                 <td>{{ $grandchild->name }}</td> <!-- Tag name -->
                                                 <td>
-                                                    <img src="{{ asset($grandchild->profile_img) }}" alt="" class="img-thumbnail" style="width:50px;">
+                                                    <img src="{{ asset($grandchild->profile_img) }}" alt="" class="img-thumbnail" style="width:50px; height:50px;">
                                                 </td>
                                                 <td>
-                                                    <img src="{{ asset($grandchild->cover_img) }}" alt="" class="img-thumbnail" style="width:50px;">
+                                                    <img src="{{ asset($grandchild->cover_img) }}" alt="" class="img-thumbnail" style="width:50px; height:50px; ">
                                                 </td>
                                                 <td>{{ $grandchild->order }}</td>
                                                 <td>
@@ -252,7 +252,7 @@
                                         @endforeach
                                     @endforeach
                                     <tr>
-                                        <td colspan="7"></td> <!-- Empty row with colspan to span all columns -->
+                                        <td colspan="7"></td> 
                                     </tr>
                                 @endforeach
                             </tbody>

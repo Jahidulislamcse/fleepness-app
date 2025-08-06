@@ -17,11 +17,18 @@ class UserVendorController extends Controller
     public function vendorlist(Request $request)
     {
         $perPage = (int) $request->input('per_page', 10);
+        $query = $request->input('query');
 
-        $paginated = User::where('role', 'vendor')
+        $vendorsQuery = User::where('role', 'vendor')
+            ->where('status', 'approved')
             ->orderByDesc('order_count')
-            ->select('id', 'name', 'email', 'order_count', 'cover_image')
-            ->paginate($perPage);
+            ->select('id', 'name', 'email', 'shop_name', 'order_count', 'cover_image', 'description');
+
+        if ($query) {
+            $vendorsQuery->where('shop_name', 'LIKE', "%{$query}%");
+        }
+
+        $paginated = $vendorsQuery->distinct()->paginate($perPage);
 
         return response()->json([
             'success' => true,
@@ -36,6 +43,8 @@ class UserVendorController extends Controller
             ],
         ], 200);
     }
+
+
 
     public function vendorData($vendor)
     {

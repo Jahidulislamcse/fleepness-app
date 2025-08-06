@@ -19,7 +19,7 @@ class CartController extends Controller
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer',
-            'size_id' => 'nullable|exists:size_template_items,id', 
+            'size_id' => 'nullable|exists:product_sizes,id',
         ]);
 
         $user = Auth::user();

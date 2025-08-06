@@ -93,7 +93,7 @@ class ShopCategoryController extends Controller
         ]);
     }
 
-        public function view_update(Request $request, $id)
+    public function view_update(Request $request, $id)
     {
         $category = ShopCategory::findOrFail($id);
 
@@ -131,7 +131,7 @@ class ShopCategoryController extends Controller
 
        return redirect()->route('admin.shop-categories.index')->with('success', 'Category deleted successfully');
     }
-    
+
 
     // Slug generator
     private function generateSlug($string)

@@ -32,15 +32,24 @@ class AdminSliderController extends Controller
 
     public function getAllSliders()
     {
-        // Fetch all sliders
         $sliders = Slider::all();
 
-        // Return the sliders as a JSON response
+        $transformed = $sliders->map(function ($slider) {
+            return [
+                'id' => $slider->id,
+                'title' => $slider->title,
+                'description' => $slider->description,
+                'photo' => $slider->photo ? asset($slider->photo) : null,
+                'photo_alt' => $slider->photo_alt,
+                'category_id' => $slider->category_id,
+                'tag_id' => $slider->tag_id,
+            ];
+        });
+
         return response()->json([
-            'sliders' => $sliders
+            'sliders' => $transformed
         ]);
     }
-
     /**
      * Show the form for creating a new resource.
      */

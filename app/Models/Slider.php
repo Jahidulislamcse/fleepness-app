@@ -14,6 +14,11 @@ class Slider extends Model
         return $this->belongsTo(Category::class, 'category_id');
     }
 
+    public function getPhotoAttribute($value)
+    {
+        return $value ? url($value) : null;
+    }
+
     public function tag()
     {
         return $this->belongsTo(Category::class, 'tag_id');

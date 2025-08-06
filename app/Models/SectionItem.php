@@ -16,6 +16,11 @@ class SectionItem extends Model
         return $this->belongsTo(Section::class);
     }
 
+    public function getImageAttribute($value)
+    {
+        return $value ? url($value) : null;
+    }
+
     // SectionItem.php (Model)
     public function tag()
     {

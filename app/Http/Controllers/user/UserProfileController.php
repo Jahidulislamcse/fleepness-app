@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\PaymentMethod;
 use App\Models\UserPayment;
+use Illuminate\Validation\ValidationException;
 
 class UserProfileController extends Controller
 {
@@ -46,87 +47,94 @@ class UserProfileController extends Controller
      */
     public function updateSeller(Request $request)
     {
+        try {
+            $user = Auth::user(); // Get the logged-in user
 
-        $user = Auth::user(); // Get the logged-in user
+            // Validate the input
+            $validatedData = $request->validate([
+                'name' => 'nullable|string|max:255',
+                'shop_name' => 'nullable|string|max:255',
+                'shop_category' => 'nullable|integer',
+                'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
+                'phone_number' => 'nullable|string|max:15',
+                'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'pickup_location' => 'nullable|string',
+                'address' => 'nullable|string',
+                'description' => 'nullable|string',
+                'payments' => 'nullable|array',
+                'payments.*' => 'nullable|string|max:20',
+            ]);
 
-        // Validate the input
-        $validatedData = $request->validate([
-            'name' => 'nullable|string|max:255',
-            'shop_name' => 'nullable|string|max:255',
-            'shop_category' => 'nullable|integer',
-            'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
-            'phone_number' => 'nullable|string|max:15',
-            'banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',  // Validate image
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',  // Validate image
-            'pickup_location' => 'nullable|string',
-            'address' => 'nullable|string',
-            'description' => 'nullable|string',
-            'payments' => 'nullable|array',
-            'payments.*' => 'nullable|string|max:20',
-        ]);
+            // Handle payment methods update
+            if (!empty($validatedData['payments'])) {
+                $user->payments()->delete(); // Clear previous methods
 
-
-        // Handle payment methods update:
-        if (!empty($validatedData['payments'])) {
-            // Delete existing payment methods to avoid duplicates
-            $user->payments()->delete();
-
-            // Add new payment methods
-            foreach ($validatedData['payments'] as $method => $number) {
-                if ($number) {
-                    $user->payments()->create([
-                        'user_id' => $user->id,
-                        'payment_method_id' => ucfirst($method),
-                        'account_number' => $number,
-                    ]);
+                foreach ($validatedData['payments'] as $method => $number) {
+                    if ($number) {
+                        $user->payments()->create([
+                            'user_id' => $user->id,
+                            'payment_method_id' => ucfirst($method),
+                            'account_number' => $number,
+                        ]);
+                    }
                 }
             }
-        }
 
-        unset($validatedData['payments']);
+            unset($validatedData['payments']);
 
-        // Handle file uploads if any
-        if ($request->hasFile('banner_image')) {
-            $banner_image = $request->file('banner_image');
-            $name_gen = hexdec(uniqid()) . '.' . $banner_image->getClientOriginalExtension();
-            $path = public_path('upload/user');
+            // Handle banner image upload
+            if ($request->hasFile('banner_image')) {
+                $banner_image = $request->file('banner_image');
+                $name_gen = hexdec(uniqid()) . '.' . $banner_image->getClientOriginalExtension();
+                $path = public_path('upload/user');
 
-            if (!file_exists($path)) {
-                mkdir($path, 0777, true);
+                if (!file_exists($path)) {
+                    mkdir($path, 0777, true);
+                }
+
+                $banner_image->move($path, $name_gen);
+                $validatedData['banner_image'] = 'upload/user/' . $name_gen;
             }
 
-            // Move the file to the server
-            $banner_image->move($path, $name_gen);
+            // Handle cover image upload
+            if ($request->hasFile('cover_image')) {
+                $cover_image = $request->file('cover_image');
+                $name_gen = hexdec(uniqid()) . '.' . $cover_image->getClientOriginalExtension();
+                $path = public_path('upload/user');
 
-            // Update the user's banner_image field
-            $validatedData['banner_image'] = 'upload/user/' . $name_gen;
-        }
+                if (!file_exists($path)) {
+                    mkdir($path, 0777, true);
+                }
 
-        if ($request->hasFile('cover_image')) {
-            $cover_image = $request->file('cover_image');
-            $name_gen = hexdec(uniqid()) . '.' . $cover_image->getClientOriginalExtension();
-            $path = public_path('upload/user');
-
-            if (!file_exists($path)) {
-                mkdir($path, 0777, true);
+                $cover_image->move($path, $name_gen);
+                $validatedData['cover_image'] = 'upload/user/' . $name_gen;
             }
 
-            // Move the file to the server
-            $cover_image->move($path, $name_gen);
+            // Update the user
+            $user->update($validatedData);
 
-            // Update the user's cover_image field
-            $validatedData['cover_image'] = 'upload/user/' . $name_gen;
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully',
+                'user' => $user->load('payments'),
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            // Log the error for debugging (optional)
+            Log::error('Seller update error', ['error' => $e->getMessage()]);
+
+            // Other unexpected errors
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong. Please try again later.',
+            ], 500);
         }
-
-        // Update the user's profile
-        $user->update($validatedData);
-
-        // Return success response
-        return response()->json([
-            'success' => true,
-            'message' => 'Profile updated successfully',
-            'user' => $user
-        ]);
     }
 
     public function getPaymentAccounts()
@@ -149,7 +157,7 @@ class UserProfileController extends Controller
      public function getPaymenMethods()
     {
         $methods = PaymentMethod::all();
-        
+
         return response()->json([
             'methods' => $methods,
         ]);
@@ -197,7 +205,6 @@ class UserProfileController extends Controller
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
             'phone_number' => 'nullable|string|max:15',
-            'address' => 'nullable|string',
             'contact_number' => 'nullable|string|max:15',
         ]);
 

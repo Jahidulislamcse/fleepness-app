@@ -36,7 +36,16 @@ class TagController extends Controller
         $grandchildren = [];
 
         foreach ($children as $child) {
-            $childGrandchildren = $child->children()->get()->toArray();
+            $childGrandchildren = $child->children()->get()->map(function ($tag) {
+                return [
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                    'profile_img' => $tag->profile_img ? asset($tag->profile_img) : null,
+                    'cover_img' => $tag->cover_img ? asset($tag->cover_img) : null,
+                    'description' => $tag->description,
+                    'store_title' => $tag->store_title,
+                ];
+            })->toArray();
 
             $grandchildren = array_merge($grandchildren, $childGrandchildren);
         }
@@ -47,6 +56,7 @@ class TagController extends Controller
             'tags' => $grandchildren,
         ]);
     }
+
 
 
 
@@ -223,24 +233,35 @@ class TagController extends Controller
         }
 
         $tagCounts = array_count_values($tagsArr);
-
         arsort($tagCounts);
-
         $mostUsedTagIds = array_keys(array_slice($tagCounts, 0, 3, true));
 
         if (empty($mostUsedTagIds)) {
             return response()->json(['message' => 'No tags found for this user.'], 404);
         }
 
-        $tags = Category::whereIn('id', $mostUsedTagIds)->get();
+        $tags = Category::whereIn('id', $mostUsedTagIds)
+            ->get(['id', 'name', 'profile_img', 'cover_img', 'store_title', 'description']);
+
+        $transformedTags = $tags->map(function ($tag) {
+            return [
+                'id' => $tag->id,
+                'name' => $tag->name,
+                'profile_img' => $tag->profile_img ? asset($tag->profile_img) : null,
+                'cover_img' => $tag->cover_img ? asset($tag->cover_img) : null,
+                'store_title' => $tag->store_title,
+                'description' => $tag->description,
+            ];
+        });
 
         return response()->json([
             'user_id'        => $userId,
-            'most_used_tags' => $tags
+            'most_used_tags' => $transformedTags,
         ]);
     }
 
-    public function getAllUsedTags($userId)
+
+   public function getAllUsedTags($userId)
     {
         $sellerTag = SellerTags::where('vendor_id', $userId)->first();
 
@@ -264,17 +285,28 @@ class TagController extends Controller
 
         $tagsArr = array_unique($tagsArr);
 
-        $tags = Category::whereIn('id', $tagsArr)->get();
+        $tags = Category::whereIn('id', $tagsArr)
+            ->get(['id', 'name', 'profile_img', 'cover_img']);
 
         if ($tags->isEmpty()) {
             return response()->json(['message' => 'No valid tags found for this user.'], 404);
         }
 
+        $transformedTags = $tags->map(function ($tag) {
+            return [
+                'id' => $tag->id,
+                'name' => $tag->name,
+                'profile_img' => $tag->profile_img ? asset($tag->profile_img) : null,
+                'cover_img' => $tag->cover_img ? asset($tag->cover_img) : null,
+            ];
+        });
+
         return response()->json([
-            'user_id'    => $userId,
-            'used_tags'  => $tags
+            'user_id'   => $userId,
+            'used_tags' => $transformedTags
         ]);
     }
+
 
 
 
@@ -286,21 +318,32 @@ class TagController extends Controller
     }
 
     public function getTagsRandom(Request $request)
-{
-    $setting = Setting::first() ?? new Setting();
+    {
+        $setting = Setting::first() ?? new Setting();
 
-    $limit = (int) $setting->num_of_tag;
+        $limit = (int) $setting->num_of_tag;
 
-    if ($limit < 1) {
-        return response()->json([]);
+        if ($limit < 1) {
+            return response()->json([]);
+        }
+
+        $tags = Category::whereNotNull('parent_id')
+            ->where('mark', 'T')
+            ->inRandomOrder()
+            ->take($limit)
+            ->get(['id', 'name', 'profile_img', 'cover_img']);
+
+        $transformedTags = $tags->map(function ($tag) {
+            return [
+                'id' => $tag->id,
+                'name' => $tag->name,
+                'profile_img' => $tag->profile_img ? asset($tag->profile_img) : null,
+                'cover_img' => $tag->cover_img ? asset($tag->cover_img) : null,
+            ];
+        });
+
+        return response()->json($transformedTags);
     }
 
-    $tags = Category::whereNotNull('parent_id')->where('mark', 'T')
-        ->inRandomOrder()
-        ->take($limit)
-        ->get(['id', 'name', 'profile_img', 'cover_img']);
-
-    return response()->json($tags);
-}
 
 }

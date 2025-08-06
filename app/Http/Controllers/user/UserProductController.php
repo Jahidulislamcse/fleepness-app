@@ -123,11 +123,14 @@ class UserProductController extends Controller
             'data' => $products
         ], 200);
     }
-    public function show($id)
+   public function show($id)
     {
         $product = Product::with([
+                'user',
+                'reviews',
+                'sizes',
+                'images',
                 'category',
-                'images'
             ])
             ->whereNull('deleted_at')
             ->find($id);
@@ -136,21 +139,42 @@ class UserProductController extends Controller
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        // Limit the data returned to specific fields for customers
-        $productData = $product->only(['name', 'selling_price', 'discount_price', 'long_description']);
+        // Transform user info
+        $user = $product->user;
+        $transformedUser = [
+            'shop_name' => $user->shop_name,
+            'banner_image' => $user->banner_image ? asset($user->banner_image) : null,
+            'cover_image' => $user->cover_image ? asset($user->cover_image) : null,
+        ];
 
-        // Add images and category information to the response
-        $productData['images'] = $product->images->map(function($image) {
-            return $image->path;  // Convert image path to a full URL
+        $category = $product->category;
+        $transformedCategory = [
+            'name' => $category->name,
+        ];
+
+        $sizes = $product->sizes;
+        $transformedSizes = $sizes->map(function ($size) {
+            return $size->size_name;
         });
 
-        $productData['category_name'] = $product->category ? $product->category->name : null;
+        // Prepare product data
+        $productData = $product->toArray();
+        $productData['user'] = $transformedUser;
+        $productData['category'] = $transformedCategory;
+        $productData['sizes'] = $transformedSizes;
+
+
+        $productData['images'] = $product->images->map(function($image) {
+            return asset($image->path); // Convert image path to full URL
+        });
+
 
         return response()->json([
             'success' => true,
             'product' => $productData,
         ]);
     }
+
 
 
     public function getAllProducts($vendor, Request $request)
@@ -173,7 +197,7 @@ class UserProductController extends Controller
         ]);
     }
 
-public function getSimilarProducts($id) 
+public function getSimilarProducts($id)
 {
     try {
         // Fetch the current product by ID
@@ -230,7 +254,7 @@ public function getSimilarProducts($id)
             'success' => true,
             'similar_products' => $similarProductsData,
         ]);
-        
+
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,

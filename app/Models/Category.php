@@ -6,12 +6,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
-
 class Category extends Model
 {
     use HasFactory;
 
     protected $guarded = [];
+
+
+    public function getProfileImgAttribute($value)
+    {
+        return $value ? url($value) : null;
+    }
+
+
+    public function getCoverImgAttribute($value)
+    {
+        return $value ? url($value) : null;
+    }
 
     // Parent Category
     public function parent()
@@ -29,7 +40,6 @@ class Category extends Model
     {
         return $this->hasMany(Slider::class);
     }
-
 
     // Automatically set the slug attribute
     protected static function boot()

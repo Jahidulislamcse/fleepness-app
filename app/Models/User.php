@@ -50,6 +50,17 @@ class User extends Authenticatable
             ->useDisk('public'); // You can use a different disk if needed
     }
 
+    public function getCoverImageAttribute($value)
+    {
+        return $value ? url($value) : null;
+    }
+
+
+    public function getBannerImageAttribute($value)
+    {
+        return $value ? url($value) : null;
+    }
+
     public function reviews()
     {
         return $this->hasMany(VendorReview::class);
