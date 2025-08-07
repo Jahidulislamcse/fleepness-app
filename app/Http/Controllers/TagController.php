@@ -96,8 +96,18 @@ class TagController extends Controller
     public function getProductByTag($id)
     {
         try {
-            // Fetch all products and filter by tag ID
-            $products = Product::whereNull('deleted_at')
+            $perPage = 10;
+            $currentPage = request()->get('page', 1);
+            $offset = ($currentPage - 1) * $perPage;
+
+            // Fetch tag name
+            $tag = Category::find($id);
+            $tagName = $tag ? $tag->name : null;
+
+            // Fetch all products with images
+            $products = Product::with('images')
+                ->whereNull('deleted_at')
+                ->where('status', 'active')
                 ->get()
                 ->filter(function ($product) use ($id) {
                     $tags = json_decode($product->tags, true) ?: [];
@@ -105,33 +115,25 @@ class TagController extends Controller
                 })
                 ->values();
 
-            // Pagination settings
-            $perPage = 10;
-            $currentPage = request()->get('page', 1);
-            $offset = ($currentPage - 1) * $perPage;
-
-            // Slice the products for the current page
-            $paginatedProducts = $products->slice($offset, $perPage);
-
-            // Add tag names to the products
-            $paginatedProducts = $paginatedProducts->map(function ($product) {
-                $tags = json_decode($product->tags, true) ?: [];
-                $tagNames = Category::whereIn('id', $tags)->pluck('name')->toArray();
-                $product->tag_names = implode(', ', $tagNames);
+            $paginatedProducts = $products->slice($offset, $perPage)->map(function ($product) {
+                // Transform image paths to full URLs
+                $product->images->transform(function ($image) {
+                    $image->path = url($image->path);
+                    return $image;
+                });
 
                 return $product;
             });
 
-            // Calculate total pages
             $totalPages = ceil($products->count() / $perPage);
-
-            // Generate next and previous page URLs
             $nextPageUrl = $currentPage < $totalPages ? url()->current() . '?page=' . ($currentPage + 1) : null;
             $previousPageUrl = $currentPage > 1 ? url()->current() . '?page=' . ($currentPage - 1) : null;
 
             return response()->json([
                 'success' => true,
-                'products' => $paginatedProducts,
+                'tag_id' => (int) $id,
+                'tag_name' => $tagName,
+                'products' => $paginatedProducts->values(),
                 'pagination' => [
                     'current_page' => $currentPage,
                     'per_page' => $perPage,
@@ -148,6 +150,8 @@ class TagController extends Controller
             ], 500);
         }
     }
+
+
 
     public function getOwnProductByTag($id)
     {
