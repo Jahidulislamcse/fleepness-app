@@ -75,6 +75,8 @@ class UserVendorController extends Controller
         // Fetch reviews
         $reviews = VendorReview::where('vendor_id', $vendor)->get();
 
+        $reviewPercentage = $reviews->count() > 0 ? round(($reviews->where('rating', '>=', 4)->count() / $reviews->count()) * 100) : 0;
+
         // Fetch followers
         $followers = Follower::where('vendor_id', $vendor)->get();
 
@@ -93,7 +95,10 @@ class UserVendorController extends Controller
             'message' => 'Seller data retrieved successfully',
             'vendor_info' => $vendorInfo,
             'products' => $products,
+            'product_count' => $products->count(),
             'videos' => $videos,
+            'reviews_count' => $reviews->count(),
+            'review_percentage' => $reviewPercentage,
             'reviews' => $reviews,
             'follower_count' => $followers->count(),
             'followers' => $followers,

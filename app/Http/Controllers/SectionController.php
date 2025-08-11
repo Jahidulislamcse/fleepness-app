@@ -15,15 +15,46 @@ class SectionController extends Controller
 {
     public function index()
     {
-        // Retrieve all sections with their associated items
-        $sections = Section::with('items')->get();
+        // Non-search sections
+        $sections = Section::with('items')
+            ->whereNot('section_type', 'search')
+            ->orderBy('index', 'asc')
+            ->get();
 
-        return view('admin.sections.index', compact('sections'));
+        // Search sections
+        $searchSections = Section::with('items')
+            ->where('section_type', 'search')
+            ->orderBy('index', 'asc')
+            ->get();
+
+        return view('admin.sections.index', compact('sections', 'searchSections'));
     }
 
-    public function sections()
+    // public function sections()
+    // {
+    //    $sections = \App\Models\Section::with(['category', 'items.tag'])
+    //     ->whereNot('section_type', 'search')
+    //     ->orderBy('index')
+    //     ->get();
+    //     return SectionResource::collection($sections);
+    // }
+
+    public function sections(Request $request)
     {
-        $sections = \App\Models\Section::with(['category', 'items.tag'])->orderBy('index')->get();
+        $categoryName = $request->query('category'); // reads ?category=w from URL
+
+        $query = \App\Models\Section::with(['category', 'items.tag'])
+            ->whereNot('section_type', 'search')
+            ->orderBy('index');
+
+        if ($categoryName) {
+            $query->whereHas('category', function ($q) use ($categoryName) {
+                $q->where('name', 'LIKE', '%' . $categoryName . '%');
+            });
+        }
+
+        $sections = $query->get();
+
         return SectionResource::collection($sections);
     }
 
@@ -45,7 +76,7 @@ class SectionController extends Controller
         // Validate the request data
     $validated = $request->validate([
         'section_name' => 'nullable|string|max:255',
-        'section_type' => 'nullable|string|unique:sections,section_type',
+        'section_type' => 'nullable|string',
         'section_title' => 'nullable|string|max:255',
         'category_id' => 'nullable|exists:categories,id',
         'visibility' => 'boolean',
@@ -86,7 +117,13 @@ class SectionController extends Controller
         $banner_img = 'upload/' . $folder . $name_gen_banner;
     }
 
-    $lastIndex = Section::max('index');
+    // $lastIndex = Section::max('index');
+
+    if ($validated['section_type'] === 'search') {
+        $lastIndex = Section::where('section_type', 'search')->max('index');
+    } else {
+        $lastIndex = Section::where('section_type', '!=', 'search')->max('index');
+    }
     $newIndex = $lastIndex + 1;
 
     // Create the section record
@@ -145,19 +182,23 @@ class SectionController extends Controller
         $section = Section::findOrFail($id);
         $categories = Category::all();
 
-        // Get all sections ordered by their index
-        $allSections = Section::orderBy('index')->get();
-
-        // Generate available indices excluding the current section's index
-        $availableIndices = [];
-        foreach ($allSections as $sec) {
-            if ($sec->id != $section->id) {
-                $availableIndices[] = $sec->index;
-            }
+        if ($section->section_type === 'search') {
+            // Only fetch 'search' sections
+            $sectionsGroup = Section::where('section_type', 'search')
+                ->orderBy('index')
+                ->get();
+        } else {
+            // Fetch all non-'search' sections
+            $sectionsGroup = Section::where('section_type', '!=', 'search')
+                ->orderBy('index')
+                ->get();
         }
 
+        // Generate available indices excluding the current section's index
+        $availableIndices = $sectionsGroup->where('id', '!=', $section->id)->pluck('index')->toArray();
+
         return view('admin.sections.edit', compact('section', 'categories', 'availableIndices'));
-    }
+}
 
 
 
@@ -171,7 +212,7 @@ class SectionController extends Controller
         // Validate request data
         $validated = $request->validate([
             'section_name' => 'nullable|string|max:255',
-            'section_type' => 'nullable|string|unique:sections,section_type,' . $id,
+            'section_type' => 'nullable|string',
             'section_title' => 'nullable|string|max:255',
             'category_id' => 'nullable|exists:categories,id',
             'index' => 'nullable|integer|min:1',
@@ -277,31 +318,49 @@ class SectionController extends Controller
      * @param \App\Models\Section $section
      * @return void
      */
-    protected function reorderSectionsAfterUpdate($newIndex, $currentIndex, $section)
+    protected function reorderSectionsAfterUpdate($newIndex, $currentIndex, Section $section)
     {
-        // Fetch all sections ordered by index
-        $sections = Section::orderBy('index')->get();
+        if ($section->section_type === 'search') {
+            // Reorder only within 'search' sections
+            $sections = Section::where('section_type', 'search')
+                ->orderBy('index')
+                ->get();
+        } else {
+            // Reorder among all sections except 'search'
+            $sections = Section::where('section_type', '!=', 'search')
+                ->orderBy('index')
+                ->get();
+        }
 
-        // If the new index is less than the current index, shift sections with a higher index
         if ($newIndex < $currentIndex) {
             foreach ($sections as $sec) {
-                // Only shift sections that have an index greater than or equal to the new index
-                if ($sec->index >= $newIndex && $sec->index < $currentIndex && $sec->id != $section->id) {
-                    $sec->index += 1;  // Increment index by 1
+                if (
+                    $sec->index >= $newIndex &&
+                    $sec->index < $currentIndex &&
+                    $sec->id != $section->id
+                ) {
+                    $sec->index += 1;  // Shift down
                     $sec->save();
                 }
             }
         } elseif ($newIndex > $currentIndex) {
-            // If the new index is greater, shift sections with an index greater than the current index
             foreach ($sections as $sec) {
-                // Only shift sections that have an index greater than the new index
-                if ($sec->index > $currentIndex && $sec->index <= $newIndex && $sec->id != $section->id) {
-                    $sec->index -= 1;  // Decrement index by 1
+                if (
+                    $sec->index > $currentIndex &&
+                    $sec->index <= $newIndex &&
+                    $sec->id != $section->id
+                ) {
+                    $sec->index -= 1;  // Shift up
                     $sec->save();
                 }
             }
         }
+
+        // Update the moved section's index
+        $section->index = $newIndex;
+        $section->save();
     }
+
 
 
 

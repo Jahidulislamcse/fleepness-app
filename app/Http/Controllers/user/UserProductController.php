@@ -142,6 +142,7 @@ class UserProductController extends Controller
         // Transform user info
         $user = $product->user;
         $transformedUser = [
+            'id' => $user->id,
             'shop_name' => $user->shop_name,
             'banner_image' => $user->banner_image ? asset($user->banner_image) : null,
             'cover_image' => $user->cover_image ? asset($user->cover_image) : null,
@@ -152,16 +153,10 @@ class UserProductController extends Controller
             'name' => $category->name,
         ];
 
-        $sizes = $product->sizes;
-        $transformedSizes = $sizes->map(function ($size) {
-            return $size->size_name;
-        });
-
         // Prepare product data
         $productData = $product->toArray();
         $productData['user'] = $transformedUser;
         $productData['category'] = $transformedCategory;
-        $productData['sizes'] = $transformedSizes;
 
 
         $productData['images'] = $product->images->map(function($image) {

@@ -141,12 +141,12 @@ class VendorProductController extends Controller
 
         // If neither query nor tag is provided, return all products
         if (!$query && !$tag) {
-            $products = Product::where('user_id', auth()->id())->get();
+            $products = Product::with('images')->where('user_id', auth()->id())->get();
         }
 
         // Search by query
         if ($query) {
-            $productsByQuery = Product::where('user_id', auth()->id())
+            $productsByQuery = Product::with('images')->where('user_id', auth()->id())
                 ->where(function ($queryBuilder) use ($query) {
                     $queryBuilder->where('name', 'LIKE', "%{$query}%")
                         ->orWhere('short_description', 'LIKE', "%{$query}%")
@@ -160,7 +160,7 @@ class VendorProductController extends Controller
 
         // Search by tag
         if ($tag) {
-            $productsByTag = Product::where('user_id', auth()->id())
+            $productsByTag = Product::with('images')->where('user_id', auth()->id())
                 ->get()
                 ->filter(function ($product) use ($tag) {
                     $tags = json_decode($product->tags, true);
@@ -225,7 +225,7 @@ class VendorProductController extends Controller
                 'size_template_id' => 'required|exists:size_templates,id',
                 'quantity' => 'required|integer|min:0',
                 'selling_price' => 'required|numeric|min:0',
-                'discount_price' => 'required|numeric|min:0',
+                'discount_price' => 'nullable|numeric|min:0',
             ]);
 
             // Start DB transaction after validation passes
