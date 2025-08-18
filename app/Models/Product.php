@@ -24,6 +24,8 @@ class Product extends Model
 
     protected $casts = [
         'tags' => 'array',
+        'selling_price' => 'float',
+        'discount_price' => 'float',
     ];
 
     public function tagCategories()

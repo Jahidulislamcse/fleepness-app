@@ -61,7 +61,6 @@ class CartController extends Controller
     {
         $user = Auth::user();
 
-        // Load size relationship
         $cartItems = CartItem::with(['product.firstImage', 'size'])->where('user_id', $user->id)->get();
 
         return response()->json([
@@ -75,16 +74,17 @@ class CartController extends Controller
                         'image_url' => $item->product->image_url,
                         'description' => $item->product->short_description,
                     ],
-                    'size' => $item->size ? [
+                    'size' => $item->size_id ? [
                         'id' => $item->size->id,
-                        // add other size fields as needed
-                        'name' => $item->size->name ?? null,
+                        'name' => $item->size->size_name,
+                        'value' => $item->size->size_value,
                     ] : null,
                     'quantity' => $item->quantity,
                 ];
             }),
         ]);
     }
+
 
     public function destroy($id)
     {

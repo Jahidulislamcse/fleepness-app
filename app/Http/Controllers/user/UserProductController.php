@@ -50,7 +50,6 @@ class UserProductController extends Controller
 
     public function getProductsByPriceRange(Request $request, $vendor)
     {
-        // Get minPrice and maxPrice from query parameters
         $minPrice = $request->query('minPrice', 0); // Default to 0 if not provided
         $maxPrice = $request->query('maxPrice', 999999); // Default to a high number if not provided
 
@@ -66,13 +65,16 @@ class UserProductController extends Controller
         $products = Product::where('user_id', $vendor)
             ->where(function ($query) use ($minPrice, $maxPrice) {
                 $query->whereBetween('discount_price', [$minPrice, $maxPrice])
-                    ->orWhere(function ($query) use ($minPrice, $maxPrice) {
-                        $query->whereNull('discount_price')
-                            ->orWhere('discount_price', 0)
-                            ->whereBetween('selling_price', [$minPrice, $maxPrice]);
+                    ->orWhere(function($q) use ($minPrice, $maxPrice) {
+                        $q->where(function($q2) {
+                            $q2->whereNull('discount_price')
+                                ->orWhere('discount_price', 0);
+                        })
+                        ->whereBetween('selling_price', [$minPrice, $maxPrice]);
                     });
             })
             ->get();
+
 
         return response()->json([
             'success' => true,
@@ -163,6 +165,8 @@ class UserProductController extends Controller
             return asset($image->path); // Convert image path to full URL
         });
 
+        $productData['tags_data'] = $product->tagCategories();
+
 
         return response()->json([
             'success' => true,
@@ -176,11 +180,39 @@ class UserProductController extends Controller
     {
         $perPage = $request->input('per_page', 10);
 
-        $products = Product::where('user_id', $vendor)
+        $products = Product::with('images')
+            ->where('user_id', $vendor)
             ->paginate($perPage);
 
         return response()->json([
-            'products' => $products->items(),
+            'products' => $products->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'category_id' => $product->category_id,
+                    'size_template_id ' => $product->size_template_id ,
+                    'tags' => $product->tags,
+                    'slug ' => $product->slug ,
+                    'code ' => $product->code ,
+                    'quantity' => $product->quantity,
+                    'selling_price' => $product->selling_price,
+                    'discount_price' => $product->discount_price,
+                    'short_description' => $product->short_description,
+                    'long_description' => $product->long_description,
+                    'images' => $product->images->map(fn($image) => $image->path), // only image path
+                    'tags_data' => $product->tagCategories()->map(function ($tag) {
+                        return [
+                            'id' => $tag->id,
+                            'name' => $tag->name,
+                            'store_title' => $tag->store_title,
+                            'slug' => $tag->slug,
+                            'profile_img' => $tag->profile_img ? asset($tag->profile_img) : null,
+                            'cover_img' => $tag->cover_img ? asset($tag->cover_img) : null,
+                            'description' => $tag->description,
+                        ];
+                    }),
+                ];
+            }),
             'pagination' => [
                 'current_page' => $products->currentPage(),
                 'per_page' => $products->perPage(),
@@ -191,6 +223,7 @@ class UserProductController extends Controller
             ],
         ]);
     }
+
 
 public function getSimilarProducts($id)
 {

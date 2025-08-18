@@ -67,7 +67,7 @@ class UserVendorController extends Controller
         }
 
         // Fetch products
-        $products = Product::where('user_id', $vendor)->get();
+        $product_count = Product::where('user_id', $vendor)->count();
 
         // Fetch videos
         $videos = ShortVideo::where('user_id', $vendor)->get();
@@ -82,27 +82,20 @@ class UserVendorController extends Controller
 
         // Fetch tags
         $sellerTags = SellerTags::where('vendor_id', $vendor)->first();
-        $tags = [];
 
-        if ($sellerTags && is_array($sellerTags->tags)) {
-            $tags = Category::whereIn('id', $sellerTags->tags)
-                ->get();
-        }
 
         // Return response
         return response()->json([
             'status' => true,
             'message' => 'Seller data retrieved successfully',
             'vendor_info' => $vendorInfo,
-            'products' => $products,
-            'product_count' => $products->count(),
+            'product_count' => $product_count,
             'videos' => $videos,
             'reviews_count' => $reviews->count(),
             'review_percentage' => $reviewPercentage,
             'reviews' => $reviews,
             'follower_count' => $followers->count(),
             'followers' => $followers,
-            'tags' => $tags,
         ], 200);
     }
 
