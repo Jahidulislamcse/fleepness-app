@@ -48,6 +48,95 @@ class UserProductController extends Controller
         ]);
     }
 
+    public function getProductsByType(Request $request, $vendor)
+    {
+        $type = $request->query('type');
+        $perPage = $request->query('per_page', 10); // for low_price pagination
+        $recentLimit = 5; // fixed number for recent products
+
+        if (!$type || !in_array($type, ['recent', 'low_price'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid type. Allowed values: recent, low_price'
+            ], 400);
+        }
+
+        // Base query
+        $query = Product::with('images')
+            ->where('user_id', $vendor)
+            ->whereNull('deleted_at');
+
+        if ($type === 'recent') {
+            $products = $query->orderBy('created_at', 'desc')
+                            ->take($recentLimit)
+                            ->get();
+        } else { // low_price
+            $products = $query->orderByRaw('COALESCE(discount_price, selling_price) ASC')
+                            ->paginate($perPage);
+        }
+
+        // Transform products
+        $productsData = $type === 'recent' ?
+            $products->map(function ($product) {
+                return $this->transformProduct($product);
+            }) :
+            $products->getCollection()->map(function ($product) {
+                return $this->transformProduct($product);
+            });
+
+        // Prepare response
+        $response = [
+            'success' => true,
+            'type' => $type,
+            'products' => $productsData,
+        ];
+
+        // Add pagination only for low_price
+        if ($type === 'low_price') {
+            $response['pagination'] = [
+                'current_page' => $products->currentPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+                'last_page' => $products->lastPage(),
+                'next_page_url' => $products->nextPageUrl(),
+                'prev_page_url' => $products->previousPageUrl(),
+            ];
+        }
+
+        return response()->json($response);
+    }
+
+
+    private function transformProduct($product)
+    {
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'category_id' => $product->category_id,
+            'size_template_id' => $product->size_template_id,
+            'tags' => $product->tags,
+            'slug' => $product->slug,
+            'code' => $product->code,
+            'quantity' => $product->quantity,
+            'selling_price' => $product->selling_price,
+            'discount_price' => $product->discount_price,
+            'short_description' => $product->short_description,
+            'long_description' => $product->long_description,
+            'images' => $product->images->map(fn($image) => $image->path),
+            'tags_data' => $product->tagCategories()->map(function ($tag) {
+                return [
+                    'id' => $tag->id,
+                    'name' => $tag->name,
+                    'store_title' => $tag->store_title,
+                    'slug' => $tag->slug,
+                    'profile_img' => $tag->profile_img ? asset($tag->profile_img) : null,
+                    'cover_img' => $tag->cover_img ? asset($tag->cover_img) : null,
+                    'description' => $tag->description,
+                ];
+            }),
+        ];
+    }
+
     public function getProductsByPriceRange(Request $request, $vendor)
     {
         $minPrice = $request->query('minPrice', 0); // Default to 0 if not provided

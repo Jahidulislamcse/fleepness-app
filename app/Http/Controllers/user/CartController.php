@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\CartItem;
 use App\Models\Product;
+use Illuminate\Validation\Rule;
 use App\Models\DeliveryModel;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class CartController extends Controller
@@ -16,45 +18,67 @@ class CartController extends Controller
 
     public function addOrUpdate(Request $request)
     {
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer',
-            'size_id' => 'nullable|exists:product_sizes,id',
-        ]);
+        try {
+            // Validate request
+            $request->validate([
+                'product_id' => 'required|exists:products,id',
+                'quantity' => 'required|integer',
+                'size_id' => [
+                    'nullable',
+                    Rule::exists('product_sizes', 'id')->where(function ($query) use ($request) {
+                        $query->where('product_id', $request->product_id);
+                    }),
+                ],
+            ]);
 
-        $user = Auth::user();
-        $product = Product::findOrFail($request->product_id);
+            $user = Auth::user();
+            $product = Product::findOrFail($request->product_id);
 
-        if ($request->quantity <= 0) {
-            return response()->json(['message' => 'Quantity must be greater than zero.'], 400);
+            // Custom quantity checks
+            if ($request->quantity <= 0) {
+                return response()->json(['message' => 'Quantity must be greater than zero.'], 400);
+            }
+
+            if ($request->quantity > $product->quantity) {
+                return response()->json(['message' => 'Quantity exceeds available stock.'], 400);
+            }
+
+            // Create or update cart item
+            $cartItem = CartItem::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'product_id' => $product->id,
+                    'size_id' => $request->size_id,
+                ],
+                [
+                    'quantity' => $request->quantity,
+                    'selected' => true,
+                ]
+            );
+
+            return response()->json([
+                'message' => 'Cart item created or updated',
+                'cart_item' => [
+                    'id' => $cartItem->id,
+                    'product_id' => $cartItem->product_id,
+                    'size_id' => $cartItem->size_id,
+                    'quantity' => $cartItem->quantity,
+                ]
+            ]);
+
+        } catch (ValidationException $e) {
+            // Return validation errors as JSON
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            // Handle unexpected errors
+            return response()->json([
+                'message' => 'Something went wrong',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        if ($request->quantity > $product->quantity) {
-            return response()->json(['message' => 'Quantity exceeds available stock.'], 400);
-        }
-
-        // Add size_id to the unique constraint for updateOrCreate to handle different sizes separately
-        $cartItem = CartItem::updateOrCreate(
-            [
-                'user_id' => $user->id,
-                'product_id' => $product->id,
-                'size_id' => $request->size_id,
-            ],
-            [
-                'quantity' => $request->quantity,
-                'selected' => true,
-            ]
-        );
-
-        return response()->json([
-            'message' => 'Cart item created or updated',
-            'cart_item' => [
-                'id' => $cartItem->id,
-                'product_id' => $cartItem->product_id,
-                'size_id' => $cartItem->size_id,
-                'quantity' => $cartItem->quantity,
-            ]
-        ]);
     }
 
     public function index(Request $request)

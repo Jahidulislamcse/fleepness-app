@@ -70,7 +70,23 @@
                         <!-- Category Order -->
                         <div class="form-group">
                             <label for="order" id="orderLabel">Index</label>
-                            <input type="number" name="order" class="form-control" value="{{ old('order', $category->order) }}"/>
+                            @php
+                                // Determine parent_id for current category
+                                $parentId = $category->parent_id ?? null;
+
+                                // Fetch all sibling categories (same parent)
+                                $siblings = \App\Models\Category::where('parent_id', $parentId)
+                                            ->orderBy('order', 'asc')
+                                            ->get();
+                            @endphp
+
+                            <select name="order" class="form-control">
+                                @foreach ($siblings as $sibling)
+                                    <option value="{{ $sibling->order }}" {{ $category->order == $sibling->order ? 'selected' : '' }}>
+                                        {{ $sibling->order }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <!-- Store Title (Only for grandchildren, and allow editing) -->

@@ -126,12 +126,6 @@
                                                         <div class="alert alert-danger">{{ $message }}</div>
                                                         @enderror
                                                     </div>
-
-                                                    <!-- Order -->
-                                                    <div class="form-group">
-                                                        <label for="order" id="orderLabel">Category Order</label>
-                                                        <input type="number" name="order" class="form-control" id="orderInput" placeholder="Enter Category Order" />
-                                                    </div>
                                                 </div>
 
                                                 <!-- Hidden fields -->
@@ -252,7 +246,7 @@
                                         @endforeach
                                     @endforeach
                                     <tr>
-                                        <td colspan="7"></td> 
+                                        <td colspan="7"></td>
                                     </tr>
                                 @endforeach
                             </tbody>

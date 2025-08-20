@@ -119,9 +119,12 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/vendor/{vendor_id}/follow', [UserVendorFollowController::class, 'follow']);        //Follow a Seller
         Route::get('/vendor/{vendor_id}/unfollow ', [UserVendorFollowController::class, 'unfollow']);   //Unfollow a seller
+        Route::get('/following ', [UserVendorFollowController::class, 'following']);   //Get all following sellers
+        Route::get('/followers ', [UserVendorFollowController::class, 'followers']);
     });
 
     Route::get('/get-categories', [CategoryController::class, 'getCategories'])->name('get.categories');
+    Route::get('/get-categories-by-order', [CategoryController::class, 'getOrderBasisCategories'])->name('get.categories.by.order');
     Route::get('/categories', [CategoryController::class, 'getCategoriesOnly']);
 
     Route::get('/get-random-tags', [TagController::class, 'getTagsRandom'])->name('get.random.tags');
@@ -131,6 +134,8 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('/product/{id}', [UserProductController::class, 'show']);  // show a single product by id
 
     Route::get('/product/{id}/similar', [UserProductController::class, 'getSimilarProducts']);
+    Route::get('/seller/{id}/products', [UserProductController::class, 'getProductsByType']);
+
 
 
 
