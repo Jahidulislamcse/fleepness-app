@@ -6,6 +6,7 @@ use App\Constants\LivestreamStatuses;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Facades\Livestream as FacadesLivestream;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\ModelStatus\HasStatuses;
@@ -56,6 +57,7 @@ class Livestream extends Model implements HasMedia
     use HasFactory, HasStatuses, InteractsWithMedia;
 
     protected $fillable = ['title', 'vendor_id', 'total_duration', 'scheduled_time', 'started_at', 'ended_at', 'egress_id'];
+    protected $appends = ['recordings'];
     protected $casts = [
         'started_at' => 'datetime',
         'ended_at' => 'datetime',
@@ -70,6 +72,11 @@ class Livestream extends Model implements HasMedia
     public function products()
     {
         return $this->belongsToMany(Product::class)->using(LivestreamProduct::class);
+    }
+
+    public function livestreamProducts()
+    {
+        return $this->hasMany(LivestreamProduct::class);
     }
 
 
@@ -114,5 +121,10 @@ class Livestream extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('thumbnail')->singleFile();
+    }
+
+    protected function recordings(): Attribute
+    {
+        return Attribute::get(fn () => FacadesLivestream::getRecordingsFor($this))->shouldCache();
     }
 }

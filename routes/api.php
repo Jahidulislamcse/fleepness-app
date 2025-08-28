@@ -193,22 +193,22 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::put('/addresses/{address}', [AddressController::class, 'update']);
 
         // Delivery options for users
-        Route::get('/delivery/models', [DeliveryModelController::class, 'userIndex']);
     });
 
+    Route::get('/delivery/models', [DeliveryModelController::class, 'userIndex']);
     Route::get('/sections', [SectionController::class, 'sections']);
     Route::get('/search-section', [SectionController::class, 'searchSection']);
 
 
     Route::get('livestreams', [LivestreamController::class, 'index'])->name('livestreams.index');
-    Route::get('livestreams/{livestream}', [LivestreamController::class, 'show'])->name('livestreams.show');
+    Route::get('livestreams/{ls}', [LivestreamController::class, 'show'])->name('livestreams.show');
     Route::post('livestreams', [LivestreamController::class, 'store'])->name('livestreams.store');
     Route::match(['put', 'patch'], 'livestreams/{livestream}', [LivestreamController::class, 'update'])->name('livestreams.update');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('livestreams/{livestream}/publisher-token', GetLivestreamPublisherTokenController::class)->name('livestreams.get-publisher-token');
         Route::post('livestreams/{ls}/products', [LivestreamProductController::class, 'store'])->name('livestream-products.store');
-        Route::delete('livestreams/{livestream}/products', [LivestreamProductController::class, 'destroy'])->name('livestream-products.destroy');
+        Route::delete('livestreams/{ls}/products', [LivestreamProductController::class, 'destroy'])->name('livestream-products.destroy');
     });
 
     Route::get('livestreams/{livestream}/subscriber-token', GetLivestreamSubscriberTokenController::class)->name('livestreams.get-subscriber-token');

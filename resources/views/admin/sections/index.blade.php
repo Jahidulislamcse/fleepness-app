@@ -44,6 +44,14 @@
                             <td>{{ $section->visibility ? 'Visible' : 'Hidden' }}</td>
                             <td>
                                 <a href="{{ route('admin.sections.edit', $section->id) }}" class="btn btn-warning">View / Edit</a>
+                                <form action="{{ route('admin.sections.destroy', $section->id) }}"
+                                    method="POST"
+                                    style="display:inline-block;"
+                                    onsubmit="return confirm('Are you sure you want to delete this section?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
                             </td>
                         </tr>
                         @endforeach

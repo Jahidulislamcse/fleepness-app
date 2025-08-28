@@ -382,6 +382,50 @@ class SectionController extends Controller
     }
 
 
+    public function destroy($id)
+    {
+        $section = Section::with('items')->findOrFail($id);
 
+        $deletedIndex = $section->index;
+        $isSearchType = $section->section_type === 'search';
+
+        $this->deleteFileIfExists($section->background_image);
+        $this->deleteFileIfExists($section->banner_image);
+
+        foreach ($section->items as $item) {
+            $this->deleteFileIfExists($item->image);
+            $item->delete();
+        }
+
+        $section->delete();
+
+         $siblingsToShift = Section::query()
+            ->when($isSearchType,
+                fn ($q) => $q->where('section_type', 'search'),
+                fn ($q) => $q->where('section_type', '!=', 'search')
+            )
+            ->where('index', '>', $deletedIndex)
+            ->orderBy('index', 'asc')
+            ->get();
+
+        foreach ($siblingsToShift as $sibling) {
+            $sibling->index = $sibling->index - 1;  
+            $sibling->save();
+        }
+
+        return redirect()
+            ->route('admin.sections.index')
+            ->with('success', 'Section deleted and indices reordered successfully.');
+    }
+
+    protected function deleteFileIfExists(?string $path): void
+    {
+        if (!$path) return;
+
+        $full = public_path($path);
+        if (is_file($full) && file_exists($full)) {
+            @unlink($full);
+        }
+    }
 
 }

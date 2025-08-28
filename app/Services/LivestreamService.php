@@ -11,6 +11,7 @@ use Agence104\LiveKit\EgressServiceClient;
 use Agence104\LiveKit\EncodedOutputs;
 use App\Data\Dto\GeneratePublisherTokenData;
 use App\Data\Dto\GenerateSubscriberTokenData;
+use App\Models\Livestream;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use Livekit\EncodedFileOutput;
@@ -145,5 +146,10 @@ class LivestreamService
     public function stopRecording(string $egressId)
     {
         return $this->egressService->stopEgress($egressId);
+    }
+
+    public function getRecordingsFor(Livestream $livestream)
+    {
+        return $this->egressService->listEgress();
     }
 }

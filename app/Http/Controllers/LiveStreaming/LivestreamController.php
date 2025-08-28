@@ -57,9 +57,10 @@ class LivestreamController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Livestream $livestream): LivestreamData
+    public function show($livestreamId)
     {
-        return LivestreamData::from($livestream);
+       $livestream = Livestream::with('livestreamProducts')->findOrFail($livestreamId);
+        return $livestream;
     }
 
     /**

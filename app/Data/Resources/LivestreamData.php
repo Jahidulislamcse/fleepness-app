@@ -18,8 +18,8 @@ class LivestreamData extends Data
         public string $title,
         public ?string $thumbnailPicture,
         public string $status,
-        // #[DataCollectionOf(ProductData::class)]
-        // public DataCollection $products,
+        #[DataCollectionOf(ProductData::class)]
+        public DataCollection $products,
         public ?Carbon $scheduledTime,
         public ?int $totalDuration,
         public ?Carbon $startedAt,
@@ -36,7 +36,7 @@ class LivestreamData extends Data
             $livestream->title,
             isset($thumbnail) ? $thumbnail->getFullUrl() : null,
             $livestream->status,
-            // DataCollection::from($livestream->products->map(fn($product) => ProductData::from($product))),
+            DataCollection::from($livestream->products->map(fn($product) => ProductData::from($product))),
             $livestream->scheduled_time ? Carbon::parse($livestream->scheduled_time) : null,
             $livestream->total_duration,
             $livestream->started_at,

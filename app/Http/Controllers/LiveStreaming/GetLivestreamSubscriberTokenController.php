@@ -20,8 +20,8 @@ class GetLivestreamSubscriberTokenController extends Controller
         $livestream = Livestream::find($livestreamId);
         // $livestream->load('vendor');
         // $this->authorize(GateNames::GET_LIVESTREAM_SUBSCRIBER_TOKEN->value, $livestream);
-        $userId = auth()->id() ?? 'public';
-        $displayName = auth()->user()?->name ?? 'public';
+        $userId = auth("sanctum")->id() ?? 'public';
+        $displayName = auth("sanctum")->user()?->name ?? 'public';
 
         $roomName = $livestream->getRoomName();
 
@@ -30,7 +30,7 @@ class GetLivestreamSubscriberTokenController extends Controller
             identity: $userId,
             displayName: $displayName,
             isPublic: $userId === 'public',
-            metadata: auth()->check() ? auth()->user()->toArray() : []
+            metadata: auth("sanctum")->check() ? auth("sanctum")->user()->toArray() : []
 
         );
 

@@ -26,10 +26,5 @@ class RemoveLivestreamProductData extends Data
         ];
     }
 
-    public static function authorize(): Response|bool
-    {
-        $livestream = request()->route('livestream');
-
-        return Gate::authorize(GateNames::REMOVE_LIVESTREAM_PRODUCTS->value, $livestream);
-    }
+    
 }

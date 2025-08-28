@@ -62,6 +62,8 @@ class LivestreamPolicy
 
     public function removeProducts(User $user, Livestream $livestream): Response|bool
     {
-        return $this->update($user, $livestream);
+        // return $this->update($user, $livestream);
+        return true;
+
     }
 }

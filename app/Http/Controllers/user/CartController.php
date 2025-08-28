@@ -8,6 +8,7 @@ use App\Models\CartItem;
 use App\Models\Product;
 use Illuminate\Validation\Rule;
 use App\Models\DeliveryModel;
+use App\Models\ProductSize;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -19,16 +20,22 @@ class CartController extends Controller
     public function addOrUpdate(Request $request)
     {
         try {
-            // Validate request
-            $request->validate([
-                'product_id' => 'required|exists:products,id',
-                'quantity' => 'required|integer',
-                'size_id' => [
-                    'nullable',
-                    Rule::exists('product_sizes', 'id')->where(function ($query) use ($request) {
-                        $query->where('product_id', $request->product_id);
-                    }),
-                ],
+            $productId = $request->input('product_id');
+            $hasSizes  = $productId ? ProductSize::where('product_id', $productId)->exists() : false;
+
+            $sizeRules = [
+                Rule::exists('product_sizes', 'id')->where(fn ($q) =>
+                    $q->where('product_id', $productId)
+                ),
+            ];
+            array_unshift($sizeRules, $hasSizes ? 'required' : 'nullable');
+
+            $validated = $request->validate([
+                'product_id' => ['required', 'exists:products,id'],
+                'quantity'   => ['required', 'integer', 'min:1'],
+                'size_id'    => $sizeRules,
+            ], [
+                'size_id.required' => 'Please select a size for this product.',
             ]);
 
             $user = Auth::user();
@@ -67,13 +74,11 @@ class CartController extends Controller
             ]);
 
         } catch (ValidationException $e) {
-            // Return validation errors as JSON
             return response()->json([
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
-            // Handle unexpected errors
             return response()->json([
                 'message' => 'Something went wrong',
                 'error' => $e->getMessage()
@@ -94,7 +99,7 @@ class CartController extends Controller
                     'product' => [
                         'id' => $item->product->id,
                         'name' => $item->product->name,
-                        'price' => $item->product->price,
+                        'price' => $item->product->discount_price ?? $item->product->selling_price,
                         'image_url' => $item->product->image_url,
                         'description' => $item->product->short_description,
                     ],

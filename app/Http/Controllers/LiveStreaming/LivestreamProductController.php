@@ -32,8 +32,9 @@ class LivestreamProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Livestream $livestream, RemoveLivestreamProductData $data): LivestreamData
+    public function destroy($livestreamId, RemoveLivestreamProductData $data): LivestreamData
     {
+        $livestream = Livestream::findOrFail($livestreamId);
         $livestream->products()->detach($data->productIds);
 
         return LivestreamData::from($livestream);

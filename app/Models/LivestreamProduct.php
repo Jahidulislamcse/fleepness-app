@@ -19,3 +19,5 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
  * @mixin \Eloquent
  */
 class LivestreamProduct extends Pivot {}
+
+
