@@ -53,16 +53,21 @@ class SectionController extends Controller
             });
         }
 
-        $sections = $query->get();
+        $sections = $query->paginate(5);
 
         return SectionResource::collection($sections);
     }
 
-    public function searchSection()
-    {
-        $section = \App\Models\Section::where('section_type', 'search')->with(['category', 'items.tag'])->orderBy('index')->get();
-        return SectionResource::collection($section);
-    }
+        public function searchSection()
+        {
+            $section = \App\Models\Section::where('section_type', 'search')
+                ->with(['category', 'items.tag'])
+                ->orderBy('index')
+                ->paginate(5); 
+
+            return SectionResource::collection($section);
+        }
+
 
 
     public function create()
@@ -79,6 +84,7 @@ class SectionController extends Controller
         'section_type' => 'nullable|string',
         'section_title' => 'nullable|string|max:255',
         'category_id' => 'nullable|exists:categories,id',
+        'bio' => 'nullable|string|max:1000',
         'visibility' => 'boolean',
         'background_image' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg',
         'banner_image' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg',
@@ -132,6 +138,7 @@ class SectionController extends Controller
         'section_type' => $validated['section_type'],
         'section_title' => $validated['section_title'],
         'category_id' => $validated['category_id'],
+        'bio' => $validated['bio'] ?? null,
         'visibility' => $validated['visibility'] ?? false,
         'index' => $newIndex,
         'background_image' =>  $background,
@@ -215,6 +222,7 @@ class SectionController extends Controller
             'section_type' => 'nullable|string',
             'section_title' => 'nullable|string|max:255',
             'category_id' => 'nullable|exists:categories,id',
+            'bio' => 'nullable|string|max:1000',
             'index' => 'nullable|integer|min:1',
             'visibility' => 'boolean',
             'background_image' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg',
@@ -266,6 +274,7 @@ class SectionController extends Controller
             'section_type' => $validated['section_type'] ?? $section->section_type,
             'section_title' => $validated['section_title'],
             'category_id' => $validated['category_id'],
+            'bio' => $validated['bio'] ?? null,
             'index' => $newIndex,
             'visibility' => $validated['visibility'] ?? false,
             'background_image' => $background,

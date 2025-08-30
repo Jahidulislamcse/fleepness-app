@@ -80,6 +80,11 @@
                                 </div>
 
                                 <div class="form-group">
+                                    <label for="bio">Bio</label>
+                                    <textarea name="bio" class="form-control" rows="5" required>{{ old('bio', $section->bio) }}</textarea>
+                                </div>
+
+                                <div class="form-group">
                                     <label for="section_index">Section Index</label>
                                     <select name="index" id="section_index" class="form-control" required>
                                         @for ($i = 1; $i <= count($availableIndices) + 1; $i++)
@@ -102,7 +107,7 @@
                             <!-- Right Column -->
                             <div class="col-md-8">
                                 <div class="form-group">
-                                     @if ($section->section_type == "multiproduct_banner" || $section->section_type == "lighting_deals" || $section->section_type == "smaller_4x_box_grid")
+                                     @if ($section->section_type == "multiproduct_banner" || $section->section_type == "lighting_deals" || $section->section_type == "smaller_4x_box_grid" || $section->section_type == "fancy_3x_box_grid" || $section->section_type == "spotlight_deals")
                                     <div class="form-group mt-3">
                                         @if ($section->background_image)
                                             <img src="{{ asset($section->background_image) }}" class="img-thumbnail mb-2" width="100">
@@ -141,7 +146,9 @@
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
-
+<script>
+   const baseUrl = "{{ asset('') }}";
+</script>
 <!-- Dynamic Field Loader -->
 <script>
     const existingItems = @json($section->items ?? []);
@@ -193,13 +200,17 @@
             case 'multiproduct_banner':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
+                    const imagePath = item.image
+                        ? item.image.startsWith('http')
+                            ? item.image
+                            : `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}`
+                        : '';
+
                     const imagePreview = item.image
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
 
                     $('#dynamicFieldsContainer').append(`
-
                         <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
@@ -215,6 +226,7 @@
                     `);
                 }
                 break;
+
 
             case 'single_banner':
                 $('#dynamicFieldsContainer').append(`
@@ -279,12 +291,17 @@
             case 'tag_box':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
+                    const imagePath = item.image
+                        ? item.image.startsWith('http')
+                            ? item.image
+                            : `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}`
+                        : '';
+
                     const imagePreview = item.image
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
-                    $('#dynamicFieldsContainer').append(`
 
+                    $('#dynamicFieldsContainer').append(`
                         <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
@@ -302,6 +319,7 @@
                 }
                 break;
 
+
             case 'fancy_3x_box_grid':
             case 'fancy_6x_product_grid':
             case '8x_box_grid':
@@ -309,12 +327,17 @@
             case 'smaller_4x_box_grid':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
+                    const imagePath = item.image
+                        ? item.image.startsWith('http')
+                            ? item.image
+                            : `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}`
+                        : '';
+
                     const imagePreview = item.image
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
-                    $('#dynamicFieldsContainer').append(`
 
+                    $('#dynamicFieldsContainer').append(`
                         <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
@@ -330,16 +353,25 @@
                     `);
                 }
                 break;
+
 
             case 'poster_section':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
+
+                    const imagePath = item.image
+                        ? item.image.startsWith('http')
+                            ? item.image
+                            : `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}`
+                        : '';
+
+                    console.log('Generated Image Path:', imagePath);
+
                     const imagePreview = item.image
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
-                    $('#dynamicFieldsContainer').append(`
 
+                    $('#dynamicFieldsContainer').append(`
                         <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
@@ -348,23 +380,30 @@
                                 <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
                                     <option value="">Select Tag</option>
                                 </select>
-                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required readonly>
-                                <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
+                                <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" value="${item.index || ''}" required readonly>
+                                <input type="checkbox" name="items[${i}][visibility]" value="1" ${item.visibility ? 'checked' : ''}> Visibility
                             </div>
                         </div>
                     `);
                 }
                 break;
+
+
 
             case 'scrollable_banners':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
+                    const imagePath = item.image
+                        ? item.image.startsWith('http')
+                            ? item.image
+                            : `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}`
+                        : '';
+
                     const imagePreview = item.image
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
-                    $('#dynamicFieldsContainer').append(`
 
+                    $('#dynamicFieldsContainer').append(`
                         <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
@@ -380,6 +419,8 @@
                     `);
                 }
                 break;
+
+
 
             case 'spotlight_deals':
                 $('#dynamicFieldsContainer').append(`
@@ -400,12 +441,17 @@
             case 'problem_specific':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
-                    const imagePath = item.image ? `/${item.image}` : '';
+                    const imagePath = item.image
+                        ? item.image.startsWith('http')
+                            ? item.image
+                            : `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}`
+                        : '';
+
                     const imagePreview = item.image
                         ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
                         : '';
-                    $('#dynamicFieldsContainer').append(`
 
+                    $('#dynamicFieldsContainer').append(`
                         <div class="col-md-4" id="box-${i}">
                             <div class="form-group">
                                 <label>Box ${i + 1} Image</label>
@@ -423,6 +469,7 @@
                     `);
                 }
                 break;
+
         }
 
         // Make the container sortable (drag-and-drop enabled)

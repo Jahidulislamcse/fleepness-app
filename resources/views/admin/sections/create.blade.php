@@ -49,7 +49,7 @@
                                     <label for="section_type">Section Type</label>
                                     <select name="section_type" id="section_type" class="form-control" required>
                                         @foreach([
-                                            'select_section_type', 'multiproduct_banner', 'single_banner','search', 'lighting_deals', 'tag_box',
+                                            'select_section_type', 'multiproduct_banner', 'single_banner','search', 'scrollable_product', 'lighting_deals', 'tag_box',
                                             'fancy_3x_box_grid', 'poster_section', 'scrollable_banners', 'smaller_4x_box_grid',
                                             'best_brands', '6x_box_grid', '2x_box_grid', 'u_shape_section', 'fancy_6x_product_grid',
                                             '8x_box_grid', 'problem_specific', 'spotlight_deals', '4x_box_section'
@@ -82,6 +82,11 @@
                                             </option>
                                         @endforeach
                                     </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="bio">Bio</label>
+                                    <textarea name="bio" id="bio" class="form-control" rows="4" placeholder="Enter bio" required>{{ old('bio', $section->bio ?? '') }}</textarea>
                                 </div>
 
                                 <div class="form-group">
@@ -136,6 +141,10 @@
                     $('#box6_tag').empty();
                     $('#box7_tag').empty();
                     $('#box8_tag').empty();
+                    $('#box9_tag').empty();
+                    $('#box10_tag').empty();
+                    $('#box11_tag').empty();
+                    $('#box12_tag').empty();
 
                     // Check if there are tags (grandchildren) returned
                     if (data.status) {
@@ -149,6 +158,10 @@
                         $('#box6_tag').append('<option value="">Select Tag</option>');
                         $('#box7_tag').append('<option value="">Select Tag</option>');
                         $('#box8_tag').append('<option value="">Select Tag</option>');
+                        $('#box9_tag').append('<option value="">Select Tag</option>');
+                        $('#box10_tag').append('<option value="">Select Tag</option>');
+                        $('#box11_tag').append('<option value="">Select Tag</option>');
+                        $('#box12_tag').append('<option value="">Select Tag</option>');
 
                         // Add each tag as an option in the select dropdown
                         data.tags.forEach(function(tag) {
@@ -161,6 +174,10 @@
                             $('#box6_tag').append(new Option(tag.name, tag.id));
                             $('#box7_tag').append(new Option(tag.name, tag.id));
                             $('#box8_tag').append(new Option(tag.name, tag.id));
+                            $('#box9_tag').append(new Option(tag.name, tag.id));
+                            $('#box10_tag').append(new Option(tag.name, tag.id));
+                            $('#box11_tag').append(new Option(tag.name, tag.id));
+                            $('#box12_tag').append(new Option(tag.name, tag.id));
 
                         });
                     } else {
@@ -174,6 +191,10 @@
                         $('#box6_tag').append('<option value="">No tags found</option>');
                         $('#box7_tag').append('<option value="">No tags found</option>');
                         $('#box8_tag').append('<option value="">No tags found</option>');
+                        $('#box9_tag').append('<option value="">No tags found</option>');
+                        $('#box10_tag').append('<option value="">No tags found</option>');
+                        $('#box11_tag').append('<option value="">No tags found</option>');
+                        $('#box12_tag').append('<option value="">No tags found</option>');
                     }
                 },
                 error: function(xhr, status, error) {
@@ -195,43 +216,24 @@
                         <label for="background_image">Background Image</label>
                         <input type="file" name="background_image" class="form-control" required>
                     </div>
-
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="box1_image">Box 1 Image</label>
-                            <input type="file" name="items[0][image]" class="form-control required">
-                            <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                                <option value="">Select Tag</option>
-                            </select>
-
-                            <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="box2_image">Box 2 Image</label>
-                            <input type="file" name="items[1][image]" class="form-control required">
-                            <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                                <option value="">Select Tag</option>
-                            </select>
-
-                            <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="box3_image">Box 3 Image</label>
-                            <input type="file" name="items[2][image]" class="form-control required">
-                            <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
-                                <option value="">Select Tag</option>
-                            </select>
-
-                            <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                        </div>
-                    </div>
                 `);
+
+                for (let i = 0; i < 3; i++) {
+                    $('#dynamicFieldsContainer').append(`
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="box${i + 1}_image">Box ${i + 1} Image</label>
+                                <input type="file" name="items[${i}][image]" class="form-control required">
+                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                    <option value="">Select Tag</option>
+                                </select>
+
+                                <input type="checkbox" name="items[${i}][visibility]" value="1" 
+                                    {{ old('items[${i}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                            </div>
+                        </div>
+                    `);
+                }
                 break;
 
             case 'single_banner':
@@ -300,691 +302,306 @@
                 break;
 
             case 'tag_box':
-                $('#dynamicFieldsContainer').append(`
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <textarea name="items[0][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-                      <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                for (let i = 0; i < 12; i++) {
+                    $('#dynamicFieldsContainer').append(`
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="box${i + 1}_image">Box ${i + 1} Image</label>
+                            <input type="file" name="items[${i}][image]" class="form-control required">
+                            <textarea name="items[${i}][bio]" class="form-control" rows="5" placeholder="Bio" required></textarea>
+                            <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                <option value="">Select Tag</option>
+                            </select>
+                            <input type="checkbox" name="items[${i}][visibility]" value="1" {{ old('items[${i}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                        </div>
                     </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <textarea name="items[1][bio]" class="form-control" rows="5" placeholder="Bio" required></textarea>
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-                `);
+                    `);
+                }
                 break;
+
 
              case 'fancy_3x_box_grid':
                 $('#dynamicFieldsContainer').append(`
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                      <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                    <div class="form-group px-4">
+                        <label for="background_image">Background Image</label>
+                        <input type="file" name="background_image" class="form-control" required>
                     </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                 <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 3 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control required">
-                        <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
                 `);
+
+                for (let i = 0; i < 3; i++) {
+                    $('#dynamicFieldsContainer').append(`
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="box${i + 1}_image">Box ${i + 1} Image</label>
+                                <input type="file" name="items[${i}][image]" class="form-control required">
+                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                    <option value="">Select Tag</option>
+                                </select>
+
+                                <input type="checkbox" name="items[${i}][visibility]" value="1" 
+                                    {{ old('items[${i}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                            </div>
+                        </div>
+                    `);
+                }
                 break;
 
-                case 'poster_section':
-                $('#dynamicFieldsContainer').append(`
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
+            case 'poster_section':
+                for (let j = 0; j < 12; j++) {
+                    $('#dynamicFieldsContainer').append(`
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="box${j + 1}_image">Box ${j + 1} Image</label>
+                                <input type="file" name="items[${j}][image]" class="form-control required">
+                                <select name="items[${j}][tag_id]" id="box${j + 1}_tag" class="form-control" required>
+                                    <option value="">Select Tag</option>
+                                </select>
 
-                        <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-                `);
+                                <input type="checkbox" name="items[${j}][visibility]" value="1" {{ old('items[${j}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                            </div>
+                        </div>
+                    `);
+                }
                 break;
+
+
+
 
                 case 'scrollable_banners':
-                $('#dynamicFieldsContainer').append(`
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
+                    for (let j = 0; j < 10; j++) {
+                        $('#dynamicFieldsContainer').append(`
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="box${j + 1}_image">Box ${j + 1} Image</label>
+                                    <input type="file" name="items[${j}][image]" class="form-control required">
+                                    <select name="items[${j}][tag_id]" id="box${j + 1}_tag" class="form-control" required>
+                                        <option value="">Select Tag</option>
+                                    </select>
 
-                        <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
+                                   <input type="checkbox" name="items[${j}][visibility]" value="1" {{ old('items[${j}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                                </div>
+                            </div>
+                        `);
+                    }
+                    break;
 
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-                `);
-                break;
 
                 case 'smaller_4x_box_grid':
-                $('#dynamicFieldsContainer').append(`
-                <div class="form-group">
-                    <label for="background_image">Background Image</label>
-                    <input type="file" name="background_image" class="form-control" required>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
+                    $('#dynamicFieldsContainer').append(`
+                        <div class="form-group">
+                            <label for="background_image">Background Image</label>
+                            <input type="file" name="background_image" class="form-control" required>
+                        </div>
+                    `);
 
-                        <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
+                    for (let j = 0; j < 4; j++) {
+                        $('#dynamicFieldsContainer').append(`
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="box${j + 1}_image">Box ${j + 1} Image</label>
+                                    <input type="file" name="items[${j}][image]" class="form-control required">
+                                    <select name="items[${j}][tag_id]" id="box${j + 1}_tag" class="form-control" required>
+                                        <option value="">Select Tag</option>
+                                    </select>
 
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
+                                    <input type="checkbox" name="items[${j}][visibility]" value="1" {{ old('items[${j}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                                </div>
+                            </div>
+                        `);
+                    }
+                    break;
 
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                 <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 3 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control required">
-                        <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                 <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 4 Image</label>
-                        <input type="file" name="items[3][image]" class="form-control required">
-                        <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[3][visibility]" value="1" {{ old('items[3][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-                `);
-                break;
 
                 case 'best_brands':
-                $('#dynamicFieldsContainer').append(`
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
+                    for (let j = 0; j < 6; j++) {
+                        $('#dynamicFieldsContainer').append(`
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="box${j + 1}_image">Box ${j + 1} Image</label>
+                                    <input type="file" name="items[${j}][image]" class="form-control required">
+                                    <select name="items[${j}][tag_id]" id="box${j + 1}_tag" class="form-control" required>
+                                        <option value="">Select Tag</option>
+                                    </select>
 
-                        <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
+                                    <input type="checkbox" name="items[${j}][visibility]" value="1" 
+                                        {{ old('items[${j}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                                </div>
+                            </div>
+                        `);
+                    }
+                    break;
 
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-                `);
-                break;
 
                 case '6x_box_grid':
-                $('#dynamicFieldsContainer').append(`
+                    for (let j = 0; j < 6; j++) {
+                        $('#dynamicFieldsContainer').append(`
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="box${j + 1}_image">Box ${j + 1} Image</label>
+                                    <input type="file" name="items[${j}][image]" class="form-control required">
+                                    <select name="items[${j}][tag_id]" id="box${j + 1}_tag" class="form-control" required>
+                                        <option value="">Select Tag</option>
+                                    </select>
 
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
+                                    <input type="checkbox" name="items[${j}][visibility]" value="1" 
+                                        {{ old('items[${j}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                                </div>
+                            </div>
+                        `);
+                    }
+                    break;
 
-                        <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                 <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 3 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control required">
-                        <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                 <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 4 Image</label>
-                        <input type="file" name="items[3][image]" class="form-control required">
-                        <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[3][visibility]" value="1" {{ old('items[3][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 5 Image</label>
-                        <input type="file" name="items[4][image]" class="form-control required">
-                        <select name="items[4][tag_id]" id="box5_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[4][visibility]" value="1" {{ old('items[4][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 6 Image</label>
-                        <input type="file" name="items[5][image]" class="form-control required">
-                        <select name="items[5][tag_id]" id="box6_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[5][visibility]" value="1" {{ old('items[5][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-                `);
-                break;
 
                 case '2x_box_grid':
-                $('#dynamicFieldsContainer').append(`
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
+                    for (let i = 0; i < 4; i++) {
+                        $('#dynamicFieldsContainer').append(`
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="box${i + 1}_image">Box ${i + 1} Image</label>
+                                    <input type="file" name="items[${i}][image]" class="form-control required">
+                                    <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                        <option value="">Select Tag</option>
+                                    </select>
 
-                        <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-                `);
-                break;
+                                    <input type="checkbox" name="items[${i}][visibility]" value="1" 
+                                        {{ old('items[${i}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                                </div>
+                            </div>
+                        `);
+                    }
+                    break;
 
                 case 'u_shape_section':
-                $('#dynamicFieldsContainer').append(`
+                    for (let j = 0; j < 6; j++) {
+                        $('#dynamicFieldsContainer').append(`
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="box${j + 1}_image">Box ${j + 1} Image</label>
+                                    <input type="file" name="items[${j}][image]" class="form-control required">
+                                    <select name="items[${j}][tag_id]" id="box${j + 1}_tag" class="form-control" required>
+                                        <option value="">Select Tag</option>
+                                    </select>
 
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                 <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 3 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control required">
-                        <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                 <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 4 Image</label>
-                        <input type="file" name="items[3][image]" class="form-control required">
-                        <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[3][visibility]" value="1" {{ old('items[3][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 5 Image</label>
-                        <input type="file" name="items[4][image]" class="form-control required">
-                        <select name="items[4][tag_id]" id="box5_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[4][visibility]" value="1" {{ old('items[4][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 6 Image</label>
-                        <input type="file" name="items[5][image]" class="form-control required">
-                        <select name="items[5][tag_id]" id="box6_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[5][visibility]" value="1" {{ old('items[5][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-                `);
-                break;
+                                    <input type="checkbox" name="items[${j}][visibility]" value="1" 
+                                        {{ old('items[${j}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                                </div>
+                            </div>
+                        `);
+                    }
+                    break;
 
                 case 'fancy_6x_product_grid':
-                $('#dynamicFieldsContainer').append(`
-                <div class="form-group">
-                    <label for="background_image">Background Image</label>
-                    <input type="file" name="background_image" class="form-control" required>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
+                    $('#dynamicFieldsContainer').append(`
+                        <div class="form-group">
+                            <label for="background_image">Background Image</label>
+                            <input type="file" name="background_image" class="form-control" required>
+                        </div>
+                    `);
 
-                        <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
+                    for (let j = 0; j < 6; j++) {
+                        $('#dynamicFieldsContainer').append(`
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="box${j + 1}_image">Box ${j + 1} Image</label>
+                                    <input type="file" name="items[${j}][image]" class="form-control required">
+                                    <select name="items[${j}][tag_id]" id="box${j + 1}_tag" class="form-control" required>
+                                        <option value="">Select Tag</option>
+                                    </select>
 
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                 <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 3 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control required">
-                        <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                 <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 4 Image</label>
-                        <input type="file" name="items[3][image]" class="form-control required">
-                        <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[3][visibility]" value="1" {{ old('items[3][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 5 Image</label>
-                        <input type="file" name="items[4][image]" class="form-control required">
-                        <select name="items[4][tag_id]" id="box5_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[4][visibility]" value="1" {{ old('items[4][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 6 Image</label>
-                        <input type="file" name="items[5][image]" class="form-control required">
-                        <select name="items[5][tag_id]" id="box6_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[5][visibility]" value="1" {{ old('items[5][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-                `);
-                break;
+                                    <input type="checkbox" name="items[${j}][visibility]" value="1" 
+                                        {{ old('items[${j}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                                </div>
+                            </div>
+                        `);
+                    }
+                    break;
 
                 case '8x_box_grid':
-                $('#dynamicFieldsContainer').append(`
+                    $('#dynamicFieldsContainer').append(`
+                        <div class="form-group">
+                            <label for="background_image">Background Image</label>
+                            <input type="file" name="background_image" class="form-control" required>
+                        </div>
+                    `);
 
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <textarea name="items[0][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
+                    for (let j = 0; j < 8; j++) {
+                        $('#dynamicFieldsContainer').append(`
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="box${j + 1}_image">Box ${j + 1} Image</label>
+                                    <input type="file" name="items[${j}][image]" class="form-control required">
+                                    <textarea name="items[${j}][bio]" class="form-control" rows="5" placeholder="Bio" required></textarea>
+                                    <select name="items[${j}][tag_id]" id="box${j + 1}_tag" class="form-control" required>
+                                        <option value="">Select Tag</option>
+                                    </select>
 
-                        <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <textarea name="items[1][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control required">
-                        <textarea name="items[2][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                        <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[3][image]" class="form-control required">
-                        <textarea name="items[3][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                        <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[3][visibility]" value="1" {{ old('items[3][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[4][image]" class="form-control required">
-                        <textarea name="items[4][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                        <select name="items[4][tag_id]" id="box5_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[4][visibility]" value="1" {{ old('items[4][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[5][image]" class="form-control required">
-                        <textarea name="items[5][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                        <select name="items[5][tag_id]" id="box6_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[5][visibility]" value="1" {{ old('items[5][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[6][image]" class="form-control required">
-                        <textarea name="items[6][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                        <select name="items[6][tag_id]" id="box7_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[6][visibility]" value="1" {{ old('items[6][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[7][image]" class="form-control required">
-                        <textarea name="items[7][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                        <select name="items[7][tag_id]" id="box8_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[7][visibility]" value="1" {{ old('items[7][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-                `);
-                break;
+                                    <input type="checkbox" name="items[${j}][visibility]" value="1" 
+                                        {{ old('items[${j}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                                </div>
+                            </div>
+                        `);
+                    }
+                    break;
 
                 case 'problem_specific':
-                $('#dynamicFieldsContainer').append(`
+                    for (let i = 0; i < 4; i++) {
+                        $('#dynamicFieldsContainer').append(`
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="box${i + 1}_image">Box ${i + 1} Image</label>
+                                    <input type="file" name="items[${i}][image]" class="form-control required">
+                                    <input type="text" name="items[${i}][title]" class="form-control" placeholder="Title" required>
+                                    <textarea name="items[${i}][bio]" class="form-control" rows="5" placeholder="Bio" required></textarea>
+                                    <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                        <option value="">Select Tag</option>
+                                    </select>
 
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <input type="text" name="items[0][title]" class="form-control" placeholder="Title" required>
-                        <textarea name="items[0][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <input type="text" name="items[1][title]" class="form-control" placeholder="Title" required>
-                        <textarea name="items[1][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-                `);
-                break;
+                                    <input type="checkbox" name="items[${i}][visibility]" value="1" 
+                                        {{ old('items[${i}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                                </div>
+                            </div>
+                        `);
+                    }
+                    break;
 
                 case 'spotlight_deals':
-                $('#dynamicFieldsContainer').append(`
-                    <div class="form-group">
-                        <label for="bio">Bio</label>
-                        <textarea name="items[0][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="tag_id">Tag ID</label>
-                        <select name="items[0][tag_id]" id="tag_id" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-                    </div>
-                `);
-                break;
+                    $('#dynamicFieldsContainer').append(`
+                        <div class="form-group">
+                            <label for="background_image">Background Image</label>
+                            <input type="file" name="background_image" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="bio">Bio</label>
+                            <textarea name="items[0][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="tag_id">Tag ID</label>
+                            <select name="items[0][tag_id]" id="tag_id" class="form-control" required>
+                                <option value="">Select Tag</option>
+                            </select>
+                        </div>
+                    `);
+                    break;
 
                 case '4x_box_section':
-                $('#dynamicFieldsContainer').append(`
+                    for (let i = 0; i < 4; i++) {
+                        $('#dynamicFieldsContainer').append(`
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="box${i + 1}_image">Box ${i + 1} Image</label>
+                                    <input type="file" name="items[${i}][image]" class="form-control required">
+                                    <input type="text" name="items[${i}][title]" class="form-control" placeholder="Title" required>
+                                    <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                        <option value="">Select Tag</option>
+                                    </select>
 
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box1_image">Box 1 Image</label>
-                        <input type="file" name="items[0][image]" class="form-control required">
-                        <input type="text" name="items[0][title]" class="form-control" placeholder="Title" required>
-                        <select name="items[0][tag_id]" id="box1_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[0][visibility]" value="1" {{ old('items[0][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 2 Image</label>
-                        <input type="file" name="items[1][image]" class="form-control required">
-                        <input type="text" name="items[1][title]" class="form-control" placeholder="Title" required>
-                        <select name="items[1][tag_id]" id="box2_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[1][visibility]" value="1" {{ old('items[1][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 3 Image</label>
-                        <input type="file" name="items[2][image]" class="form-control required">
-                        <input type="text" name="items[2][title]" class="form-control" placeholder="Title" required>
-                        <select name="items[2][tag_id]" id="box3_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[2][visibility]" value="1" {{ old('items[2][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-
-                 <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="box2_image">Box 4 Image</label>
-                        <input type="file" name="items[3][image]" class="form-control required">
-                        <input type="text" name="items[3][title]" class="form-control" placeholder="Title" required>
-                        <select name="items[3][tag_id]" id="box4_tag" class="form-control" required>
-                            <option value="">Select Tag</option>
-                        </select>
-
-                        <input type="checkbox" name="items[3][visibility]" value="1" {{ old('items[3][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
-                    </div>
-                </div>
-                `);
-                break;
-
-
+                                    <input type="checkbox" name="items[${i}][visibility]" value="1" 
+                                        {{ old('items[${i}][visibility]', isset($item['visibility']) ? $item['visibility'] : 1) ? 'checked' : '' }}> Visibility
+                                </div>
+                            </div>
+                        `);
+                    }
+                    break;
         }
 
         }
