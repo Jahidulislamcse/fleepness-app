@@ -19,19 +19,21 @@
     </div>
 
     @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
     @endif
 
     <div class="row">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header"><h4 class="card-title">Edit Section</h4></div>
+                <div class="card-header">
+                    <h4 class="card-title">Edit Section</h4>
+                </div>
                 <div class="card-body col-md-12">
                     <form action="{{ route('admin.sections.update', $section->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
@@ -44,14 +46,14 @@
                                     <label for="section_type">Section Type</label>
                                     <select name="section_type" id="section_type" class="form-control" required disabled>
                                         @foreach([
-                                            'select_section_type', 'multiproduct_banner', 'single_banner', 'search', 'scrollable_product', 'lighting_deals', 'tag_box',
-                                            'fancy_3x_box_grid', 'poster_section', 'scrollable_banners', 'smaller_4x_box_grid',
-                                            'best_brands', '6x_box_grid', '2x_box_grid', 'u_shape_section', 'fancy_6x_product_grid',
-                                            '8x_box_grid', 'problem_specific', 'spotlight_deals', '4x_box_section'
+                                        'select_section_type', 'multiproduct_banner', 'single_banner', 'search', 'scrollable_product', 'lighting_deals', 'tag_box',
+                                        'fancy_3x_box_grid', 'poster_section', 'scrollable_banners', 'smaller_4x_box_grid',
+                                        'best_brands', '6x_box_grid', '2x_box_grid', 'u_shape_section', 'fancy_6x_product_grid',
+                                        '8x_box_grid', 'problem_specific', 'spotlight_deals', '4x_box_section'
                                         ] as $type)
-                                            <option value="{{ $type }}" {{ $section->section_type == $type ? 'selected' : '' }}>
-                                                {{ ucwords(str_replace('_', ' ', $type)) }}
-                                            </option>
+                                        <option value="{{ $type }}" {{ $section->section_type == $type ? 'selected' : '' }}>
+                                            {{ ucwords(str_replace('_', ' ', $type)) }}
+                                        </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -72,11 +74,51 @@
                                     <select name="category_id" id="category" class="form-control" required>
                                         <option value="">Select Category</option>
                                         @foreach ($categories as $category)
-                                            <option value="{{ $category->id }}" {{ $section->category_id == $category->id ? 'selected' : '' }}>
-                                                {{ $category->name }}
+                                        <option value="{{ $category->id }}" {{ $section->category_id == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="placement_type">Placement Type</label>
+                                    <select name="placement_type" id="placement_type" class="form-control" required>
+                                        <option value="" disabled
+                                            @selected(old('placement_type', $section->placement_type ?? '') === '')>
+                                            Choose Placement Type
+                                        </option>
+
+                                        <option value="category"
+                                            @selected(old('placement_type', $section->placement_type ?? '') === 'category')>
+                                            Category
+                                        </option>
+                                        <option value="global"
+                                            @selected(old('placement_type', $section->placement_type ?? '') === 'global')>
+                                            Global
+                                        </option>
+                                        <option value="all_only"
+                                            @selected(old('placement_type', $section->placement_type ?? '') === 'all_only')>
+                                            All Only
+                                        </option>
+                                    </select>
+                                    @error('placement_type')
+                                    <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="cat_index">Category Index</label>
+                                    <select name="cat_index" id="cat_index" class="form-control">
+                                        @foreach ($availableCatPositions as $pos)
+                                            <option value="{{ $pos }}" {{ (old('cat_index', $section->cat_index) == $pos) ? 'selected' : '' }}>
+                                                {{ $pos }}
                                             </option>
                                         @endforeach
                                     </select>
+                                    <small class="form-text text-muted">
+                                        Position within the selected category. Siblings will be reordered automatically.
+                                    </small>
                                 </div>
 
                                 <div class="form-group">
@@ -89,9 +131,9 @@
                                     <select name="index" id="section_index" class="form-control" required>
                                         @for ($i = 1; $i <= count($availableIndices) + 1; $i++)
                                             <option value="{{ $i }}" {{ $section->index == $i ? 'selected' : '' }}>
-                                                {{ $i }}
+                                            {{ $i }}
                                             </option>
-                                        @endfor
+                                            @endfor
                                     </select>
                                 </div>
 
@@ -107,10 +149,10 @@
                             <!-- Right Column -->
                             <div class="col-md-8">
                                 <div class="form-group">
-                                     @if ($section->section_type == "multiproduct_banner" || $section->section_type == "lighting_deals" || $section->section_type == "smaller_4x_box_grid" || $section->section_type == "fancy_3x_box_grid" || $section->section_type == "spotlight_deals")
+                                    @if ($section->section_type == "multiproduct_banner" || $section->section_type == "lighting_deals" || $section->section_type == "smaller_4x_box_grid" || $section->section_type == "fancy_3x_box_grid" || $section->section_type == "spotlight_deals")
                                     <div class="form-group mt-3">
                                         @if ($section->background_image)
-                                            <img src="{{ asset($section->background_image) }}" class="img-thumbnail mb-2" width="100">
+                                        <img src="{{ asset($section->background_image) }}" class="img-thumbnail mb-2" width="100">
                                         @endif
                                         <div>
                                             <label for="background_image">Update Background Image</label><br>
@@ -120,15 +162,15 @@
                                     @endif
 
                                     @if ($section->section_type == "single_banner")
-                                        <div class="form-group mt-3">
-                                            @if ($section->banner_image)
-                                                <img src="{{ asset($section->banner_image) }}" class="img-thumbnail mb-2" width="100">
-                                            @endif
+                                    <div class="form-group mt-3">
+                                        @if ($section->banner_image)
+                                        <img src="{{ asset($section->banner_image) }}" class="img-thumbnail mb-2" width="100">
+                                        @endif
                                         <div>
                                             <label for="banner_image">Update Banner Image</label><br>
                                             <input type="file" name="banner_image" class="form-control">
                                         </div>
-                                        </div>
+                                    </div>
                                     @endif
                                     <div id="dynamicFieldsContainer" class="row">
 
@@ -147,7 +189,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 <script>
-   const baseUrl = "{{ asset('') }}";
+    const baseUrl = "{{ asset('') }}";
 </script>
 <!-- Dynamic Field Loader -->
 <script>
@@ -155,7 +197,7 @@
     const existingSectionType = '{{ $section->section_type }}';
     const selectedCategoryId = '{{ $section->category_id }}';
 
-    $(document).ready(function () {
+    $(document).ready(function() {
         // Load section type fields on load
         handleSectionTypeChange(existingSectionType);
 
@@ -166,17 +208,17 @@
             }
         }, 300);
 
-        $('#section_type').change(function () {
+        $('#section_type').change(function() {
             handleSectionTypeChange($(this).val());
         });
 
-        $('#category').change(function () {
+        $('#category').change(function() {
             const categoryId = $(this).val();
             if (!categoryId) return;
 
-            $.get(`/categories/${categoryId}/tags`, function (data) {
+            $.get(`/categories/${categoryId}/tags`, function(data) {
                 const tagOptions = data.status ? data.tags.map(tag =>
-                    `<option value="${tag.id}">${tag.name}</option>`).join('') :
+                        `<option value="${tag.id}">${tag.name}</option>`).join('') :
                     `<option value="">No tags found</option>`;
 
                 ['tag_id', 'box1_tag', 'box2_tag', 'box3_tag', 'box4_tag', 'box5_tag', 'box6_tag', 'box7_tag', 'box8_tag'].forEach(id => {
@@ -200,15 +242,15 @@
             case 'multiproduct_banner':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
-                    const imagePath = item.image
-                        ? item.image.startsWith('http')
-                            ? item.image
-                            : `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}`
-                        : '';
+                    const imagePath = item.image ?
+                        item.image.startsWith('http') ?
+                        item.image :
+                        `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}` :
+                        '';
 
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
+                    const imagePreview = item.image ?
+                        `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">` :
+                        '';
 
                     $('#dynamicFieldsContainer').append(`
                         <div class="col-md-4" id="box-${i}">
@@ -291,15 +333,15 @@
             case 'tag_box':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
-                    const imagePath = item.image
-                        ? item.image.startsWith('http')
-                            ? item.image
-                            : `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}`
-                        : '';
+                    const imagePath = item.image ?
+                        item.image.startsWith('http') ?
+                        item.image :
+                        `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}` :
+                        '';
 
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
+                    const imagePreview = item.image ?
+                        `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">` :
+                        '';
 
                     $('#dynamicFieldsContainer').append(`
                         <div class="col-md-4" id="box-${i}">
@@ -323,19 +365,20 @@
             case 'fancy_3x_box_grid':
             case 'fancy_6x_product_grid':
             case '8x_box_grid':
+            case '2x_box_grid':
             case '4x_box_section':
             case 'smaller_4x_box_grid':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
-                    const imagePath = item.image
-                        ? item.image.startsWith('http')
-                            ? item.image
-                            : `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}`
-                        : '';
+                    const imagePath = item.image ?
+                        item.image.startsWith('http') ?
+                        item.image :
+                        `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}` :
+                        '';
 
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
+                    const imagePreview = item.image ?
+                        `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">` :
+                        '';
 
                     $('#dynamicFieldsContainer').append(`
                         <div class="col-md-4" id="box-${i}">
@@ -354,22 +397,21 @@
                 }
                 break;
 
-
             case 'poster_section':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
 
-                    const imagePath = item.image
-                        ? item.image.startsWith('http')
-                            ? item.image
-                            : `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}`
-                        : '';
+                    const imagePath = item.image ?
+                        item.image.startsWith('http') ?
+                        item.image :
+                        `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}` :
+                        '';
 
                     console.log('Generated Image Path:', imagePath);
 
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
+                    const imagePreview = item.image ?
+                        `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">` :
+                        '';
 
                     $('#dynamicFieldsContainer').append(`
                         <div class="col-md-4" id="box-${i}">
@@ -393,15 +435,15 @@
             case 'scrollable_banners':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
-                    const imagePath = item.image
-                        ? item.image.startsWith('http')
-                            ? item.image
-                            : `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}`
-                        : '';
+                    const imagePath = item.image ?
+                        item.image.startsWith('http') ?
+                        item.image :
+                        `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}` :
+                        '';
 
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
+                    const imagePreview = item.image ?
+                        `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">` :
+                        '';
 
                     $('#dynamicFieldsContainer').append(`
                         <div class="col-md-4" id="box-${i}">
@@ -441,15 +483,15 @@
             case 'problem_specific':
                 for (let i = 0; i < existingItems.length; i++) {
                     const item = existingItems[i] || {};
-                    const imagePath = item.image
-                        ? item.image.startsWith('http')
-                            ? item.image
-                            : `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}`
-                        : '';
+                    const imagePath = item.image ?
+                        item.image.startsWith('http') ?
+                        item.image :
+                        `${baseUrl.replace(/\/$/, '')}/${item.image.replace(/^\/+/, '')}` :
+                        '';
 
-                    const imagePreview = item.image
-                        ? `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">`
-                        : '';
+                    const imagePreview = item.image ?
+                        `<img src="${imagePath}" class="img-thumbnail mb-2" width="50">` :
+                        '';
 
                     $('#dynamicFieldsContainer').append(`
                         <div class="col-md-4" id="box-${i}">
@@ -492,7 +534,7 @@
 
     // Function to update index values of items after sorting
     function updateIndexes() {
-        $('#dynamicFieldsContainer .col-md-4').each(function (index) {
+        $('#dynamicFieldsContainer .col-md-4').each(function(index) {
             const boxIndex = index + 1; // Starting from index 1
             const inputIndexField = $(this).find('[name*="index"]');
             inputIndexField.val(boxIndex); // Update the input field with new index
