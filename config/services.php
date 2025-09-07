@@ -65,6 +65,8 @@ return [
                 'use_path_style_endpoint' => env('CLOUDFLARE_R2_USE_PATH_STYLE_ENDPOINT', false),
             ],
             'file_path' => 'local/{room_name}-{publisher_identity}-{time}',
+            'thumbnail_capture_inteval' => env('LIVEKIT_EGRESS_THUMBNAIL_CAPTURE_INTERVAL', 60),
+            'short_video_duration' => env('LIVEKIT_SHORT_VIDEO_DURATION', 60),
         ],
     ],
 

@@ -9,6 +9,7 @@ use App\Data\Dto\GenerateSubscriberTokenData;
 use App\Data\Resources\UserData;
 use App\Facades\Livestream as FacadesLivestream;
 use App\Models\Livestream;
+use Illuminate\Support\Str;
 
 class GetLivestreamSubscriberTokenController extends Controller
 {
@@ -20,8 +21,8 @@ class GetLivestreamSubscriberTokenController extends Controller
         $livestream = Livestream::find($livestreamId);
         // $livestream->load('vendor');
         // $this->authorize(GateNames::GET_LIVESTREAM_SUBSCRIBER_TOKEN->value, $livestream);
-        $userId = auth("sanctum")->id() ?? 'public';
-        $displayName = auth("sanctum")->user()?->name ?? 'public';
+        $userId = auth("sanctum")->id() ?? Str::random(6);
+        $displayName = auth("sanctum")->user()?->name ?? Str::random(6);
 
         $roomName = $livestream->getRoomName();
 
@@ -29,7 +30,7 @@ class GetLivestreamSubscriberTokenController extends Controller
             roomName: $roomName,
             identity: $userId,
             displayName: $displayName,
-            isPublic: $userId === 'public',
+            isPublic: auth()->guest(),
             metadata: auth("sanctum")->check() ? auth("sanctum")->user()->toArray() : []
 
         );

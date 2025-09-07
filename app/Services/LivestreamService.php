@@ -18,30 +18,26 @@ use Livekit\EncodedFileOutput;
 use Livekit\EncodedFileType;
 use Livekit\ImageOutput;
 use Closure;
+use Illuminate\Container\Attributes\Storage;
+use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Pipeline;
+use Livekit\ImageCodec;
+use Livekit\SegmentedFileOutput;
 
 class LivestreamService
 {
     public function __construct(
         protected readonly RoomServiceClient $roomService,
         protected readonly EgressServiceClient $egressService,
-
+        #[Storage('r2')] protected readonly Filesystem $r2fileSytem,
     ) {}
 
     public function generatePublisherToken(GeneratePublisherTokenData $data): string
     {
         return Pipeline::send($data)
             ->through([
-                function (GeneratePublisherTokenData $data, Closure $next): string {
-                    /** @var string */
-                    $roomToken = Cache::get($data->roomName);
 
-                    if ($roomToken) {
-                        return $roomToken;
-                    }
-
-                    return $next($data);
-                },
                 function (GeneratePublisherTokenData $data, Closure $next) {
                     $roomCreateOpts = tap(
                         resolve(RoomCreateOptions::class),
@@ -84,8 +80,6 @@ class LivestreamService
 
                     $cacheTtl = Carbon::createFromTimestamp($roomTokenOpts->getTtl());
 
-                    Cache::put($roomName, $roomTokenJwt, $cacheTtl);
-
                     return $roomTokenJwt;
                 },
             ])
@@ -96,16 +90,7 @@ class LivestreamService
     {
         return Pipeline::send($data->roomName)
             ->through([
-                function (string $roomName, Closure $next): string {
-                    /** @var string */
-                    $roomToken = Cache::get($roomName);
 
-                    if ($roomToken) {
-                        return $roomToken;
-                    }
-
-                    return $next($roomName);
-                },
                 function (string $roomName, Closure $next) use ($data): string {
                     $roomToken = resolve(AccessToken::class);
                     $roomTokenOpts = (new AccessTokenOptions())
@@ -122,8 +107,6 @@ class LivestreamService
                     $roomTokenJwt = $roomToken->init($roomTokenOpts)->setGrant($videoGrant)->toJwt();
                     $cacheTtl = Carbon::createFromTimestamp($roomTokenOpts->getTtl());
 
-                    Cache::put($roomName, $roomTokenJwt, $cacheTtl);
-
                     return $roomTokenJwt;
                 },
             ])
@@ -131,13 +114,16 @@ class LivestreamService
     }
     public function startRecording(string $roomName, string $outputPath)
     {
-           $fileOutput = resolve(EncodedFileOutput::class)
+        $fileOutput = resolve(EncodedFileOutput::class)
             ->setFileType(EncodedFileType::MP4)
             ->setFilepath($outputPath);
         $imageOutput = resolve(ImageOutput::class);
+        $segmentedFileOutput = resolve(SegmentedFileOutput::class);
+        // dd($imageOutput);
 
         $output = resolve(EncodedOutputs::class)
             ->setFile($fileOutput)
+            ->setSegments($segmentedFileOutput)
             ->setImage($imageOutput);
 
         return $this->egressService->startRoomCompositeEgress($roomName, 'single-speaker', $output);
@@ -150,6 +136,116 @@ class LivestreamService
 
     public function getRecordingsFor(Livestream $livestream)
     {
-        return $this->egressService->listEgress();
+        $listEgress = $this->egressService->listEgress($livestream->getRoomName(), $livestream->egress_id);
+
+        /** @var Collection<int,EgressInfo> */
+        $egressInfoCollection = collect($listEgress->getItems());
+
+        return $egressInfoCollection
+            ->flatMap(function ($egressInfo) {
+                /** @var Collection<int,FileInfo> */
+                $fileInfoCollection = collect($egressInfo->getFileResults());
+
+                return $fileInfoCollection
+                    ->map(function ($fileInfo) {
+                        $filename = $fileInfo->getFilename();
+                        $startedAt = $fileInfo->getStartedAt();
+                        $endedAt = $fileInfo->getEndedAt();
+                        $duration = $fileInfo->getDuration();
+                        $size = $fileInfo->getSize();
+                        $location = $fileInfo->getLocation();
+
+                        return compact(
+                            'filename',
+                            'startedAt',
+                            'endedAt',
+                            'duration',
+                            'size',
+                            'location',
+                        );
+                    })
+                    ->all();
+            })
+            ->all();
+    }
+
+    public function getThumbnailsFor(Livestream $livestream)
+    {
+        $listEgress = $this->egressService->listEgress($livestream->getRoomName(), $livestream->egress_id);
+
+        /** @var Collection<int,EgressInfo> */
+        $egressInfoCollection = collect($listEgress->getItems());
+
+        return $egressInfoCollection
+            ->flatMap(function ($egressInfo) {
+                /** @var Collection<int,ImagesInfo> */
+                $infoCollection = collect($egressInfo->getImageResults());
+
+                return $infoCollection
+                    ->map(function ($info) {
+                        $filenamePrefix = $info->getFilenamePrefix();
+                        $imageCount = $info->getImageCount();
+                        $startedAt = $info->getStartedAt();
+                        $endedAt = $info->getEndedAt();
+                        $directoryName = str($filenamePrefix)->dirname();
+
+                        $thumbnails = $this->r2fileSytem->files($directoryName);
+
+                        $thumbnails = collect($thumbnails)
+                            ->map(fn($thmnailPath) => $this->r2fileSytem->url($thmnailPath))
+                            ->all();
+
+                        return compact(
+                            'filenamePrefix',
+                            'imageCount',
+                            'startedAt',
+                            'endedAt',
+                            'thumbnails'
+                        );
+                    })
+                    ->all();
+            })
+            ->all();
+    }
+
+    public function getShortVideosFor(Livestream $livestream)
+    {
+        $listEgress = $this->egressService->listEgress($livestream->getRoomName(), $livestream->egress_id);
+
+        /** @var Collection<int,EgressInfo> */
+        $egressInfoCollection = collect($listEgress->getItems());
+
+        return $egressInfoCollection
+            ->flatMap(function ($egressInfo) {
+                /** @var Collection<int,SegmentsInfo> */
+                $infoCollection = collect($egressInfo->getSegmentResults());
+
+                return $infoCollection
+                    ->map(function ($info) {
+                        $playlistName = $info->getPlaylistName();
+                        $livePlaylistName = $info->getLivePlaylistName();
+                        $duration = $info->getDuration();
+                        $size = $info->getSize();
+                        $playlistLocation = $info->getPlaylistLocation();
+                        $livePlaylistLocation = $info->getLivePlaylistLocation();
+                        $segmentCount = $info->getSegmentCount();
+                        $startedAt = $info->getStartedAt();
+                        $endedAt = $info->getEndedAt();
+
+                        return compact(
+                            'playlistName',
+                            'livePlaylistName',
+                            'duration',
+                            'size',
+                            'playlistLocation',
+                            'livePlaylistLocation',
+                            'segmentCount',
+                            'startedAt',
+                            'endedAt',
+                        );
+                    })
+                    ->all();
+            })
+            ->all();
     }
 }

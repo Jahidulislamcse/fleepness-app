@@ -60,7 +60,7 @@ class LivestreamController extends Controller
     public function show($livestreamId)
     {
        $livestream = Livestream::with('livestreamProducts')->findOrFail($livestreamId);
-        return $livestream;
+        return $livestream->toResource();
     }
 
     /**
@@ -108,6 +108,6 @@ class LivestreamController extends Controller
 
         $livestream->save();
 
-        return LivestreamData::from($livestream);
+        return $livestream->toResource();
     }
 }

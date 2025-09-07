@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\DeliveryModelController;
 use App\Http\Controllers\Vendor\VendorShortVideoController;
+use App\Models\Livestream;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Broadcast;
 use App\Models\User;
@@ -35,6 +36,13 @@ Route::get('/test-notify', function () {
     broadcast(new PodcastProcessed());
 
     return 'Notification sent!';
+});
+
+Route::get('/test-egress', function () {
+
+    $livestream = Livestream::find(11);
+    dd($livestream->recordings);
+
 });
 
 Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']);
