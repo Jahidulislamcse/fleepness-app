@@ -41,10 +41,11 @@ class SectionItemResource extends JsonResource
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
+                    'selling_price' => $product->selling_price,
+                    'discount_price' => $product->discount_price,
                     'images' => ProductImage::where('product_id', $product->id)->get(),
                 ];
             }),
         ];
     }
 }
-
