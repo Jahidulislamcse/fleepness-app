@@ -6,7 +6,10 @@ use App\Constants\LivestreamStatuses;
 use App\Data\Dto\CreateLivestremData;
 use App\Data\Dto\UpdateLivestremData;
 use App\Data\Resources\LivestreamData;
+use App\Http\Resources\LivestreamResource;
 use App\Models\Livestream;
+use App\Models\LivestreamLike;
+use App\Models\LivestreamSave;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -17,6 +20,7 @@ use Illuminate\Support\Facades\Pipeline;
 use Spatie\LaravelData\Optional;
 use Spatie\LaravelData\PaginatedDataCollection;
 use Spatie\QueryBuilder\QueryBuilder;
+use Illuminate\Http\Request;
 
 class LivestreamController extends Controller
 {
@@ -29,12 +33,13 @@ class LivestreamController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): PaginatedDataCollection
+    public function index()
     {
         $livestreams = QueryBuilder::for(Livestream::class)
+            ->orderBy('created_at', 'desc')
             ->paginate();
 
-        return new PaginatedDataCollection(LivestreamData::class, $livestreams);
+        return $livestreams;
     }
 
     /**
@@ -59,7 +64,7 @@ class LivestreamController extends Controller
      */
     public function show($livestreamId)
     {
-       $livestream = Livestream::with('livestreamProducts')->findOrFail($livestreamId);
+        $livestream = Livestream::with(['livestreamProducts', 'comments', 'likes'])->findOrFail($livestreamId);
         return $livestream->toResource();
     }
 
@@ -109,5 +114,81 @@ class LivestreamController extends Controller
         $livestream->save();
 
         return $livestream->toResource();
+    }
+
+    public function like($id)
+    {
+        // dd($request->all());
+        $userId = auth()->id();
+
+        $livestream = Livestream::findOrFail($id);
+
+        $like = LivestreamLike::where('user_id', $userId)
+            ->where('livestream_id', $livestream->id)
+            ->first();
+
+        if ($like) {
+            $like->delete();
+            return response()->json(['message' => 'Livestream unliked successfully'], 200);
+        } else {
+            LivestreamLike::create([
+                'user_id' => $userId,
+                'livestream_id' => $livestream->id,
+            ]);
+            return response()->json(['message' => 'Livestream liked successfully'], 200);
+        }
+    }
+
+
+    public function save(Request $request, $id)
+    {
+        $userId = auth()->id();
+
+        $livestream = Livestream::findOrFail($id);
+
+        $save = LivestreamSave::where('user_id', $userId)
+            ->where('livestream_id', $livestream->id)
+            ->first();
+
+        if ($save) {
+            $save->delete();
+            return response()->json(['message' => 'Livestream unsaved successfully'], 200);
+        } else {
+            LivestreamSave::create([
+                'user_id' => $userId,
+                'livestream_id' => $livestream->id,
+            ]);
+            return response()->json(['message' => 'Livestream saved successfully'], 200);
+        }
+    }
+
+    public function getLikedLivestreams()
+    {
+
+        $userId = auth()->id();
+
+        $likedLivestreamIds = LivestreamLike::where('user_id', $userId)
+            ->pluck('livestream_id');
+        return response()->json($likedLivestreamIds);
+    }
+
+
+    public function getSavedLivestreams()
+    {
+        $userId = auth()->id();
+
+        $savedLivestreams = LivestreamSave::where('user_id', $userId)
+            ->pluck('livestream_id');
+
+        return response()->json($savedLivestreams);
+    }
+
+    public function getLikesCount($id)
+    {
+        $livestream = Livestream::findOrFail($id);
+
+        $likesCount = $livestream->likes()->count();
+
+        return response()->json(['likes_count' => $likesCount]);
     }
 }

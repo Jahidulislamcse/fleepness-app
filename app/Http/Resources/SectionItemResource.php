@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductSize;
 
 class SectionItemResource extends JsonResource
 {
@@ -43,7 +44,10 @@ class SectionItemResource extends JsonResource
                     'name' => $product->name,
                     'selling_price' => $product->selling_price,
                     'discount_price' => $product->discount_price,
-                    'images' => ProductImage::where('product_id', $product->id)->get(),
+                    'images' => ProductImage::where('product_id', $product->id)
+                                ->get(['id', 'path', 'alt_text']),
+                    'sizes' => ProductSize::where('product_id', $product->id)
+                                ->get(['id', 'size_name', 'size_value']),
                 ];
             }),
         ];

@@ -4,25 +4,24 @@ namespace App\Services;
 
 use Agence104\LiveKit\AccessToken;
 use Agence104\LiveKit\AccessTokenOptions;
+use Agence104\LiveKit\EgressServiceClient;
+use Agence104\LiveKit\EncodedOutputs;
 use Agence104\LiveKit\RoomCreateOptions;
 use Agence104\LiveKit\RoomServiceClient;
 use Agence104\LiveKit\VideoGrant;
-use Agence104\LiveKit\EgressServiceClient;
-use Agence104\LiveKit\EncodedOutputs;
 use App\Data\Dto\GeneratePublisherTokenData;
 use App\Data\Dto\GenerateSubscriberTokenData;
 use App\Models\Livestream;
-use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
-use Livekit\EncodedFileOutput;
-use Livekit\EncodedFileType;
-use Livekit\ImageOutput;
 use Closure;
 use Illuminate\Container\Attributes\Storage;
+use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Pipeline;
-use Livekit\ImageCodec;
+use Livekit\EncodedFileOutput;
+use Livekit\EncodedFileType;
+use Livekit\ImageOutput;
 use Livekit\SegmentedFileOutput;
 
 class LivestreamService
@@ -30,8 +29,9 @@ class LivestreamService
     public function __construct(
         protected readonly RoomServiceClient $roomService,
         protected readonly EgressServiceClient $egressService,
-        #[Storage('r2')] protected readonly Filesystem $r2fileSytem,
-    ) {}
+        #[Storage('r2')] protected readonly Filesystem&Cloud $r2fileSytem,
+    ) {
+    }
 
     public function generatePublisherToken(GeneratePublisherTokenData $data): string
     {
@@ -41,7 +41,7 @@ class LivestreamService
                 function (GeneratePublisherTokenData $data, Closure $next) {
                     $roomCreateOpts = tap(
                         resolve(RoomCreateOptions::class),
-                        fn(RoomCreateOptions $opts) => $opts
+                        fn (RoomCreateOptions $opts) => $opts
                             ->setName($data->roomName)
                             ->setMetadata(json_encode($data->metadata))
                     );
@@ -55,14 +55,14 @@ class LivestreamService
 
                     $roomTokenOpts = tap(
                         resolve(AccessTokenOptions::class),
-                        fn(AccessTokenOptions $opts) => $opts
+                        fn (AccessTokenOptions $opts) => $opts
                             ->setIdentity($data->identity)
                             ->setName($data->displayName)
                     );
 
                     $videoGrant = tap(
                         resolve(VideoGrant::class),
-                        fn(VideoGrant $grant) => $grant
+                        fn (VideoGrant $grant) => $grant
                             ->setRoomName($roomName)
                             ->setRoomJoin()
                             ->setRoomAdmin()
@@ -72,13 +72,15 @@ class LivestreamService
 
                     $roomTokenJwt = tap(
                         resolve(AccessToken::class),
-                        fn(AccessToken $token) => $token
+                        fn (AccessToken $token) => $token
                             ->init($roomTokenOpts)
                             ->setGrant($videoGrant)
                     )
                         ->toJwt();
 
-                    $cacheTtl = Carbon::createFromTimestamp($roomTokenOpts->getTtl());
+                    // dd($roomTokenOpts);
+
+                    // $cacheTtl = Carbon::createFromTimestamp($roomTokenOpts->getTtl());
 
                     return $roomTokenJwt;
                 },
@@ -105,13 +107,14 @@ class LivestreamService
                         ->setCanPublishData(! $data->isPublic);
 
                     $roomTokenJwt = $roomToken->init($roomTokenOpts)->setGrant($videoGrant)->toJwt();
-                    $cacheTtl = Carbon::createFromTimestamp($roomTokenOpts->getTtl());
+                    // $cacheTtl = Carbon::createFromTimestamp($roomTokenOpts->getTtl());
 
                     return $roomTokenJwt;
                 },
             ])
             ->thenReturn();
     }
+
     public function startRecording(string $roomName, string $outputPath)
     {
         $fileOutput = resolve(EncodedFileOutput::class)
@@ -154,6 +157,7 @@ class LivestreamService
                         $duration = $fileInfo->getDuration();
                         $size = $fileInfo->getSize();
                         $location = $fileInfo->getLocation();
+                        $location = $this->r2fileSytem->url($filename);
 
                         return compact(
                             'filename',
@@ -192,7 +196,7 @@ class LivestreamService
                         $thumbnails = $this->r2fileSytem->files($directoryName);
 
                         $thumbnails = collect($thumbnails)
-                            ->map(fn($thmnailPath) => $this->r2fileSytem->url($thmnailPath))
+                            ->map(fn ($thmnailPath) => $this->r2fileSytem->url($thmnailPath))
                             ->all();
 
                         return compact(
@@ -231,6 +235,8 @@ class LivestreamService
                         $segmentCount = $info->getSegmentCount();
                         $startedAt = $info->getStartedAt();
                         $endedAt = $info->getEndedAt();
+
+                        $playlistLocation = $this->r2fileSytem->url($playlistName);
 
                         return compact(
                             'playlistName',

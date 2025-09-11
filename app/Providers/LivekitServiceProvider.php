@@ -12,6 +12,7 @@ use Livekit\ImageFileSuffix;
 use Livekit\ImageOutput;
 use Livekit\S3Upload;
 use Livekit\SegmentedFileOutput;
+use Livekit\SegmentedFileSuffix;
 
 class LivekitServiceProvider extends ServiceProvider
 {
@@ -57,10 +58,11 @@ class LivekitServiceProvider extends ServiceProvider
             $s3Config = $app->get(S3Upload::class);
 
             return tap(new EncodedFileOutput())
+                ->setFilepath('{room_name}/{time}')
                 ->setS3($s3Config);
         });
 
-       $this->app->bind(ImageOutput::class, function (Application $app) {
+        $this->app->bind(ImageOutput::class, function (Application $app) {
             $s3Config = $app->get(S3Upload::class);
 
             return tap(new ImageOutput())
@@ -75,7 +77,9 @@ class LivekitServiceProvider extends ServiceProvider
         $this->app->bind(SegmentedFileOutput::class, function (Application $app) {
             $s3Config = $app->get(S3Upload::class);
 
-           return tap(new SegmentedFileOutput())
+            return tap(new SegmentedFileOutput())
+                ->setFilenamePrefix('{room_name}/{time}')
+                ->setFilenameSuffix(SegmentedFileSuffix::TIMESTAMP)
                 ->setS3($s3Config)->setSegmentDuration(config()->integer('services.livekit.egress.short_video_duration'));
         });
     }

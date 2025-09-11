@@ -76,4 +76,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserPayment::class);
     }
+    public function likedLivestreams()
+    {
+        return $this->hasMany(LivestreamLike::class);
+    }
+
+    public function savedLivestreams()
+    {
+        return $this->hasMany(LivestreamSave::class);
+    }
 }

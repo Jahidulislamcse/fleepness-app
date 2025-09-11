@@ -57,7 +57,6 @@ class Livestream extends Model implements HasMedia
     use HasFactory, HasStatuses, InteractsWithMedia;
 
     protected $fillable = ['title', 'vendor_id', 'total_duration', 'scheduled_time', 'started_at', 'ended_at', 'egress_id'];
-    protected $appends = ['recordings','short_videos','thumbnails'];
     protected $casts = [
         'started_at' => 'datetime',
         'ended_at' => 'datetime',
@@ -136,5 +135,18 @@ class Livestream extends Model implements HasMedia
     protected function thumbnails(): Attribute
     {
         return Attribute::get(fn() => \App\Facades\Livestream::getThumbnailsFor($this))->shouldCache();
+    }
+    public function comments()
+    {
+        return $this->hasMany(LivestreamComment::class);
+    }
+    public function likes()
+    {
+        return $this->hasMany(LivestreamLike::class);
+    }
+
+    public function saves()
+    {
+        return $this->hasMany(LivestreamSave::class);
     }
 }

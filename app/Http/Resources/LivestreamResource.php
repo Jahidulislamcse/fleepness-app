@@ -14,9 +14,16 @@ class LivestreamResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+
         return [
             ...parent::toArray($request),
-            'status' => $this->status
+            'status' => $this->status,
+            'products'=> $this->products,
+            $this->mergeWhen(!is_null($this->egress_id), fn()=> [
+                'recordings' => $this->recordings,
+                'short_videos' => $this->short_videos,
+                'thumbnails' => $this->thumbnails,
+            ])
         ];
     }
 }

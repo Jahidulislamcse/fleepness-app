@@ -32,6 +32,7 @@ use App\Http\Controllers\user\CartController;
 use App\Http\Controllers\user\AddressController;
 use App\Http\Controllers\DeliveryModelController;
 use App\Http\Controllers\FirebaseController;
+use App\Http\Controllers\LiveStreaming\LivestreamCommentController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\Vendor\VendorShortVideoController;
 use App\Services\FirebaseService;
@@ -209,6 +210,24 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::get('livestreams/{livestream}/publisher-token', GetLivestreamPublisherTokenController::class)->name('livestreams.get-publisher-token');
         Route::post('livestreams/{ls}/products', [LivestreamProductController::class, 'store'])->name('livestream-products.store');
         Route::delete('livestreams/{ls}/products', [LivestreamProductController::class, 'destroy'])->name('livestream-products.destroy');
+
+        Route::prefix('livestreams/{id}')->group(function () {
+            Route::post('like', [LivestreamController::class, 'like']);
+            Route::post('save', [LivestreamController::class, 'save']);
+        });
+
+        Route::prefix('lives')->group(function () {
+            Route::get('liked', [LivestreamController::class, 'getLikedLivestreams']);
+            Route::get('saved', [LivestreamController::class, 'getSavedLivestreams']);
+            Route::get('{livestream}/likes-count', [LivestreamController::class, 'getLikesCount'])->name('livestreams.likes-count');
+        });
+
+        Route::prefix('livestreams/{livestreamId}/comments')->group(function () {
+            Route::get('/', [LivestreamCommentController::class, 'index']);
+            Route::post('/', [LivestreamCommentController::class, 'store']);
+            Route::put('{commentId}', [LivestreamCommentController::class, 'update']);
+            Route::delete('{commentId}', [LivestreamCommentController::class, 'destroy']);
+        });
     });
 
     Route::get('livestreams/{livestream}/subscriber-token', GetLivestreamSubscriberTokenController::class)->name('livestreams.get-subscriber-token');
