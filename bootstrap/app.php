@@ -22,10 +22,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->group('api', [
             Cors::class,
-            EnsureFrontendRequestsAreStateful::class, // ✅ Required for Sanctum authentication
+            EnsureFrontendRequestsAreStateful::class,
             ThrottleRequests::class . ':api',
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'livekit'
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
     })->create();

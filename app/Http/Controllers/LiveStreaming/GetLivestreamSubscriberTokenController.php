@@ -2,27 +2,28 @@
 
 namespace App\Http\Controllers\LiveStreaming;
 
-use Illuminate\Routing\Controller;
-
 use App\Constants\GateNames;
 use App\Data\Dto\GenerateSubscriberTokenData;
-use App\Data\Resources\UserData;
 use App\Facades\Livestream as FacadesLivestream;
 use App\Models\Livestream;
+use Illuminate\Foundation\Auth\Access\Authorizable;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Str;
 
 class GetLivestreamSubscriberTokenController extends Controller
 {
+
+    use AuthorizesRequests;
     /**
      * Handle the incoming request.
      */
     public function __invoke($livestreamId)
     {
         $livestream = Livestream::find($livestreamId);
-        // $livestream->load('vendor');
-        // $this->authorize(GateNames::GET_LIVESTREAM_SUBSCRIBER_TOKEN->value, $livestream);
-        $userId = auth("sanctum")->id() ?? Str::random(6);
-        $displayName = auth("sanctum")->user()?->name ?? Str::random(6);
+        $this->authorize(GateNames::GET_LIVESTREAM_SUBSCRIBER_TOKEN->value, $livestream);
+        $userId = auth('sanctum')->id() ?? Str::random(6);
+        $displayName = auth('sanctum')->user()?->name ?? Str::random(6);
 
         $roomName = $livestream->getRoomName();
 
@@ -31,7 +32,10 @@ class GetLivestreamSubscriberTokenController extends Controller
             identity: $userId,
             displayName: $displayName,
             isPublic: auth()->guest(),
-            metadata: auth("sanctum")->check() ? auth("sanctum")->user()->toArray() : []
+            metadata: [
+                'livestream_identity' => $livestream->getKey(),
+                ...(auth('sanctum')->check() ? auth('sanctum')->user()->toArray() : []),
+            ]
 
         );
 

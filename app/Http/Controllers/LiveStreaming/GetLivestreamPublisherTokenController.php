@@ -8,6 +8,7 @@ use App\Facades\Livestream as LivestreamService;
 use App\Models\Livestream;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Str;
 
 class GetLivestreamPublisherTokenController extends Controller
 {
@@ -18,16 +19,21 @@ class GetLivestreamPublisherTokenController extends Controller
      */
     public function __invoke($id)
     {
-        // $this->authorize(GateNames::GET_LIVESTREAM_PUBLISHER_TOKEN->value, $livestream);
-        // dd($livestream);
         $livestream = Livestream::findOrFail($id);
-        $vendorName = $livestream->vendor->name;
+        $this->authorize(GateNames::GET_LIVESTREAM_PUBLISHER_TOKEN->value, $livestream);
+
+        $userId = auth('sanctum')->id() ?? Str::random(6);
+        $displayName = auth('sanctum')->user()?->name ?? Str::random(6);
         $roomName = $livestream->getRoomName();
 
         $data = new GeneratePublisherTokenData(
             roomName: $roomName,
-            identity: $vendorName,
-            displayName: $vendorName
+            identity: $userId,
+            displayName: $displayName,
+            metadata: [
+                'livestream_identity' => $livestream->getKey(),
+                ...(auth('sanctum')->check() ? auth('sanctum')->user()->toArray() : []),
+            ]
         );
 
         $roomToken = LivestreamService::generatePublisherToken($data);

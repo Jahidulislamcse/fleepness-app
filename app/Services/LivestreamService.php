@@ -157,7 +157,7 @@ class LivestreamService
                         $duration = $fileInfo->getDuration();
                         $size = $fileInfo->getSize();
                         $location = $fileInfo->getLocation();
-                        $location = $this->r2fileSytem->url($filename);
+                        // $location = $this->r2fileSytem->url($filename);
 
                         return compact(
                             'filename',
@@ -191,20 +191,20 @@ class LivestreamService
                         $imageCount = $info->getImageCount();
                         $startedAt = $info->getStartedAt();
                         $endedAt = $info->getEndedAt();
-                        $directoryName = str($filenamePrefix)->dirname();
+                        // $directoryName = str($filenamePrefix)->dirname();
 
-                        $thumbnails = $this->r2fileSytem->files($directoryName);
+                        // $thumbnails = $this->r2fileSytem->files($directoryName);
 
-                        $thumbnails = collect($thumbnails)
-                            ->map(fn ($thmnailPath) => $this->r2fileSytem->url($thmnailPath))
-                            ->all();
+                        // $thumbnails = collect($thumbnails)
+                        //     ->map(fn ($thmnailPath) => $this->r2fileSytem->url($thmnailPath))
+                        //     ->all();
 
                         return compact(
                             'filenamePrefix',
                             'imageCount',
                             'startedAt',
                             'endedAt',
-                            'thumbnails'
+                            // 'thumbnails'
                         );
                     })
                     ->all();
@@ -236,7 +236,7 @@ class LivestreamService
                         $startedAt = $info->getStartedAt();
                         $endedAt = $info->getEndedAt();
 
-                        $playlistLocation = $this->r2fileSytem->url($playlistName);
+                        // $playlistLocation = $this->r2fileSytem->url($playlistName);
 
                         return compact(
                             'playlistName',

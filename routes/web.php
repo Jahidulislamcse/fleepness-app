@@ -1,5 +1,8 @@
 <?php
 
+use Agence104\LiveKit\RoomServiceClient;
+use Agence104\LiveKit\WebhookReceiver;
+use Amp\ByteStream\Payload;
 use App\Events\PodcastProcessed;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminOrderController;
@@ -31,18 +34,16 @@ use App\Notifications\NewMessageNotification;
 
 Broadcast::routes(['middleware' => ['auth']]);
 
-Route::get('/test-notify', function () {
-    Log::info('Route /test-notify hit');
-    broadcast(new PodcastProcessed());
+Route::webhooks('livekit', 'livekit');
 
-    return 'Notification sent!';
+Route::get('/test-notify', function () {
+    $data = resolve(RoomServiceClient::class)->listRooms(['SSSSSSSSS:19']);
+    dd($data->getRooms()[0]->get['metadata']);
 });
 
 Route::get('/test-egress', function () {
-
     $livestream = Livestream::find(11);
     dd($livestream->recordings);
-
 });
 
 Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']);
@@ -179,13 +180,13 @@ Route::middleware('role:admin')->group(function () {
     });
 });
 
-    Route::middleware('auth:sanctum')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/shop-categories', [ShopCategoryController::class, 'index_view'])->name('shop-categories.index');
-        Route::get('/shop-categories/{id}', [ShopCategoryController::class, 'show'])->name('shop-categories.show');
-        Route::post('/shop-categories', [ShopCategoryController::class, 'view_store'])->name('shop-categories.store');
-        Route::put('/shop-categories/{id}', [ShopCategoryController::class, 'view_update'])->name('shop-categories.update');
-        Route::delete('/shop-categories/{id}', [ShopCategoryController::class, 'view_destroy'])->name('shop-categories.destroy');
-    });
+Route::middleware('auth:sanctum')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/shop-categories', [ShopCategoryController::class, 'index_view'])->name('shop-categories.index');
+    Route::get('/shop-categories/{id}', [ShopCategoryController::class, 'show'])->name('shop-categories.show');
+    Route::post('/shop-categories', [ShopCategoryController::class, 'view_store'])->name('shop-categories.store');
+    Route::put('/shop-categories/{id}', [ShopCategoryController::class, 'view_update'])->name('shop-categories.update');
+    Route::delete('/shop-categories/{id}', [ShopCategoryController::class, 'view_destroy'])->name('shop-categories.destroy');
+});
 
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
