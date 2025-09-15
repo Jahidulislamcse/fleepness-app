@@ -34,7 +34,7 @@ use App\Notifications\NewMessageNotification;
 
 Broadcast::routes(['middleware' => ['auth']]);
 
-Route::webhooks('livekit', 'livekit');
+// Route::webhooks('livekit', 'livekit');
 
 Route::get('/test-notify', function () {
     $data = resolve(RoomServiceClient::class)->listRooms(['SSSSSSSSS:19']);
