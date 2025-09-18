@@ -35,9 +35,10 @@ class VendorShortVideoController extends Controller
         $path = null;
         if ($request->hasFile('video')) {
             $file = $request->file('video');
-            $filename = time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('videos/shorts'), $filename);
-            $path = 'videos/shorts/' . $filename;
+            $path = $file->store('videos/shorts');
+            // $filename = time() . '.' . $file->getClientOriginalExtension();
+            // $file->move(public_path('videos/shorts'), $filename);
+            // $path = 'videos/shorts/' . $filename;
         }
 
         $video = ShortVideo::create([

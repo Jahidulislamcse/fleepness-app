@@ -164,17 +164,20 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
             Route::prefix('short-videos')->group(function () {
                 Route::get('/', [VendorShortVideoController::class, 'index_api']);
                 Route::post('/', [VendorShortVideoController::class, 'store_api']);
-                Route::get('/{id}', [VendorShortVideoController::class, 'show_api']);
                 Route::post('/{id}', [VendorShortVideoController::class, 'update_api']);
                 Route::delete('/{id}', [VendorShortVideoController::class, 'destroy_api']);
             });
         });
+               
+
 
 
         Route::post('/shop-categories', [ShopCategoryController::class, 'store']);         // Create new category
         Route::put('/shop-categories/{id}', [ShopCategoryController::class, 'update']);    // Update category
         Route::delete('/shop-categories/{id}', [ShopCategoryController::class, 'destroy']); // Delete category
     });
+    
+    Route::get('short-videos/{id}', [VendorShortVideoController::class, 'show_api']);
 
     Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
 

@@ -45,7 +45,7 @@ class LivestreamController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateLivestremData $createLivestremData): Livestream
+    public function store(CreateLivestremData $createLivestremData)
     {
         $vendor = User::find($createLivestremData->vendorId);
         // $this->authorize('create-livestream', $vendor);
@@ -56,7 +56,7 @@ class LivestreamController extends Controller
         // $newLivestream->addAllMediaFromTokens($createLivestremData->thumbnailPicture, 'thumbnail');
 
         // return LivestreamData::from($newLivestream);
-        return $newLivestream;
+        return $newLivestream->toResource();
     }
 
     /**

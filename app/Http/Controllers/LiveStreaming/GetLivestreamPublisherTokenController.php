@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\LiveStreaming;
 
 use App\Constants\GateNames;
+use App\Constants\LivestreamStatuses;
 use App\Data\Dto\GeneratePublisherTokenData;
 use App\Facades\Livestream as LivestreamService;
 use App\Models\Livestream;
@@ -37,7 +38,10 @@ class GetLivestreamPublisherTokenController extends Controller
         );
 
         $roomToken = LivestreamService::generatePublisherToken($data);
-
+        $livestream->startRecording();
+        $livestream->save();
+        $livestream->setStatus(LivestreamStatuses::STARTED->value);
+        
         return response()->json([
             'token' => $roomToken,
         ]);
