@@ -176,10 +176,18 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::put('/shop-categories/{id}', [ShopCategoryController::class, 'update']);    // Update category
         Route::delete('/shop-categories/{id}', [ShopCategoryController::class, 'destroy']); // Delete category
     });
-    
+
     Route::get('short-videos/{id}', [VendorShortVideoController::class, 'show_api']);
 
     Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
+    Route::post('subscribe-to-topic', function (Illuminate\Http\Request $request) {
+        $validated = $request->validate([
+            'token' => ['required', 'string'],
+            'topic' => ['required', 'string'],
+        ]);
+
+        return \Kreait\Laravel\Firebase\Facades\Firebase::messaging()->subscribeToTopic($validated['topic'], $validated['token']);
+    });
 
     Route::get('/shop-categories', [ShopCategoryController::class, 'index']);          // List all categories
     Route::get('/shop-categories/{id}', [ShopCategoryController::class, 'show']);      // View single category

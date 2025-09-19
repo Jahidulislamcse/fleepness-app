@@ -7,6 +7,8 @@ use App\Models\Livestream;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Laravel\Firebase\Facades\Firebase;
 
 class LivestreamCommentController extends Controller
 {
@@ -37,6 +39,17 @@ class LivestreamCommentController extends Controller
         ]);
 
         $comment->save();
+        // dd($livestream->getRoomName());
+        $data = [
+                'user' => $user->toJson(),
+                'comment' => $comment->toJson(),
+            ];
+
+        $message = CloudMessage::new()
+                ->withData($data) 
+            ->toTopic($livestream->getKey());
+
+        Firebase::messaging()->send($message);
 
         return response()->json($comment, 201);
     }
