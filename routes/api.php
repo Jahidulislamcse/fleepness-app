@@ -33,6 +33,7 @@ use App\Http\Controllers\user\AddressController;
 use App\Http\Controllers\DeliveryModelController;
 use App\Http\Controllers\FirebaseController;
 use App\Http\Controllers\LiveStreaming\LivestreamCommentController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\Vendor\VendorShortVideoController;
 use App\Services\FirebaseService;
@@ -198,6 +199,14 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::get('/cart', [CartController::class, 'index']);
         Route::delete('/cart/{item}', [CartController::class, 'destroy']);
         Route::get('/cart/summary', [CartController::class, 'summary']);
+
+        Route::post('/orders', [OrderController::class, 'store']);
+        Route::get('/orders', [OrderController::class, 'index']);
+        Route::get('/orders/{id}', [OrderController::class, 'show']);
+        Route::get('/seller/orders', [OrderController::class, 'sellerOrders']);
+        Route::get('/seller/orders/{id}', [OrderController::class, 'sellerOrderDetail']);
+        Route::patch('/seller/orders/{id}/accept', [OrderController::class, 'acceptSellerOrder']);
+        Route::patch('/seller/orders/{id}/reject', [OrderController::class, 'rejectSellerOrder']);
 
         // Addresses
         Route::post('/addresses', [AddressController::class, 'store']);

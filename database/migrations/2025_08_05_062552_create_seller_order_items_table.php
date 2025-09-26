@@ -12,13 +12,13 @@ return new class extends Migration {
 
             $table->foreignId('seller_order_id')->constrained('seller_orders')->onDelete('cascade');
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
-            $table->decimal('price', 10, 2);
-            $table->unsignedInteger('quantity');
-            $table->decimal('total', 10, 2); // price * quantity
 
-            $table->string('size')->nullable(); // optional variant
+            $table->string('size')->nullable()->nullable(); // optional variant
 
-            $table->timestamps(); // created_at & updated_at
+            $table->unsignedInteger('quantity')->nullable();
+            $table->decimal('total_cost', 10, 2)->nullable(); // price * quantity
+
+            $table->timestamps(); 
         });
     }
 

@@ -25,6 +25,7 @@ use App\Http\Controllers\Vendor\VendorProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\DeliveryModelController;
+use App\Http\Controllers\FeeController;
 use App\Http\Controllers\Vendor\VendorShortVideoController;
 use App\Models\Livestream;
 use Illuminate\Support\Facades\Storage;
@@ -134,24 +135,21 @@ Route::middleware('role:admin')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::resource('categories', AdminCategoryController::class);
         Route::resource('products', AdminProductController::class);
+
+        Route::controller(FeeController::class)->group(function () {
+            Route::get('/fees', 'index')->name('fees.index');
+            Route::post('/fees', 'storeOrUpdate')->name('fees.storeOrUpdate');
+        });
+
         Route::controller(AdminOrderController::class)->group(function () {
             Route::prefix('order')->name('order.')->group(function () {
-                Route::get('/', 'index')->name('index');
-                Route::get('/pending', 'PendingOrder')->name('pending');
-                Route::get('/details/{id}', 'orderDetails')->name('details');
-                Route::get('/confirmed', 'ConfirmedOrder')->name('confirmed');
-                Route::get('/processing', 'ProcessingOrder')->name('processing');
-                Route::get('/ready', 'ReadyOrder')->name('ready');
-                Route::get('/shipped', 'shippedOrder')->name('shipped');
-                Route::get('/delivered', 'DeliveredOrder')->name('delivered');
-                Route::get('/completed', 'completedOrder')->name('completed');
-                Route::get('/cancled', 'CancledOrder')->name('cancled');
-                Route::get('/ready/shipped/{order_id}', 'ReadyToShipped')->name('ready-shipped');
-                Route::get('/shipped/delivered/{order_id}', 'shippedToDelivered')->name('shipped-delivered');
-                Route::get('/delivered/completed/{order_id}', 'DeliveredToCompleted')->name('delivered-completed');
-                Route::get('/invoice/download/{order_id}', 'AdminInvoiceDownload')->name('invoice.download');
+                Route::get('/', 'index')->name('all');
+                Route::get('/view/{id}', 'show')->name('view');
+                Route::put('/seller-order/{id}/update', [AdminOrderController::class, 'updateSellerOrder'])
+                   ->name('updateSellerOrder');
             });
         });
+
 
         Route::resource('sliders', AdminSliderController::class);
         Route::get('get-tags', [TagController::class, 'getTags'])->name('getTags');

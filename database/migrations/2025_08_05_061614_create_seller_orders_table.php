@@ -13,16 +13,17 @@ return new class extends Migration {
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
             $table->foreignId('seller_id')->constrained('users')->onDelete('cascade');
 
-            $table->enum('delivery_status', ['pending', 'packaging', 'on_the_way', 'delivered', 'delayed'])->default('pending');
-            $table->text('delivery_message')->nullable();
+            $table->enum('status', ['pending', 'packaging', 'on_the_way', 'delivered', 'delayed'])->nullable();;
+            $table->text('status_message')->nullable();
 
             $table->time('delivery_start_time')->nullable();
             $table->time('delivery_end_time')->nullable();
 
-            $table->decimal('product_total', 10, 2)->default(0);
-            $table->decimal('commission_amount', 10, 2)->default(0);
+            $table->decimal('product_cost', 10, 2)->nullable();
+            $table->decimal('commission', 10, 2)->nullable();
+            $table->decimal('balance', 10, 2)->nullable();
 
-            $table->boolean('rider_assigned')->default(false);
+            $table->boolean('rider_assigned')->nullable();
 
             $table->timestamps(); // created_at & updated_at
         });

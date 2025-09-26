@@ -99,6 +99,7 @@ class CartController extends Controller
                     'product' => [
                         'id' => $item->product->id,
                         'name' => $item->product->name,
+                        'store' => $item->product->user->name,
                         'price' => $item->product->discount_price ?? $item->product->selling_price,
                         'image_url' => $item->product->image_url,
                         'description' => $item->product->short_description,
@@ -144,8 +145,8 @@ class CartController extends Controller
             return $price * $item->quantity;
         });
 
-        $platformFee = 30;  // example fixed charge
-        $vatFee = 15;       // example fixed VAT charge
+        $platformFee = 30;  
+        $vatFee = 15;       
         $deliveryFee = $deliveryModel->fee ?? 0;
 
         $grandTotal = $itemTotal + $platformFee + $vatFee + $deliveryFee;

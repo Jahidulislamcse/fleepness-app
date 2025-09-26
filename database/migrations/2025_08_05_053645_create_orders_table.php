@@ -11,13 +11,19 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // buyer
             $table->string('order_code')->unique(); // like #ORD123456
-            $table->boolean('is_multi_seller')->default(false);
-            $table->unsignedInteger('total_sellers')->default(1);
-            $table->string('delivery_model')->nullable(); // Express, Standard, etc.
-            $table->decimal('platform_fee', 10, 2)->default(0);
-            $table->decimal('vat', 10, 2)->default(0);
-            $table->decimal('total_amount', 10, 2)->default(0);
-            $table->decimal('commission_total', 10, 2)->default(0);
+
+            $table->boolean('is_multi_seller')->nullable();
+            $table->unsignedInteger('total_sellers')->nullable();
+
+            $table->string('delivery_model')->nullable(); 
+
+            $table->decimal('product_cost', 10, 2)->nullable();
+            $table->decimal('commission', 10, 2)->nullable();
+            $table->decimal('delivery_fee', 10, 2)->nullable();
+            $table->decimal('platform_fee', 10, 2)->nullable();
+            $table->decimal('vat', 10, 2)->nullable();
+            $table->decimal('grand_total', 10, 2)->nullable();
+            
             $table->timestamps();
         });
     }

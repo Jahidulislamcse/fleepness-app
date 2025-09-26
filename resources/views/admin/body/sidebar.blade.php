@@ -73,6 +73,16 @@
                         <p>Manage Order </p>
                         <span class="caret"></span>
                     </a>
+                    <div class="collapse " id="order">
+                        <ul class="nav nav-collapse">
+                            <li class="">
+                                <a href="{{ route('admin.payment.requests') }}">
+                                    Orders
+                                </a>
+                            </li>
+                            <li class=""> <a href="{{ route('admin.payment.history') }}">Payment History</a></li>
+                        </ul>
+                    </div>
                     
                 </li>
 
@@ -121,9 +131,14 @@
                                     <span class="sub-item">Generals</span>
                                 </a>
                             </li>
-                             <li class="">
+                            <li class="">
                                 <a href="{{ route('admin.sections.index') }}">
                                     <span class="sub-item">Sections</span>
+                                </a>
+                            </li>
+                            <li class="">
+                                <a href="{{ route('admin.fees.index') }}">
+                                    <span class="sub-item">Fees</span>
                                 </a>
                             </li>
                             <li class="">
