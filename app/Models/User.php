@@ -3,17 +3,23 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Support\Notification\Contracts\FcmNotifiable;
+use App\Support\Notification\Contracts\SupportsFcmChannel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FcmNotifiable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
+
     use InteractsWithMedia;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -30,6 +36,16 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function routeNotificationForFcmTokens(Notification&SupportsFcmChannel $notification): array|string|null
+    {
+        return $this->deviceTokens->pluck('token')->toArray();
+    }
+
+    public function deviceTokens()
+    {
+        return $this->hasMany(DeviceToken::class);
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -55,7 +71,6 @@ class User extends Authenticatable
         return $value ? url($value) : null;
     }
 
-
     public function getBannerImageAttribute($value)
     {
         return $value ? url($value) : null;
@@ -76,6 +91,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserPayment::class);
     }
+
     public function likedLivestreams()
     {
         return $this->hasMany(LivestreamLike::class);

@@ -1,10 +1,14 @@
 <?php
 
+use App\Enums\SellerOrderStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+use function Illuminate\Support\enum_value;
+
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('seller_orders', function (Blueprint $table) {
@@ -13,7 +17,7 @@ return new class extends Migration {
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
             $table->foreignId('seller_id')->constrained('users')->onDelete('cascade');
 
-            $table->enum('status', ['pending', 'packaging', 'on_the_way', 'delivered', 'delayed'])->nullable();;
+            $table->enum('status', array_column(SellerOrderStatus::cases(), 'value'))->default(enum_value(SellerOrderStatus::Pending))->nullable();
             $table->text('status_message')->nullable();
 
             $table->time('delivery_start_time')->nullable();

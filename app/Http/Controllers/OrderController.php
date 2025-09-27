@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Enums\SellerOrderStatus;
+use App\Models\CartItem;
+use App\Models\DeliveryModel;
+use App\Models\Fee;
 use App\Models\Order;
 use App\Models\SellerOrder;
 use App\Models\SellerOrderItem;
-use App\Models\CartItem;
-use App\Models\Fee;
-use App\Models\DeliveryModel;
 use Carbon\Carbon;
-use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -20,7 +21,7 @@ class OrderController extends Controller
         $fee = Fee::first();
 
         $userId = auth()->id();
-        if (!$userId) {
+        if (! $userId) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
@@ -37,7 +38,7 @@ class OrderController extends Controller
         $deliveryModel = DeliveryModel::find($request->delivery_model_id);
         // dd($deliveryModel);
 
-        if (!$deliveryModel) {
+        if (! $deliveryModel) {
             return response()->json(['message' => 'Invalid delivery model.'], 422);
         }
 
@@ -47,15 +48,15 @@ class OrderController extends Controller
             $uniqueSellerCount = $cartItems->pluck('product.user_id')->unique()->count();
             $isMultiSeller = $uniqueSellerCount > 1;
 
-            $order = new Order();
+            $order = new Order;
             $order->user_id = $userId;
-            $order->order_code = '#ORD' . strtoupper(Str::random(8));
+            $order->order_code = '#ORD'.strtoupper(Str::random(8));
             $order->is_multi_seller = $isMultiSeller;
             $order->total_sellers = $uniqueSellerCount;
             $order->delivery_model = $deliveryModel->id;
 
             // if multiple sellers, multiply delivery fee
-            $order->delivery_fee  = $deliveryModel->fee * $uniqueSellerCount;
+            $order->delivery_fee = $deliveryModel->fee * $uniqueSellerCount;
 
             $order->product_cost = 0;
             $order->commission = 0;
@@ -69,10 +70,10 @@ class OrderController extends Controller
             $grouped = $cartItems->groupBy('product.user_id');
 
             foreach ($grouped as $sellerId => $sellerItems) {
-                $sellerOrder = new SellerOrder();
+                $sellerOrder = new SellerOrder;
                 $sellerOrder->order_id = $order->id;
                 $sellerOrder->seller_id = $sellerId;
-                $sellerOrder->status = 'pending';
+                $sellerOrder->status = SellerOrderStatus::Pending;
                 $sellerOrder->product_cost = 0;
                 $sellerOrder->commission = 0;
                 $sellerOrder->balance = 0;
@@ -92,7 +93,7 @@ class OrderController extends Controller
 
                     $totalCost = $price * $qty;
 
-                    $sItem = new SellerOrderItem();
+                    $sItem = new SellerOrderItem;
                     $sItem->seller_order_id = $sellerOrder->id;
                     $sItem->product_id = $product->id;
                     $sItem->size = $cartItem->size_id ? $cartItem->size->size_name : null;
@@ -110,6 +111,8 @@ class OrderController extends Controller
                 $sellerOrder->commission = $sellerTotal * ($fee->commission / 100);
                 $sellerOrder->save();
 
+                $sellerOrder->notifySellerAboutNewOrderFromBuyer();
+
                 $orderProductCost += $sellerTotal;
             }
 
@@ -121,9 +124,9 @@ class OrderController extends Controller
             $order->vat = $orderProductCost * ($fee->vat / 100);
 
             $order->grand_total = $orderProductCost
-                + (float)$order->delivery_fee
-                + (float)$order->platform_fee
-                + (float)$order->vat;
+                + (float) $order->delivery_fee
+                + (float) $order->platform_fee
+                + (float) $order->vat;
             $order->save();
 
             // Clear purchased cart items
@@ -135,7 +138,7 @@ class OrderController extends Controller
 
             $order->load([
                 'sellerOrders.items.product',
-                'sellerOrders.seller'
+                'sellerOrders.seller',
             ]);
 
             return response()->json([
@@ -144,6 +147,7 @@ class OrderController extends Controller
             ], 201);
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return response()->json([
                 'message' => 'Failed to create order',
                 'error' => $e->getMessage(),
@@ -155,12 +159,12 @@ class OrderController extends Controller
     {
         $sellerId = auth()->id();
 
-        if (!$sellerId) {
+        if (! $sellerId) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
         $orders = \App\Models\SellerOrder::with([
-            'items'
+            'items',
         ])
             ->where('seller_id', $sellerId)
             ->latest()
@@ -168,7 +172,7 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'Seller orders retrieved successfully',
-            'data' => $orders
+            'data' => $orders,
         ]);
     }
 
@@ -176,7 +180,7 @@ class OrderController extends Controller
     {
         $sellerId = auth()->id();
 
-        if (!$sellerId) {
+        if (! $sellerId) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
@@ -184,7 +188,7 @@ class OrderController extends Controller
             'items' => function ($query) {
                 $query->with([
                     'product:id,name,discount_price,selling_price,quantity',
-                    'product.images'
+                    'product.images',
                 ]);
             },
         ])
@@ -192,13 +196,13 @@ class OrderController extends Controller
             ->where('seller_id', $sellerId)
             ->first();
 
-        if (!$sellerOrder) {
+        if (! $sellerOrder) {
             return response()->json(['message' => 'Seller order not found.'], 404);
         }
 
         return response()->json([
             'message' => 'Seller order retrieved successfully',
-            'data' => $sellerOrder
+            'data' => $sellerOrder,
         ]);
     }
 
@@ -212,7 +216,7 @@ class OrderController extends Controller
             ->where('seller_id', $sellerId)
             ->first();
 
-        if (!$sellerOrder) {
+        if (! $sellerOrder) {
             return response()->json(['message' => 'Seller order not found.'], 404);
         }
 
@@ -235,7 +239,7 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'Seller order accepted successfully',
-            'data' => $sellerOrder
+            'data' => $sellerOrder,
         ]);
     }
 
@@ -248,7 +252,7 @@ class OrderController extends Controller
             ->where('seller_id', $sellerId)
             ->first();
 
-        if (!$order) {
+        if (! $order) {
             return response()->json(['message' => 'Seller order not found.'], 404);
         }
 
@@ -258,7 +262,7 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'You rejected the order successfully',
-            'data' => $order
+            'data' => $order,
         ]);
     }
 }

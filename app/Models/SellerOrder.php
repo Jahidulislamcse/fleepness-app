@@ -4,7 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property-read User $seller
+ */
 class SellerOrder extends Model
 {
     use HasFactory;
@@ -21,6 +25,14 @@ class SellerOrder extends Model
         'rider_assigned',
     ];
 
+    protected $casts = [
+        'delivery_start_time' => 'datetime',
+        'delivery_end_time' => 'datetime',
+        'rider_assigned' => 'boolean',
+
+        'status' => \App\Enums\SellerOrderStatus::class,
+    ];
+
     public function order()
     {
         return $this->belongsTo(Order::class);
@@ -31,8 +43,16 @@ class SellerOrder extends Model
         return $this->hasMany(SellerOrderItem::class);
     }
 
-    public function seller()
+    /**
+     * @return BelongsTo<User>
+     */
+    public function seller(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function notifySellerAboutNewOrderFromBuyer()
+    {
+        return $this->seller->notify(new \App\Notifications\OrderReceivedFromBuyer($this));
     }
 }

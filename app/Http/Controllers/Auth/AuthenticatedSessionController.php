@@ -5,15 +5,17 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\SMSController;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use App\Providers\RouteServiceProvider;
+use Illuminate\Container\Attributes\CurrentUser;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
-use App\Models\User;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -41,12 +43,12 @@ class AuthenticatedSessionController extends Controller
     {
         $credentials = $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
-        if (!Auth::attempt($credentials)) {
+        if (! Auth::attempt($credentials)) {
             return response()->json([
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials',
             ], 401);
         }
 
@@ -56,7 +58,7 @@ class AuthenticatedSessionController extends Controller
         return response()->json([
             'message' => 'Login successful',
             'user' => $user,
-            'token' => $token
+            'token' => $token,
         ]);
     }
 
@@ -81,7 +83,7 @@ class AuthenticatedSessionController extends Controller
         // Check if the phone number exists in the database
         $user = User::where('phone_number', $phone)->first();
 
-        if (!$user) {
+        if (! $user) {
             // If the phone number does not exist in the database
             return response()->json([
                 'message' => 'Phone number is not registered.',
@@ -94,19 +96,19 @@ class AuthenticatedSessionController extends Controller
         $otp = rand(1000, 9999);
 
         // Store OTP in cache for 5 minutes
-        Cache::put('otp_' . $user->phone_number, $otp, now()->addMinutes(10));
+        Cache::put('otp_'.$user->phone_number, $otp, now()->addMinutes(10));
         // Cache::put('otp_' . $user->id, $otp, now()->addMinutes(10));
 
         // Format the phone number (e.g., add country code '880' for Bangladesh)
         $mobileNumber = trim($phone);
         if (str_starts_with($mobileNumber, '0')) {
-            $mobileNumber = '880' . substr($mobileNumber, 1); // If it starts with '0', prepend '880'
-        } elseif (!str_starts_with($mobileNumber, '880')) {
-            $mobileNumber = '880' . $mobileNumber; // Add '880' if it doesn't already have it
+            $mobileNumber = '880'.substr($mobileNumber, 1); // If it starts with '0', prepend '880'
+        } elseif (! str_starts_with($mobileNumber, '880')) {
+            $mobileNumber = '880'.$mobileNumber; // Add '880' if it doesn't already have it
         }
 
         // Create a new instance of SMSController
-        $smsController = new SMSController();
+        $smsController = new SMSController;
 
         // Create the request to send OTP
         $smsRequest = new Request([
@@ -154,15 +156,15 @@ class AuthenticatedSessionController extends Controller
         $user = User::where('phone_number', $request->phone_number)->first();
 
         // If user doesn't exist, return an error
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
         // Retrieve the OTP from the cache
-        $cacheOtp = Cache::get('otp_' . $user->phone_number);  // Cache key using phone_number
+        $cacheOtp = Cache::get('otp_'.$user->phone_number);  // Cache key using phone_number
 
         // Check if OTP exists in cache
-        if (!$cacheOtp) {
+        if (! $cacheOtp) {
             return response()->json(['message' => 'OTP has expired or is not set'], 400);
         }
 
@@ -172,14 +174,14 @@ class AuthenticatedSessionController extends Controller
         }
 
         // OTP is valid, clear it from cache to prevent reuse
-        Cache::forget('otp_' . $user->phone_number);
+        Cache::forget('otp_'.$user->phone_number);
 
         // Generate and return an access token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'OTP verified successfully.',
-            'token' => $token
+            'token' => $token,
         ]);
     }
 
@@ -201,9 +203,9 @@ class AuthenticatedSessionController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
-                'message' => 'Unauthorized'
+                'message' => 'Unauthorized',
             ], 401);
         }
 
@@ -211,7 +213,26 @@ class AuthenticatedSessionController extends Controller
         $user->tokens()->delete();
 
         return response()->json([
-            'message' => 'Logged out successfully'
+            'message' => 'Logged out successfully',
         ], 200);
+    }
+
+    public function storeDeviceToken(Request $request, #[CurrentUser] User $user): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'device_token' => 'required|string',
+        ]);
+
+        $validator->validate();
+
+        $deviceToken = $validator->safe()->str('device_token')->value();
+
+        $user->deviceTokens()->firstOrCreate([
+            'token' => $deviceToken,
+        ]);
+
+        return Response::json([
+            'message' => 'Device token stored successfully',
+        ]);
     }
 }

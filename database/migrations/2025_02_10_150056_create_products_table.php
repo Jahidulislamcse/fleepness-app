@@ -28,7 +28,7 @@ return new class extends Migration
             $table->text('long_description')->nullable();
             $table->timestamp('deleted_at')->nullable();
             $table->text('status')->nullable();
-            $table->text('admin_approval')->default('approved');
+            $table->string('admin_approval')->default('approved');
             $table->timestamps();
         });
     }
