@@ -2,47 +2,32 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Support\Sms\SmsApiConnector;
 
 class SMSService
 {
-    protected $apiKey;
-    protected $clientId;
-    protected $senderId;
-    protected $apiUrl;
-
-    public function __construct()
-    {
-        $this->apiKey = config('sms.api_key');
-        $this->clientId = config('sms.client_id');
-        $this->senderId = config('sms.sender_id');
-        $this->apiUrl = config('sms.api_url');
-    }
+    public function __construct(
+        private readonly SmsApiConnector $smsApiConnector
+    ) {}
 
     /**
      * Send a single SMS
      *
-     * @param string $message
-     * @param string $mobileNumber
+     * @param  string  $message
+     * @param  string  $mobileNumber
      * @return array
      */
     public function sendSMS($message, $mobileNumber)
     {
-
-        $url = "{$this->apiUrl}/SendSMS";
-
         $payload = [
-            "SenderId" => $this->senderId,
-            "Message" => $message,
-            "MobileNumbers" => $mobileNumber,
-            "ApiKey" => $this->apiKey,
-            "ClientId" => $this->clientId
+            'Message' => $message,
+            'MobileNumbers' => $mobileNumber,
         ];
 
         // Log the payload before sending the request
         \Log::info('Sending SMS Payload:', $payload);
 
-        $response = Http::post($url, $payload);
+        $response = $this->smsApiConnector->sendSms($payload);
 
         // Log the response for debugging
         \Log::info('SMS API Response:', $response->json());
@@ -53,21 +38,15 @@ class SMSService
     /**
      * Send bulk SMS
      *
-     * @param array $messages
-     * @return array
+     * @return list<string>
      */
     public function sendBulkSMS(array $messages)
     {
-        $url = "{$this->apiUrl}/SendBulkSMS";
-
         $payload = [
-            "SenderId" => $this->senderId,
-            "ApiKey" => $this->apiKey,
-            "ClientId" => $this->clientId,
-            "MessageParameters" => $messages
+            'MessageParameters' => $messages,
         ];
 
-        $response = Http::post($url, $payload);
+        $response = $this->smsApiConnector->sendBulkSMS($payload);
 
         return $response->json();
     }

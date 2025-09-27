@@ -1,0 +1,26 @@
+includes:
+    - ./vendor/larastan/larastan/extension.neon
+    - ./vendor/nesbot/carbon/extension.neon
+   # - ./vendor/tomasvotruba/bladestan/config/extension.neon
+
+
+parameters:
+    checkOctaneCompatibility: true
+    # checkUnusedViews: true
+    
+    paths:
+        - app/
+            
+    stubFiles:
+        - _ide_helper.php
+        - _ide_helper_models.php
+        - _ide_helper_intelephense.php
+
+    # Level 10 is the highest level
+    level: 5
+
+#    ignoreErrors:
+#        - '#PHPDoc tag @var#'
+#
+#    excludePaths:
+#        - ./*/*/FileToBeExcluded.php

@@ -8,7 +8,6 @@ use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DeliveryModelController;
 use App\Http\Controllers\EmailController;
-use App\Http\Controllers\FirebaseController;
 use App\Http\Controllers\LiveStreaming\GetLivestreamPublisherTokenController;
 use App\Http\Controllers\LiveStreaming\GetLivestreamSubscriberTokenController;
 use App\Http\Controllers\LiveStreaming\LivestreamCommentController;
@@ -41,8 +40,6 @@ RateLimiter::for('api', function (Request $request) {
 });
 
 Route::middleware(['api', 'throttle:api'])->group(function () {
-
-    Route::post('/firebase/test', [FirebaseController::class, 'testFirebase']);
 
     Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']); // Facebook and google authentication
 

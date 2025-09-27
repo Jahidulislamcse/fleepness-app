@@ -2,16 +2,16 @@
 
 namespace App\Support\Notification\Channels;
 
-use App\Support\Notification\Contracts\FcmNotifiable;
-use App\Support\Notification\Contracts\SupportsFcmChannel;
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Notifications\Events\NotificationFailed;
-use Illuminate\Notifications\Notification;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Kreait\Firebase\Messaging\MulticastSendReport;
 use Kreait\Firebase\Messaging\SendReport;
+use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Events\Dispatcher;
 use Kreait\Laravel\Firebase\Facades\Firebase;
+use Kreait\Firebase\Messaging\MulticastSendReport;
+use App\Support\Notification\Contracts\FcmNotifiable;
+use Illuminate\Notifications\Events\NotificationFailed;
+use App\Support\Notification\Contracts\SupportsFcmChannel;
 
 class FcmDeviceChannel
 {
@@ -25,17 +25,11 @@ class FcmDeviceChannel
     /**
      * Create a new channel instance.
      */
-    public function __construct(protected Dispatcher $events)
-    {
-        //
-    }
+    public function __construct(protected Dispatcher $events) {}
 
-    /**
-     * @param  FcmNotifiable&\Illuminate\Notifications\RoutesNotifications  $notifiable
-     */
     public function send(FcmNotifiable $notifiable, Notification&SupportsFcmChannel $notification): ?Collection
     {
-        $tokens = Arr::wrap($notifiable->routeNotificationFor('fcm-tokens', $notification));
+        $tokens = Arr::wrap($notifiable->routeNotificationForFcmTokens($notification));
 
         if (empty($tokens)) {
             return null;

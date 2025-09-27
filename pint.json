@@ -1,0 +1,28 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "ordered_imports": {
+            "sort_algorithm": "length",
+            "imports_order": ["const", "class", "function"]
+        },
+        "strict_comparison": true,
+        "yoda_style": {
+            "always_move_variable": false,
+            "equal": true,
+            "identical": true,
+            "less_and_greater": true
+        },
+        "semicolon_after_instruction": true,
+        "ordered_types": {
+            "sort_algorithm": "alpha"
+        },
+        "ordered_attributes": {
+            "sort_algorithm": "alpha"
+        }
+    },
+    "notName": [
+        "_ide_helper.php",
+        "_ide_helper_models.php",
+        ".phpstorm.meta.php"
+    ]
+}

@@ -23182,6 +23182,25 @@ namespace Illuminate\Http {
             }
     }
 
+namespace Illuminate\Support {
+    /**
+     */
+    class Uri {
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param \Stringable|\League\Uri\UriTemplate|string $template
+         * @param iterable $variables
+         * @return \Illuminate\Support\Uri
+         * @static
+         */
+        public static function fromTemplate($template, $variables = [])
+        {
+            return \Illuminate\Support\Uri::fromTemplate($template, $variables);
+        }
+
+            }
+    }
+
 namespace Illuminate\Routing {
     /**
      * @mixin \Illuminate\Routing\RouteRegistrar
@@ -23221,6 +23240,85 @@ namespace Illuminate\Routing {
         public static function permission($permissions = [])
         {
             return \Illuminate\Routing\Route::permission($permissions);
+        }
+
+            }
+    }
+
+namespace Illuminate\Http\Client {
+    /**
+     */
+    class PendingRequest {
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @return \App\Support\Sms\SmsApiConnector
+         * @static
+         */
+        public static function sms()
+        {
+            return \Illuminate\Http\Client\PendingRequest::sms();
+        }
+
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param callable|null $onRequest
+         * @param bool $die
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function debugRequest($onRequest = null, $die = false)
+        {
+            return \Illuminate\Http\Client\PendingRequest::debugRequest($onRequest, $die);
+        }
+
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param callable|null $onResponse
+         * @param bool $die
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function debugResponse($onResponse = null, $die = false)
+        {
+            return \Illuminate\Http\Client\PendingRequest::debugResponse($onResponse, $die);
+        }
+
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param bool $die
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function debug($die = false)
+        {
+            return \Illuminate\Http\Client\PendingRequest::debug($die);
+        }
+
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param \Stringable|\League\Uri\UriTemplate|string $template
+         * @param iterable $variables
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function baseUrlWithTemplate($template, $variables = [])
+        {
+            return \Illuminate\Http\Client\PendingRequest::baseUrlWithTemplate($template, $variables);
+        }
+
+        /**
+         * Specify the number of times the request should be attempted.
+         *
+         * @param array<int,int>|int $times
+         * @param (\Closure(int $attempts,HttpClientRequest $request,?HttpClientResponse $response):int)|int|null $sleepMilliseconds
+         * @param (\Closure(int $attempts,HttpClientRequest $request,?HttpClientResponse $response,?Exception $exception):bool)|null $when
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function withRetryMiddleware($times, $sleepMilliseconds = null, $when = null, $throw = true)
+        {
+            return \Illuminate\Http\Client\PendingRequest::withRetryMiddleware($times, $sleepMilliseconds, $when, $throw);
         }
 
             }

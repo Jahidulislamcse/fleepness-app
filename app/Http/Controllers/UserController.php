@@ -3,15 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\Request;
-use App\Services\SMSService;
-use App\Events\SellerStatusUpdated;
-use App\Models\PaymentMethod;
-use Illuminate\Support\Facades\Cache;
-use Carbon\Carbon;
 use App\Models\UserPayment;
-use Illuminate\Http\JsonResponse;
+use App\Services\SMSService;
+use Illuminate\Http\Request;
+use App\Events\SellerStatusUpdated;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Container\Attributes\CurrentUser;
+
 class UserController extends Controller
 {
     protected $smsService;
@@ -25,6 +24,7 @@ class UserController extends Controller
     {
 
         $users = User::all();
+
         return view('admin.user.index', compact('users'));
     }
 
@@ -40,7 +40,6 @@ class UserController extends Controller
             'role' => 'required|in:vendor,admin,rider',
         ]);
 
-
         User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -51,16 +50,14 @@ class UserController extends Controller
             'status' => 'approved',
         ]);
 
-
         return redirect()->route('admin.user.list')->with('success', 'User created successfully!');
     }
 
     // Applying for Seller account after registering as a customer
-    public function applyForSeller(Request $request)
+    public function applyForSeller(Request $request, #[CurrentUser] User $user)
     {
-        $user = auth()->user(); // Sanctum authenticated user
 
-        $validated = Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users,email',
             'shop_name' => 'required|string|max:255',
@@ -73,14 +70,10 @@ class UserController extends Controller
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        if ($validated->fails()) {
-            return response()->json([
-                'errors' => $validated->errors()
-            ], 422);
-        }
+        $validator->validate();
 
         // Access validated data
-        $validatedData = $validated->validated();
+        $validatedData = $validator->validated();
 
         // Update the user
         $user->update([
@@ -94,7 +87,7 @@ class UserController extends Controller
         ]);
 
         // Store user payment methods
-        if (!empty($validatedData['payments'])) {
+        if (! empty($validatedData['payments'])) {
             foreach ($validatedData['payments'] as $payment_method_id => $account_number) {
                 if ($account_number) {
                     UserPayment::create([
@@ -109,32 +102,32 @@ class UserController extends Controller
         // Handle banner image
         if ($request->hasFile('banner_image')) {
             $banner_image = $request->file('banner_image');
-            $name_gen = hexdec(uniqid()) . '.' . $banner_image->getClientOriginalExtension();
+            $name_gen = hexdec(uniqid()).'.'.$banner_image->getClientOriginalExtension();
             $path = public_path('upload/user');
 
-            if (!file_exists($path)) {
+            if (! file_exists($path)) {
                 mkdir($path, 0777, true);
             }
 
             $banner_image->move($path, $name_gen);
 
-            $user->banner_image = 'upload/user/' . $name_gen;
+            $user->banner_image = 'upload/user/'.$name_gen;
             $user->save();
         }
 
         // Handle cover image
         if ($request->hasFile('cover_image')) {
             $cover_image = $request->file('cover_image');
-            $name_gen = hexdec(uniqid()) . '.' . $cover_image->getClientOriginalExtension();
+            $name_gen = hexdec(uniqid()).'.'.$cover_image->getClientOriginalExtension();
             $path = public_path('upload/user');
 
-            if (!file_exists($path)) {
+            if (! file_exists($path)) {
                 mkdir($path, 0777, true);
             }
 
             $cover_image->move($path, $name_gen);
 
-            $user->cover_image = 'upload/user/' . $name_gen;
+            $user->cover_image = 'upload/user/'.$name_gen;
             $user->save();
         }
 
@@ -143,7 +136,6 @@ class UserController extends Controller
             'user' => $user,
         ], 200);
     }
-
 
     public function application(Request $request)
     {
@@ -192,11 +184,10 @@ class UserController extends Controller
             'status' => 'pending',
         ]);
 
-        Cache::put('otp_' . $user->phone_number, $otp, now()->addMinutes(10));
-
+        Cache::put('otp_'.$user->phone_number, $otp, now()->addMinutes(10));
 
         // Store user payment methods
-        if (!empty($validatedData['payments'])) {
+        if (! empty($validatedData['payments'])) {
             foreach ($validatedData['payments'] as $payment_method_id => $account_number) {
                 if ($account_number) {
                     UserPayment::create([
@@ -211,38 +202,38 @@ class UserController extends Controller
         // Save single image after user is created
         if ($request->hasFile('banner_image')) {
             $banner_image = $request->file('banner_image');
-            $name_gen = hexdec(uniqid()) . '.' . $banner_image->getClientOriginalExtension();
+            $name_gen = hexdec(uniqid()).'.'.$banner_image->getClientOriginalExtension();
             $path = public_path('upload/user');
 
-            if (!file_exists($path)) {
+            if (! file_exists($path)) {
                 mkdir($path, 0777, true);
             }
 
             $banner_image->move($path, $name_gen);
 
             // Update user's banner_image field
-            $user->banner_image = 'upload/user/' . $name_gen;
+            $user->banner_image = 'upload/user/'.$name_gen;
             $user->save();
         }
 
         if ($request->hasFile('cover_image')) {
             $cover_image = $request->file('cover_image');
-            $name_gen = hexdec(uniqid()) . '.' . $cover_image->getClientOriginalExtension();
+            $name_gen = hexdec(uniqid()).'.'.$cover_image->getClientOriginalExtension();
             $path = public_path('upload/user');
 
-            if (!file_exists($path)) {
+            if (! file_exists($path)) {
                 mkdir($path, 0777, true);
             }
 
             $cover_image->move($path, $name_gen);
 
             // Update user's cover_image field
-            $user->cover_image = 'upload/user/' . $name_gen;
+            $user->cover_image = 'upload/user/'.$name_gen;
             $user->save();
         }
 
         // Send OTP via SMS
-        $smsController = new SMSController();
+        $smsController = new SMSController;
         $smsController->sendSMS(new Request([
             'Message' => "Your OTP is: $otp",
             'MobileNumbers' => $user->phone_number,
@@ -270,14 +261,12 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Pending seller requests retrieved successfully.',
-            'data' => $pendingSellers
+            'data' => $pendingSellers,
         ]);
     }
 
-    public function checkProfile()
+    public function checkProfile(#[CurrentUser] User $user)
     {
-        // Get logged user info
-        $user = auth()->user();
 
         return response()->json([
             'user_id' => $user->id,
@@ -287,15 +276,12 @@ class UserController extends Controller
         ]);
     }
 
-    public function checkStatus()
+    public function checkStatus(#[CurrentUser] User $user)
     {
         // Retrieve only the 'status' column for the authenticated user
-        $status = User::where('id', auth()->id())->value('status');
-        // dd($status);
-
         return response()->json([
-            'status' => $status
-        ], 200);
+            'status' => $user->status,
+        ]);
     }
 
     public function sellerApprove(Request $request)
@@ -306,13 +292,13 @@ class UserController extends Controller
 
         $user = User::find($request->user_id);
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
         $user->update([
             'status' => 'approved',
-            'role' => 'vendor' // If you want to update role as well
+            'role' => 'vendor', // If you want to update role as well
         ]);
 
         return response()->json(['message' => 'Seller approved successfully', 'user' => $user]);
@@ -326,7 +312,7 @@ class UserController extends Controller
 
         $user = User::find($request->user_id);
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
@@ -336,7 +322,6 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Seller rejected successfully', 'user' => $user]);
     }
-
 
     public function riderApplication(Request $request)
     {
@@ -350,7 +335,6 @@ class UserController extends Controller
             'role' => 'required|in:rider',
         ]);
 
-
         User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -361,13 +345,13 @@ class UserController extends Controller
             'status' => 'pending',
         ]);
 
-
         return redirect()->back()->with('success', 'Account created successfully!');
     }
 
     public function edit($id)
     {
         $user = User::findOrFail($id);
+
         return response()->json($user);
     }
 
@@ -390,31 +374,29 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $user->update([
             'status' => 'approved',
-            'activation_date' => now()
+            'activation_date' => now(),
         ]);
 
-        $password = $user->raw_password ?? "Your set password";
+        $password = $user->raw_password ?? 'Your set password';
         $message = "Dear {$user->name}, your admin account has been approved!\n";
         $message .= "Email: {$user->email}\n";
         $message .= "Password: {$password}\n";
 
+        $this->smsService->sendSMS($user->phone_number, $message);
 
-        $smsSent = $this->smsService->sendSMS($user->phone, $message);
-
-        return redirect()->to(route('super-admin.user.manage') . '?tab=pending_admins')->with('success', 'User status updated and SMS sent successfully');
+        return to_route('super-admin.user.manage', ['tab' => 'pending_admins'])
+            ->withSuccess('User status updated and SMS sent successfully');
     }
 
     public function approveSeller(Request $request)
     {
-        // dd($request->seller_id);
-
         $request->validate([
             'seller_id' => 'required|exists:users,id',
         ]);
 
         $seller = User::find($request->seller_id);
 
-        if (!$seller) {
+        if (! $seller) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
@@ -423,14 +405,14 @@ class UserController extends Controller
         $seller->save();
 
         // Send SMS using SMSController
-        $smsController = new SMSController();
+        $smsController = new SMSController;
         $smsController->sendSMS(new Request([
-            'Message' => "Your seller request has been approved by Fleepness!",
+            'Message' => 'Your seller request has been approved by Fleepness!',
             'MobileNumbers' => $seller->phone_number,
         ]));
 
         // 🔔 Send real-time notification
-        event(new SellerStatusUpdated($seller->id, "Your seller request has been approved! 🎉"));
+        event(new SellerStatusUpdated($seller->id, 'Your seller request has been approved! 🎉'));
 
         return response()->json(['message' => 'Seller approved successfully']);
     }
@@ -443,7 +425,7 @@ class UserController extends Controller
 
         $seller = User::find($request->seller_id);
 
-        if (!$seller) {
+        if (! $seller) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
@@ -451,14 +433,14 @@ class UserController extends Controller
         $seller->save();
 
         // Send SMS using SMSController
-        $smsController = new SMSController();
+        $smsController = new SMSController;
         $smsController->sendSMS(new Request([
-            'Message' => "Your seller request has been Rejected by Fleepness!",
+            'Message' => 'Your seller request has been Rejected by Fleepness!',
             'MobileNumbers' => $seller->phone_number,
         ]));
 
         // Send notification
-        event(new SellerStatusUpdated($seller->user_id, "Your seller request has been rejected. ❌"));
+        event(new SellerStatusUpdated($seller->user_id, 'Your seller request has been rejected. ❌'));
 
         return response()->json(['message' => 'Seller rejected successfully']);
     }
@@ -467,7 +449,6 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         $user->delete();
-
 
         return redirect()->route('admin.user.list')->with('success', 'User deleted successfully');
     }

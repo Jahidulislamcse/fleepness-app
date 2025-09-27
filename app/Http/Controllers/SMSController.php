@@ -3,44 +3,42 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Stringable;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Validator;
 
 class SMSController extends Controller
 {
     public function sendSMS(Request $request)
     {
         // Validate the incoming request data
-        $validated = $request->validate([
-            'Message' => 'required|string',
-            'MobileNumbers' => 'required|string',  // Comma-separated mobile numbers
-            'ScheduleTime' => 'nullable|date_format:Y-m-d H:i',
+        $validator = Validator::make($request->all(), [
+            'Message' => ['required', 'string'],
+            'MobileNumbers' => ['required', 'string'],  // Comma-separated mobile numbers
+            'ScheduleTime' => ['sometimes', Rule::date()->format('Y-m-d H:i')],
         ]);
 
-        // Ensure the number starts with '880'
-        $mobileNumber = trim($validated['MobileNumbers']);
+        $validated = $validator->validate();
 
-        // If the number starts with '0', remove it and prepend '880'
-        if (str_starts_with($mobileNumber, '0')) {
-            $mobileNumber = '880' . substr($mobileNumber, 1);
-        } elseif (!str_starts_with($mobileNumber, '880')) {
-            $mobileNumber = '880' . $mobileNumber;
-        }
+        // Ensure the number starts with '880'
+        $mobileNumber = $validator
+            ->safe()
+            ->str('MobileNumbers')
+            ->trim()
+            ->pipe(function (Stringable $str) {
+                return $str->when($str->startsWith('0'))->prepend('88');
+            })
+            ->pipe(function (Stringable $str) {
+                return $str->unless($str->startsWith('880'))->prepend('880');
+            })
+            ->value();
 
         // Update the validated data with the formatted number
         $validated['MobileNumbers'] = $mobileNumber;
 
-        // Fetch API credentials from .env
-        $apiKey = config('sms.api_key');
-        $clientId = config('sms.client_id');
-        $senderId = config('sms.sender_id');
-        $apiUrl = config('sms.api_url') . '/SendSMS';
-
-        // Prepare the parameters for the API request
-        $params = [
-            'ApiKey' => $apiKey,
-            'ClientId' => $clientId,
-            'SenderId' => $senderId,
+        // Send the request to the SMS API
+        $response = Http::sms()->sendSms([
             'Message' => $validated['Message'],
             'MobileNumbers' => $validated['MobileNumbers'],
             'Is_Unicode' => true,
@@ -48,10 +46,7 @@ class SMSController extends Controller
             'DataCoding' => '8',
             'ScheduleTime' => $validated['ScheduleTime'] ?? null,
             'GroupId' => '',
-        ];
-
-        // Send the request to the SMS API
-        $response = Http::get($apiUrl, $params);
+        ]);
 
         // Check for a successful response
         if ($response->successful()) {
