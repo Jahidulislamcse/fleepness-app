@@ -8,6 +8,7 @@ use App\Support\Notification\Contracts\FcmNotifiable;
 use App\Support\Notification\Contracts\SupportsFcmTopicChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Messaging\CloudMessage;
@@ -24,13 +25,13 @@ class NewLivestreamCommentNotification extends Notification implements ShouldQue
         //
     }
 
-    public function toFcmTopic(mixed $notifiable): string
+    public function toFcmTopic(FcmNotifiable|AnonymousNotifiable $notifiable): string
     {
         return $this->comment->livestream->getRoomName();
         // return 'livestream_comment_'.$this->comment->livestream_id;
     }
 
-    public function toFcm(FcmNotifiable $notifiable): CloudMessage
+    public function toFcm(FcmNotifiable|AnonymousNotifiable $notifiable): CloudMessage
     {
         $user = $this->comment->user;
 

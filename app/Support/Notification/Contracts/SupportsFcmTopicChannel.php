@@ -2,10 +2,9 @@
 
 namespace App\Support\Notification\Contracts;
 
+use Illuminate\Notifications\AnonymousNotifiable;
+
 interface SupportsFcmTopicChannel extends SupportsFcmChannel
 {
-    /**
-     * @param  \Illuminate\Notifications\Notifiable  $notifiable
-     */
-    public function toFcmTopic(mixed $notifiable): string;
+    public function toFcmTopic(FcmNotifiable|AnonymousNotifiable $notifiable): string;
 }
