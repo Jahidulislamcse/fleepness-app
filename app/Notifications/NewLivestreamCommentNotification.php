@@ -8,6 +8,7 @@ use App\Support\Notification\Contracts\FcmNotifiable;
 use App\Support\Notification\Contracts\SupportsFcmTopicChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -37,17 +38,17 @@ class NewLivestreamCommentNotification extends Notification implements ShouldQue
 
         return CloudMessage::new()
             ->withData([
-                'user' => [
+                'user' => Json::encode([
                     'id' => $user->getKey(),
                     'name' => $user->name,
                     'email' => $user->email,
                     'phone_number' => $user->phone_number,
                     // 'avatar' => $user->avatar_image, TODO: implement this feature
-                ],
-                'comment' => [
+                ]),
+                'comment' => Json::encode([
                     'id' => $this->comment->getKey(),
                     'title' => $this->comment->comment,
-                ],
+                ]),
             ]);
     }
 
