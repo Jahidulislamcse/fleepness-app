@@ -169,6 +169,7 @@ namespace App\Models{
  * @property string $token
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DeviceToken newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DeviceToken newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DeviceToken query()
@@ -273,6 +274,7 @@ namespace App\Models{
  * @property-read int|null $participants_count
  * @property-read \App\Models\LivestreamProduct|null $pivot
  * @property-read mixed $recordings
+ * @property-read mixed $room_name
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LivestreamSave> $saves
  * @property-read int|null $saves_count
  * @property-read mixed $short_videos

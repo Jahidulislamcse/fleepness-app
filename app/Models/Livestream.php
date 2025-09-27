@@ -68,6 +68,7 @@ class Livestream extends Model implements HasMedia
 
     protected $hidden = [
         'egress_data',
+        'room_name',
     ];
 
     public function vendor()
@@ -100,6 +101,13 @@ class Livestream extends Model implements HasMedia
             'livestream_id',      // Foreign key on pivot referencing livestreams
             'participant_id'      // Foreign key on pivot referencing users
         );
+    }
+
+    protected function roomName(): Attribute
+    {
+        return Attribute::get(function () {
+            return $this->getRoomName();
+        })->shouldCache();
     }
 
     public function getRoomName(): string
