@@ -35,6 +35,8 @@ class OrderController extends Controller
         }
 
         $deliveryModel = DeliveryModel::find($request->delivery_model_id);
+        // dd($deliveryModel);
+
         if (!$deliveryModel) {
             return response()->json(['message' => 'Invalid delivery model.'], 422);
         }
@@ -50,7 +52,7 @@ class OrderController extends Controller
             $order->order_code = '#ORD' . strtoupper(Str::random(8));
             $order->is_multi_seller = $isMultiSeller;
             $order->total_sellers = $uniqueSellerCount;
-            $order->delivery_model = $deliveryModel;
+            $order->delivery_model = $deliveryModel->id;
 
             // if multiple sellers, multiply delivery fee
             $order->delivery_fee  = $deliveryModel->fee * $uniqueSellerCount;

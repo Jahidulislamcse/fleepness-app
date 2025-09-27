@@ -76,7 +76,7 @@
                     <div class="collapse " id="order">
                         <ul class="nav nav-collapse">
                             <li class="">
-                                <a href="{{ route('admin.payment.requests') }}">
+                                <a href="{{ route('admin.order.all') }}">
                                     Orders
                                 </a>
                             </li>
