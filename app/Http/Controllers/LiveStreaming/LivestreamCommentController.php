@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers\LiveStreaming;
 
-use App\Models\LivestreamComment;
-use App\Models\Livestream;
-use App\Models\User;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Laravel\Firebase\Facades\Firebase;
+use App\Models\Livestream;
+use App\Models\LivestreamComment;
+use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
+use Illuminate\Http\Request;
 
 class LivestreamCommentController extends Controller
 {
-
     public function index($livestreamId)
     {
         $livestream = Livestream::findOrFail($livestreamId);
@@ -21,50 +19,36 @@ class LivestreamCommentController extends Controller
         return response()->json($comments);
     }
 
-
-    public function store(Request $request, $livestreamId)
+    public function store(Request $request, $livestreamId, #[CurrentUser] User $user)
     {
-        // dd($request->all());
         $request->validate([
             'comment' => 'required|string|max:1000',
         ]);
 
         $livestream = Livestream::findOrFail($livestreamId);
-        $user = auth()->user();
 
         $comment = new LivestreamComment([
-            'user_id' => $user->id,
-            'livestream_id' => $livestream->id,
+            'user_id' => $user->getKey(),
+            'livestream_id' => $livestream->getKey(),
             'comment' => $request->input('comment'),
         ]);
 
         $comment->save();
-        // dd($livestream->getRoomName());
-        $data = [
-                'user' => $user->toJson(),
-                'comment' => $comment->toJson(),
-            ];
 
-        $message = CloudMessage::new()
-                ->withData($data) 
-            ->toTopic($livestream->getKey());
-
-        Firebase::messaging()->send($message);
+        $comment->notifyParticipants();
 
         return response()->json($comment, 201);
     }
 
-
-    public function update(Request $request, $livestreamId, $commentId)
+    public function update(Request $request, $livestreamId, $commentId, #[CurrentUser] User $user)
     {
         $request->validate([
             'comment' => 'required|string|max:1000',
         ]);
 
-        $livestream = Livestream::findOrFail($livestreamId);
         $comment = LivestreamComment::findOrFail($commentId);
 
-        if ($comment->user_id !== auth()->id()) {
+        if ($comment->user()->isNot($user)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -74,13 +58,11 @@ class LivestreamCommentController extends Controller
         return response()->json($comment);
     }
 
-
-    public function destroy($livestreamId, $commentId)
+    public function destroy($livestreamId, $commentId, #[CurrentUser] User $user)
     {
-        $livestream = Livestream::findOrFail($livestreamId);
         $comment = LivestreamComment::findOrFail($commentId);
 
-        if ($comment->user_id !== auth()->id()) {
+        if ($comment->user()->isNot($user)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
