@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('token')->index();
+            $table->json('meta')->nullable();
             $table->timestamps();
         });
     }
