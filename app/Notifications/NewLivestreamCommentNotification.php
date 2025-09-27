@@ -26,7 +26,8 @@ class NewLivestreamCommentNotification extends Notification implements ShouldQue
 
     public function toFcmTopic(FcmNotifiable $notifiable): string
     {
-        return 'livestream_comment_'.$this->comment->livestream_id;
+        return $this->comment->livestream->getRoomName();
+        // return 'livestream_comment_'.$this->comment->livestream_id;
     }
 
     public function toFcm(FcmNotifiable $notifiable): CloudMessage

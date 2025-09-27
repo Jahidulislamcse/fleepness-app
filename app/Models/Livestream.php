@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\ModelStatus\HasStatuses;
@@ -66,7 +67,7 @@ class Livestream extends Model implements HasMedia
     ];
 
     protected $hidden = [
-        'egress_data'
+        'egress_data',
     ];
 
     public function vendor()
@@ -103,7 +104,7 @@ class Livestream extends Model implements HasMedia
 
     public function getRoomName(): string
     {
-        return sprintf('%s:%s', $this->title, $this->getKey());
+        return sprintf('%s_%s', Str::snake($this->title), $this->getKey());
     }
 
     public function getEncodedFileOutputName(): string
@@ -195,7 +196,7 @@ class Livestream extends Model implements HasMedia
                         $ext = strtolower(pathinfo($thumbnailPath, PATHINFO_EXTENSION));
 
                         return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
-                    })->map(fn($thmnailPath) => Storage::disk('r2')->url($thmnailPath))
+                    })->map(fn ($thmnailPath) => Storage::disk('r2')->url($thmnailPath))
                     ->all();
 
                 return [
