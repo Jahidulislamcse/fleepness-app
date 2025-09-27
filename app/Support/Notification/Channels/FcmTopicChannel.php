@@ -2,8 +2,10 @@
 
 namespace App\Support\Notification\Channels;
 
+use App\Support\Notification\Contracts\FcmNotifiable;
 use App\Support\Notification\Contracts\SupportsFcmTopicChannel;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Exception\MessagingException;
@@ -22,7 +24,7 @@ class FcmTopicChannel
     /**
      * Send the given notification.
      */
-    public function send(mixed $notifiable, Notification&SupportsFcmTopicChannel $notification): ?array
+    public function send(FcmNotifiable|AnonymousNotifiable $notifiable, Notification&SupportsFcmTopicChannel $notification): ?array
     {
         $topic = $notification->toFcmTopic($notifiable);
 

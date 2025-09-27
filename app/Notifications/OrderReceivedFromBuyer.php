@@ -9,6 +9,7 @@ use App\Support\Notification\Contracts\FcmNotifiable;
 use App\Support\Notification\Contracts\SupportsFcmChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Messaging\CloudMessage;
 
@@ -29,7 +30,7 @@ class OrderReceivedFromBuyer extends Notification implements ShouldQueue, Suppor
         return $this->sellerOrder->status === SellerOrderStatus::Pending;
     }
 
-    public function toFcm(FcmNotifiable $notifiable): CloudMessage
+    public function toFcm(FcmNotifiable|AnonymousNotifiable $notifiable): CloudMessage
     {
         return CloudMessage::new()
             ->withNotification([
