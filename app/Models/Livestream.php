@@ -68,6 +68,9 @@ class Livestream extends Model implements HasMedia
 
     protected $hidden = [
         'egress_data',
+    ];
+
+    protected $appends = [
         'room_name',
     ];
 
