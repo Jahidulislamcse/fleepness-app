@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\LiveStreaming;
 
+use App\Models\User;
+use App\Models\Livestream;
 use App\Constants\GateNames;
+use Illuminate\Routing\Controller;
 use App\Constants\LivestreamStatuses;
 use App\Data\Dto\GeneratePublisherTokenData;
 use App\Facades\Livestream as LivestreamService;
-use App\Models\Livestream;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Str;
 
 class GetLivestreamPublisherTokenController extends Controller
 {
@@ -18,14 +19,14 @@ class GetLivestreamPublisherTokenController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke($id)
+    public function __invoke($id, #[CurrentUser] User $user)
     {
         $livestream = Livestream::findOrFail($id);
         $this->authorize(GateNames::GET_LIVESTREAM_PUBLISHER_TOKEN->value, $livestream);
 
-        $userId = auth('sanctum')->id() ?? Str::random(6);
-        $displayName = auth('sanctum')->user()?->name ?? Str::random(6);
-        $roomName = $livestream->getRoomName();
+        $userId = $user->getKey();
+        $displayName = $user->name;
+        $roomName = $livestream->room_name;
 
         $data = new GeneratePublisherTokenData(
             roomName: $roomName,
@@ -33,7 +34,7 @@ class GetLivestreamPublisherTokenController extends Controller
             displayName: $displayName,
             metadata: [
                 'livestream_identity' => $livestream->getKey(),
-                ...(auth('sanctum')->check() ? auth('sanctum')->user()->toArray() : []),
+                $user->toArray(),
             ]
         );
 
@@ -41,7 +42,7 @@ class GetLivestreamPublisherTokenController extends Controller
         $livestream->startRecording();
         $livestream->save();
         $livestream->setStatus(LivestreamStatuses::STARTED->value);
-        
+
         return response()->json([
             'token' => $roomToken,
         ]);

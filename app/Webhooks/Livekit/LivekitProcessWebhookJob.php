@@ -2,12 +2,14 @@
 
 namespace App\Webhooks\Livekit;
 
-use Agence104\LiveKit\WebhookReceiver;
-use App\Models\Livestream;
 use App\Models\User;
+use App\Models\Livestream;
+use App\Constants\LivestreamStatuses;
+use Agence104\LiveKit\WebhookReceiver;
 use Illuminate\Database\Eloquent\Casts\Json;
-use Livekit\WebhookEvent;
 use Spatie\WebhookClient\Jobs\ProcessWebhookJob;
+
+use function Illuminate\Support\enum_value;
 
 class LivekitProcessWebhookJob extends ProcessWebhookJob
 {
@@ -25,7 +27,18 @@ class LivekitProcessWebhookJob extends ProcessWebhookJob
                 logger()->info('room started', [$event->getRoom()->getMetadata()]);
                 break;
             case 'room_finished':
-                $event->getRoom()->getMetadata();
+                logger()->info('room finished', [$event->getRoom()->getMetadata()]);
+
+                if ($event->hasRoom()) {
+                    $roomMetadata = Json::decode($event->getRoom()->getMetadata());
+                    $livestreamId = data_get($roomMetadata, 'livestream_identity');
+                    $livestream = Livestream::find($livestreamId);
+                    if ($livestream) {
+                        $livestream->ended_at = now();
+                        $livestream->setStatus(enum_value(LivestreamStatuses::FINISHED));
+                        $livestream->save();
+                    }
+                }
                 break;
             case 'participant_joined':
                 if ($event->hasRoom() && $event->hasParticipant()) {
@@ -87,7 +100,7 @@ class LivekitProcessWebhookJob extends ProcessWebhookJob
                 break;
             case 'egress_ended':
                 logger()->info('egress ended', [$event->hasEgressInfo(), $event->hasRoom()]);
-               if ($event->hasEgressInfo()) {
+                if ($event->hasEgressInfo()) {
                     $eventEgressId = $event->getEgressInfo()->getEgressId();
                     $livestream = Livestream::firstWhere([
                         'egress_id' => $eventEgressId,

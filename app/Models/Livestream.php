@@ -20,7 +20,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 {
     use HasFactory, HasStatuses, InteractsWithMedia, Notifiable;
 
-    protected $fillable = ['title', 'vendor_id', 'total_duration', 'scheduled_time', 'started_at', 'ended_at', 'egress_id', 'egress_data'];
+    protected $fillable = ['title', 'vendor_id', 'total_duration', 'scheduled_time', 'started_at', 'ended_at', 'egress_id', 'egress_data', 'room_id'];
 
     protected $casts = [
         'started_at' => 'datetime',
@@ -30,6 +30,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
     ];
 
     protected $hidden = [
+        'room_id',
         'egress_data',
     ];
 
@@ -107,6 +108,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
         $this->started_at = now();
         $egress = \App\Facades\Livestream::startRecording($this->getRoomName(), $this->getEncodedFileOutputName());
         $this->fill([
+            'room_id' => $egress->getRoomId(),
             'egress_id' => $egress->getEgressId(),
         ]);
     }
