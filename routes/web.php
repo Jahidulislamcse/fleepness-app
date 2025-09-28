@@ -1,55 +1,32 @@
 <?php
 
-use Agence104\LiveKit\RoomServiceClient;
-use Agence104\LiveKit\WebhookReceiver;
-use Amp\ByteStream\Payload;
-use App\Events\PodcastProcessed;
-use App\Http\Controllers\Admin\AdminDashboardController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FeeController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SectionController;
+use App\Http\Controllers\AdminCategoryController;
+use App\Http\Controllers\DeliveryModelController;
 use App\Http\Controllers\Admin\AdminOrderController;
+use App\Http\Controllers\Auth\SocialLoginController;
+use App\Http\Controllers\Admin\AdminSliderController;
 use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminSettingController;
-use App\Http\Controllers\Admin\AdminSliderController;
-use App\Http\Controllers\AdminCategoryController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\Vendor\VendorProductController;
-use App\Http\Controllers\TagController;
-use App\Http\Controllers\SectionController;
-use App\Http\Controllers\Vendor\ProductController;
-use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ShopCategoryController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\Vendor\VendorDashboardController;
 use App\Http\Controllers\Vendor\VendorOrderController;
+use App\Http\Controllers\Admin\PaymentMethodController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\Vendor\VendorProfileController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\SocialLoginController;
-use App\Http\Controllers\DeliveryModelController;
-use App\Http\Controllers\FeeController;
+use App\Http\Controllers\Vendor\VendorDashboardController;
 use App\Http\Controllers\Vendor\VendorShortVideoController;
-use App\Models\Livestream;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Broadcast;
-use App\Models\User;
-use App\Notifications\NewMessageNotification;
-
-Broadcast::routes(['middleware' => ['auth']]);
 
 Route::webhooks('livekit', 'livekit');
 
-Route::get('/test-notify', function () {
-    $data = resolve(RoomServiceClient::class)->listRooms(['SSSSSSSSS:19']);
-    dd($data->getRooms()[0]->get['metadata']);
-});
-
-Route::get('/test-egress', function () {
-    $livestream = Livestream::find(11);
-    dd($livestream->recordings);
-});
-
 Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
-
 
 Route::get('/', function () {
     return view('welcome');
@@ -117,7 +94,6 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
     Route::get('/payment/history', [PaymentController::class, 'paymentHistory'])->name('payment.history');
 });
 
-
 Route::middleware(['auth', 'role:admin,vendor'])->group(function () {});
 Route::get('/create-vendor-account', [ProfileController::class, 'createVendor'])->name('create.vendor.account');
 Route::post('vendor/application', [UserController::class, 'application'])->name('vendor.application');
@@ -126,7 +102,6 @@ Route::post('rider/application', [UserController::class, 'riderApplication'])->n
 
 Route::get('/admin/categories/children/{parentId}', [AdminCategoryController::class, 'getChildren']);
 Route::get('/categories/{category_id}/tags', [TagController::class, 'getTagsByCategory']);
-
 
 Route::middleware('role:admin')->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
@@ -146,14 +121,12 @@ Route::middleware('role:admin')->group(function () {
                 Route::get('/', 'index')->name('all');
                 Route::get('/view/{id}', 'show')->name('view');
                 Route::put('/seller-order/{id}/update', [AdminOrderController::class, 'updateSellerOrder'])
-                   ->name('updateSellerOrder');
+                    ->name('updateSellerOrder');
             });
         });
 
-
         Route::resource('sliders', AdminSliderController::class);
         Route::get('get-tags', [TagController::class, 'getTags'])->name('getTags');
-
 
         Route::get('user/list', [UserController::class, 'userList'])->name('user.list');
         Route::post('user/store', [UserController::class, 'store'])->name('user.store');
@@ -186,7 +159,6 @@ Route::middleware('auth:sanctum')->prefix('admin')->name('admin.')->group(functi
     Route::delete('/shop-categories/{id}', [ShopCategoryController::class, 'view_destroy'])->name('shop-categories.destroy');
 });
 
-
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/delivery/models', [DeliveryModelController::class, 'index'])->name('admin.delivery.models.index');
     Route::get('/delivery/models/create', [DeliveryModelController::class, 'create'])->name('admin.delivery.models.create');
@@ -196,10 +168,4 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::delete('/delivery/models/{model}', [DeliveryModelController::class, 'destroy'])->name('admin.delivery.models.destroy');
 });
 
-
-
-Route::get('/test', function () {
-    dd(Storage::disk('r2')->files());
-})->name('payment.requests');
-
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

@@ -1,43 +1,37 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminSliderController;
-use App\Http\Controllers\Admin\ShopCategoryController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\OTPAuthController;
-use App\Http\Controllers\Auth\SocialLoginController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\DeliveryModelController;
-use App\Http\Controllers\EmailController;
-use App\Http\Controllers\LiveStreaming\GetLivestreamPublisherTokenController;
-use App\Http\Controllers\LiveStreaming\GetLivestreamSubscriberTokenController;
-use App\Http\Controllers\LiveStreaming\LivestreamCommentController;
-use App\Http\Controllers\LiveStreaming\LivestreamController;
-use App\Http\Controllers\LiveStreaming\LivestreamProductController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\SectionController;
-use App\Http\Controllers\SizeTemplateController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SMSController;
 use App\Http\Controllers\TagController;
-use App\Http\Controllers\user\AddressController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\EmailController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\SectionController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\user\CartController;
-use App\Http\Controllers\user\UserProductController;
-use App\Http\Controllers\user\UserProfileController;
+use App\Http\Controllers\Auth\OTPAuthController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SizeTemplateController;
+use App\Http\Controllers\user\AddressController;
+use App\Http\Controllers\DeliveryModelController;
 use App\Http\Controllers\user\UserSearchController;
 use App\Http\Controllers\user\UserVendorController;
+use App\Http\Controllers\Auth\SocialLoginController;
+use App\Http\Controllers\user\UserProductController;
+use App\Http\Controllers\user\UserProfileController;
+use App\Http\Controllers\Admin\AdminSliderController;
+use App\Http\Controllers\Admin\ShopCategoryController;
+use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\user\UserVendorFollowController;
 use App\Http\Controllers\user\UserVendorReviewController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\Vendor\VendorShortVideoController;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Route;
-
-RateLimiter::for('api', function (Request $request) {
-    return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
-});
+use App\Http\Controllers\LiveStreaming\LivestreamController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\LiveStreaming\LivestreamCommentController;
+use App\Http\Controllers\LiveStreaming\LivestreamProductController;
+use App\Http\Controllers\LiveStreaming\GetLivestreamPublisherTokenController;
+use App\Http\Controllers\LiveStreaming\GetLivestreamSubscriberTokenController;
 
 Route::middleware(['api', 'throttle:api'])->group(function () {
 
@@ -167,13 +161,9 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('short-videos/{id}', [VendorShortVideoController::class, 'show_api']);
 
     Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
-    Route::post('subscribe-to-topic', function (Illuminate\Http\Request $request) {
-        $validated = $request->validate([
-            'token' => ['required', 'string'],
-            'topic' => ['required', 'string'],
-        ]);
 
-        return \Kreait\Laravel\Firebase\Facades\Firebase::messaging()->subscribeToTopic($validated['topic'], $validated['token']);
+    Route::delete('broadcasting/auth', function (Illuminate\Http\Request $request) {
+        return Broadcast::driver('fcm')->unauth($request);
     });
 
     Route::get('/shop-categories', [ShopCategoryController::class, 'index']);          // List all categories

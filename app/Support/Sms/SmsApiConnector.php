@@ -75,7 +75,7 @@ class SmsApiConnector
     }
 
     /**
-     * @param  array{MessageParameters:list<string>}  $messages
+     * @param  array{MessageParameters:list<string>}  $data
      */
     public function sendBulkSMS(array $data): PromiseInterface|Response
     {

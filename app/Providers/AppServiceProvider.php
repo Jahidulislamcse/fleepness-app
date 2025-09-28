@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App;
 use Closure;
 use Exception;
 use Stringable;
@@ -13,6 +14,7 @@ use Illuminate\Support\Uri;
 use League\Uri\UriTemplate;
 use App\Services\SMSService;
 use GuzzleHttp\HandlerStack;
+use Illuminate\Http\Request;
 use GuzzleHttp\RequestOptions;
 use GuzzleHttp\RetryMiddleware;
 use GuzzleHttp\MessageFormatter;
@@ -20,10 +22,15 @@ use League\Uri\Uri as LeagueUri;
 use App\Support\Sms\SmsApiConnector;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Foundation\Application;
+use Illuminate\Log\Context\Repository;
 use Psr\Http\Message\RequestInterface;
 use Illuminate\Support\ServiceProvider;
 use Psr\Http\Message\ResponseInterface;
+use Illuminate\Cache\RateLimiting\Limit;
+use Spatie\Activitylog\Facades\LogBatch;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Http\Client\Request as HttpClientRequest;
 use Illuminate\Http\Client\Response as HttpClientResponse;
 
@@ -46,6 +53,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        context()->hydrated(static function (Repository $context): void {
+            if ($context->has('traceId') && $traceId = $context->get('traceId')) {
+                LogBatch::setBatch($traceId);
+            }
+        });
+
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
+        Broadcast::extend('fcm', function (Application $app, array $config) {
+            return new App\Support\Broadcaster\FcmBroadcaster;
+        });
+
         Uri::macro('fromTemplate', fn (string|Stringable|UriTemplate $template, iterable $variables = []): Uri => Uri::of(LeagueUri::fromTemplate($template, $variables)));
 
         Http::globalOptions([
@@ -67,13 +88,13 @@ class AppServiceProvider extends ServiceProvider
             );
         }
 
-        // Http::globalRequestMiddleware(static fn (RequestInterface $request) => LogBatch::withinBatch(static fn ($reqTraceId) => $request->withHeader(
-        //     'x-trace-id', $reqTraceId
-        // )));
+        Http::globalRequestMiddleware(static fn (RequestInterface $request) => LogBatch::withinBatch(static fn ($reqTraceId) => $request->withHeader(
+            'x-trace-id', $reqTraceId
+        )));
 
-        // Http::globalResponseMiddleware(static fn (ResponseInterface $response) => LogBatch::withinBatch(static fn ($reqTraceId) => $response->withHeader(
-        //     'x-trace-id', $reqTraceId
-        // )));
+        Http::globalResponseMiddleware(static fn (ResponseInterface $response) => LogBatch::withinBatch(static fn ($reqTraceId) => $response->withHeader(
+            'x-trace-id', $reqTraceId
+        )));
 
         $this->app->singleton(SMSService::class, function (Application $app) {
             return new SMSService(Http::sms());

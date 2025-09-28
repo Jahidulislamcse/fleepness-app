@@ -2,36 +2,39 @@
 
 namespace App\Services;
 
+use Closure;
+use Carbon\Carbon;
+use Livekit\FileInfo;
+use Livekit\EgressInfo;
+use Livekit\ImagesInfo;
+use Livekit\ImageOutput;
+use Livekit\SegmentsInfo;
+use App\Models\Livestream;
+use Livekit\EncodedFileType;
+use Livekit\EncodedFileOutput;
+use Livekit\SegmentedFileOutput;
+use Agence104\LiveKit\VideoGrant;
 use Agence104\LiveKit\AccessToken;
-use Agence104\LiveKit\AccessTokenOptions;
-use Agence104\LiveKit\EgressServiceClient;
+use Illuminate\Support\Collection;
 use Agence104\LiveKit\EncodedOutputs;
 use Agence104\LiveKit\RoomCreateOptions;
 use Agence104\LiveKit\RoomServiceClient;
-use Agence104\LiveKit\VideoGrant;
-use App\Data\Dto\GeneratePublisherTokenData;
-use App\Data\Dto\GenerateSubscriberTokenData;
-use App\Models\Livestream;
-use Carbon\Carbon;
-use Closure;
-use Illuminate\Container\Attributes\Storage;
-use Illuminate\Contracts\Filesystem\Cloud;
-use Illuminate\Contracts\Filesystem\Filesystem;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Pipeline;
-use Livekit\EncodedFileOutput;
-use Livekit\EncodedFileType;
-use Livekit\ImageOutput;
-use Livekit\SegmentedFileOutput;
+use Agence104\LiveKit\AccessTokenOptions;
+use Agence104\LiveKit\EgressServiceClient;
+use Illuminate\Contracts\Filesystem\Cloud;
+use App\Data\Dto\GeneratePublisherTokenData;
+use Illuminate\Container\Attributes\Storage;
+use App\Data\Dto\GenerateSubscriberTokenData;
+use Illuminate\Contracts\Filesystem\Filesystem;
 
 class LivestreamService
 {
     public function __construct(
         protected readonly RoomServiceClient $roomService,
         protected readonly EgressServiceClient $egressService,
-        #[Storage('r2')] protected readonly Filesystem&Cloud $r2fileSytem,
-    ) {
-    }
+        #[Storage('r2')] protected readonly Cloud&Filesystem $r2fileSytem,
+    ) {}
 
     public function generatePublisherToken(GeneratePublisherTokenData $data): string
     {
@@ -95,12 +98,12 @@ class LivestreamService
 
                 function (string $roomName, Closure $next) use ($data): string {
                     $roomToken = resolve(AccessToken::class);
-                    $roomTokenOpts = (new AccessTokenOptions())
+                    $roomTokenOpts = (new AccessTokenOptions)
                         ->setIdentity($data->identity)
                         ->setName($data->displayName)
                         ->setMetadata(json_encode($data->metadata));
 
-                    $videoGrant = (new VideoGrant())
+                    $videoGrant = (new VideoGrant)
                         ->setRoomName($roomName)
                         ->setRoomJoin()
                         ->setCanPublish(false)
