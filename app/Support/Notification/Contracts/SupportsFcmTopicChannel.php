@@ -6,5 +6,5 @@ use Illuminate\Notifications\AnonymousNotifiable;
 
 interface SupportsFcmTopicChannel extends SupportsFcmChannel
 {
-    public function toFcmTopic(FcmNotifiable|AnonymousNotifiable $notifiable): string;
+    public function toFcmTopic(AnonymousNotifiable|FcmNotifiableByTopic $notifiable): string;
 }

@@ -2,19 +2,21 @@
 
 namespace App\Notifications;
 
-use App\Models\LivestreamComment;
-use App\Support\Notification\Channels\FcmTopicChannel;
-use App\Support\Notification\Contracts\FcmNotifiable;
-use App\Support\Notification\Contracts\SupportsFcmTopicChannel;
 use Illuminate\Bus\Queueable;
+use App\Models\LivestreamComment;
+use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Kreait\Firebase\Messaging\CloudMessage;
 use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
-use Kreait\Firebase\Messaging\CloudMessage;
+// use App\Support\Notification\Channels\FcmTopicChannel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use App\Support\Notification\Contracts\FcmNotifiableByTopic;
+use App\Support\Notification\Contracts\FcmNotifiableByDevice;
+use App\Support\Notification\Contracts\SupportsFcmTopicChannel;
 
-class NewLivestreamCommentNotification extends Notification implements ShouldQueue, SupportsFcmTopicChannel
+class NewLivestreamCommentNotification extends Notification implements ShouldBroadcast, ShouldQueue, SupportsFcmTopicChannel
 {
     use Queueable;
 
@@ -26,23 +28,22 @@ class NewLivestreamCommentNotification extends Notification implements ShouldQue
         //
     }
 
-    public function toFcmTopic(FcmNotifiable|AnonymousNotifiable $notifiable): string
+    public function toFcmTopic(AnonymousNotifiable|FcmNotifiableByTopic $notifiable): string
     {
-        return $this->comment->livestream->getRoomName();
-        // return 'livestream_comment_'.$this->comment->livestream_id;
+        return $notifiable->routeNotificationForFcmTopics($this);
     }
 
-    public function toFcm(FcmNotifiable|AnonymousNotifiable $notifiable): CloudMessage
+    public function toFcm(AnonymousNotifiable|FcmNotifiableByDevice|FcmNotifiableByTopic $notifiable): CloudMessage
     {
-        $user = $this->comment->user;
+        $commenter = $this->comment->user;
 
         return CloudMessage::new()
             ->withData([
-                'user' => Json::encode([
-                    'id' => $user->getKey(),
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone_number' => $user->phone_number,
+                'commenter' => Json::encode([
+                    'id' => $commenter->getKey(),
+                    'name' => $commenter->name,
+                    'email' => $commenter->email,
+                    'phone_number' => $commenter->phone_number,
                     // 'avatar' => $user->avatar_image, TODO: implement this feature
                 ]),
                 'comment' => Json::encode([
@@ -59,7 +60,46 @@ class NewLivestreamCommentNotification extends Notification implements ShouldQue
      */
     public function via(object $notifiable): array
     {
-        return [FcmTopicChannel::class];
+        return [
+            // FcmTopicChannel::class,
+            'broadcast',
+        ];
+    }
+
+    public function toBroadcast(object $notifiable): array
+    {
+        $commenter = $this->comment->user;
+
+        return [
+            'commenter' => [
+                'id' => $commenter->getKey(),
+                'name' => $commenter->name,
+                'email' => $commenter->email,
+                'phone_number' => $commenter->phone_number,
+                // 'avatar' => $user->avatar_image, TODO: implement this feature
+            ],
+            'comment' => [
+                'id' => $this->comment->getKey(),
+                'title' => $this->comment->comment,
+            ],
+        ];
+    }
+
+    /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return array
+     */
+    public function broadcastOn()
+    {
+        return [
+            $this->comment->livestream->getRoomName(),
+        ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'new_livestream_comment';
     }
 
     /**

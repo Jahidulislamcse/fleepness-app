@@ -4,10 +4,10 @@ namespace App\Support\Notification\Contracts;
 
 use Illuminate\Notifications\Notification;
 
-interface FcmNotifiable
+interface FcmNotifiableByTopic
 {
     /**
      * @return list<string>|string|null
      */
-    public function routeNotificationForFcmTokens(Notification&SupportsFcmChannel $notification): array|string|null;
+    public function routeNotificationForFcmTopics(Notification&SupportsFcmChannel $notification): null|array|string;
 }

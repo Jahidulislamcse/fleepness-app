@@ -9,12 +9,15 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Events\Dispatcher;
 use Kreait\Laravel\Firebase\Facades\Firebase;
 use Kreait\Firebase\Messaging\MulticastSendReport;
-use App\Support\Notification\Contracts\FcmNotifiable;
 use Illuminate\Notifications\Events\NotificationFailed;
 use App\Support\Notification\Contracts\SupportsFcmChannel;
+use App\Support\Notification\Contracts\FcmNotifiableByDevice;
+use App\Support\Notification\Concerns\CanProcessFcmNotification;
 
 class FcmDeviceChannel
 {
+    use CanProcessFcmNotification;
+
     /**
      * The maximum number of tokens we can use in a single request
      *
@@ -27,7 +30,7 @@ class FcmDeviceChannel
      */
     public function __construct(protected Dispatcher $events) {}
 
-    public function send(FcmNotifiable $notifiable, Notification&SupportsFcmChannel $notification): ?Collection
+    public function send(FcmNotifiableByDevice $notifiable, Notification&SupportsFcmChannel $notification): ?Collection
     {
         $tokens = Arr::wrap($notifiable->routeNotificationForFcmTokens($notification));
 
@@ -36,6 +39,7 @@ class FcmDeviceChannel
         }
 
         $fcmMessage = $notification->toFcm($notifiable);
+        $fcmMessage = $this->addEventToFcmMessage($fcmMessage, $notification);
 
         return Collection::make($tokens)
             ->chunk(self::TOKENS_PER_REQUEST)

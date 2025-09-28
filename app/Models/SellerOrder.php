@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * @property-read User $seller
@@ -44,7 +44,7 @@ class SellerOrder extends Model
     }
 
     /**
-     * @return BelongsTo<User>
+     * @return BelongsTo<User,$this>
      */
     public function seller(): BelongsTo
     {
@@ -53,6 +53,6 @@ class SellerOrder extends Model
 
     public function notifySellerAboutNewOrderFromBuyer()
     {
-        return $this->seller->notify(new \App\Notifications\OrderReceivedFromBuyer($this));
+        $this->seller->notify(new \App\Notifications\OrderReceivedFromBuyer($this));
     }
 }

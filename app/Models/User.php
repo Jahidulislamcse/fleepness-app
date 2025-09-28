@@ -4,16 +4,17 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-use App\Support\Notification\Contracts\FcmNotifiable;
-use App\Support\Notification\Contracts\SupportsFcmChannel;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Arr;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
-use Laravel\Sanctum\HasApiTokens;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Support\Notification\Contracts\SupportsFcmChannel;
+use App\Support\Notification\Contracts\FcmNotifiableByDevice;
 
-class User extends Authenticatable implements FcmNotifiable
+class User extends Authenticatable implements FcmNotifiableByDevice
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
@@ -37,7 +38,17 @@ class User extends Authenticatable implements FcmNotifiable
         'remember_token',
     ];
 
-    public function routeNotificationForFcmTokens(Notification&SupportsFcmChannel $notification): array|string|null
+    public function removeDeviceToken(array|string $token): mixed
+    {
+        $tokens = Arr::wrap($token);
+
+        return $this
+            ->deviceTokens()
+            ->whereIn('token', $tokens)
+            ->delete();
+    }
+
+    public function routeNotificationForFcmTokens(Notification&SupportsFcmChannel $notification): null|array|string
     {
         return $this->deviceTokens->pluck('token')->toArray();
     }

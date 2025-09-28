@@ -2,10 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Notifications\AnonymousNotifiable;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class LivestreamComment extends Model
 {
@@ -29,6 +27,6 @@ class LivestreamComment extends Model
 
     public function notifyParticipants()
     {
-        return Notification::send(new AnonymousNotifiable, new \App\Notifications\NewLivestreamCommentNotification($this));
+        $this->livestream->notify(new \App\Notifications\NewLivestreamCommentNotification($this));
     }
 }

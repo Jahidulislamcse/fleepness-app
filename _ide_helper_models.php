@@ -226,41 +226,15 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * App\Models\Livestream
- *
  * @property int $id
  * @property string $title
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
- * @property-read int|null $media_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product> $products
- * @property-read int|null $products_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\ModelStatus\Status> $statuses
- * @property-read int|null $statuses_count
- * @property-read string $status
- * @property-read \App\Models\Vendor|null $vendor
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream currentStatus(...$names)
- * @method static \Database\Factories\LivestreamFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream otherCurrentStatus(...$names)
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream query()
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream whereTitle($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream whereUpdatedAt($value)
  * @property int $vendor_id
+ * @property string|null $total_duration
  * @property \Illuminate\Support\Carbon|null $scheduled_time
  * @property \Illuminate\Support\Carbon|null $started_at
  * @property \Illuminate\Support\Carbon|null $ended_at
- * @property int|null $total_duration
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream whereEndedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream whereScheduledTime($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream whereStartedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream whereTotalDuration($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Livestream whereVendorId($value)
- * @mixin \Eloquent
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $egress_id
  * @property int $total_participants
  * @property array<array-key, mixed>|null $egress_data
@@ -270,18 +244,41 @@ namespace App\Models{
  * @property-read int|null $likes_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LivestreamProduct> $livestreamProducts
  * @property-read int|null $livestream_products_count
+ * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
+ * @property-read int|null $media_count
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property-read int|null $notifications_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $participants
  * @property-read int|null $participants_count
  * @property-read \App\Models\LivestreamProduct|null $pivot
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product> $products
+ * @property-read int|null $products_count
  * @property-read mixed $recordings
  * @property-read mixed $room_name
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LivestreamSave> $saves
  * @property-read int|null $saves_count
  * @property-read mixed $short_videos
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\ModelStatus\Status> $statuses
+ * @property-read int|null $statuses_count
  * @property-read mixed $thumbnails
+ * @property-read \App\Models\User|null $vendor
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream currentStatus(...$names)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream otherCurrentStatus(...$names)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereEgressData($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereEgressId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereEndedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereScheduledTime($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereStartedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereTotalDuration($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereTotalParticipants($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereVendorId($value)
  */
 	class Livestream extends \Eloquent implements \Spatie\MediaLibrary\HasMedia {}
 }
@@ -1013,7 +1010,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereWithdrawnAmount($value)
  */
-	class User extends \Eloquent implements \App\Support\Notification\Contracts\FcmNotifiable {}
+	class User extends \Eloquent implements \App\Support\Notification\Contracts\FcmNotifiableByDevice {}
 }
 
 namespace App\Models{
