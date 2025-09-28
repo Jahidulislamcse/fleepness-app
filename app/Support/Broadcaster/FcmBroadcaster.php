@@ -76,8 +76,6 @@ class FcmBroadcaster extends Broadcaster
             ->map(Str::snake(...))
             ->unique();
 
-        dump($channels, $event, $payload, $notification);
-
         try {
             $channels
                 ->chunk(100)

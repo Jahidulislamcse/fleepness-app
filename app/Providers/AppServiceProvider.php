@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App;
 use Closure;
 use Exception;
 use Stringable;
@@ -30,7 +29,11 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Spatie\Activitylog\Facades\LogBatch;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Http\Client\PendingRequest;
+use App\Support\Broadcaster\FcmBroadcaster;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Notification;
+use App\Support\Notification\Channels\FcmTopicChannel;
+use App\Support\Notification\Channels\FcmDeviceChannel;
 use Illuminate\Http\Client\Request as HttpClientRequest;
 use Illuminate\Http\Client\Response as HttpClientResponse;
 
@@ -53,6 +56,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Notification::extend('fcm-device', function (Application $app) {
+            return $app->make(FcmDeviceChannel::class);
+        });
+
+        Notification::extend('fcm-topic', function (Application $app) {
+            return $app->make(FcmTopicChannel::class);
+        });
+
         context()->hydrated(static function (Repository $context): void {
             if ($context->has('traceId') && $traceId = $context->get('traceId')) {
                 LogBatch::setBatch($traceId);
@@ -64,7 +75,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Broadcast::extend('fcm', function (Application $app, array $config) {
-            return new App\Support\Broadcaster\FcmBroadcaster;
+            return $app->make(FcmBroadcaster::class);
         });
 
         Uri::macro('fromTemplate', fn (string|Stringable|UriTemplate $template, iterable $variables = []): Uri => Uri::of(LeagueUri::fromTemplate($template, $variables)));
