@@ -9,7 +9,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Notifications\AnonymousNotifiable;
-use Illuminate\Notifications\Messages\MailMessage;
 // use App\Support\Notification\Channels\FcmTopicChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use App\Support\Notification\Contracts\FcmNotifiableByTopic;
@@ -43,8 +42,8 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
                     'id' => $commenter->getKey(),
                     'name' => $commenter->name,
                     'email' => $commenter->email,
+                    'avatar' => $commenter->cover_image,
                     'phone_number' => $commenter->phone_number,
-                    // 'avatar' => $user->avatar_image, TODO: implement this feature
                 ]),
                 'comment' => Json::encode([
                     'id' => $this->comment->getKey(),
@@ -61,7 +60,6 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
     public function via(object $notifiable): array
     {
         return [
-            // FcmTopicChannel::class,
             'broadcast',
         ];
     }
@@ -75,8 +73,8 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
                 'id' => $commenter->getKey(),
                 'name' => $commenter->name,
                 'email' => $commenter->email,
+                'avatar' => $commenter->cover_image,
                 'phone_number' => $commenter->phone_number,
-                // 'avatar' => $user->avatar_image, TODO: implement this feature
             ],
             'comment' => [
                 'id' => $this->comment->getKey(),
@@ -103,17 +101,6 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
     }
 
     /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
-    }
-
-    /**
      * Get the array representation of the notification.
      *
      * @return array<string, mixed>
@@ -121,7 +108,7 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
     public function toArray(object $notifiable): array
     {
         return [
-            //
+
         ];
     }
 }

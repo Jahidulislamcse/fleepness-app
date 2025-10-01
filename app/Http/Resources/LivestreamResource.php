@@ -2,9 +2,15 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Livestream;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @property-read Livestream $resource
+ *
+ * @mixin Livestream
+ */
 class LivestreamResource extends JsonResource
 {
     /**
@@ -18,12 +24,12 @@ class LivestreamResource extends JsonResource
         return [
             ...parent::toArray($request),
             'status' => $this->status,
-            'products'=> $this->products,
-            $this->mergeWhen(!is_null($this->egress_id), fn()=> [
+            'products' => $this->products,
+            $this->mergeWhen(! is_null($this->egress_id), fn () => [
                 'recordings' => $this->recordings,
                 'short_videos' => $this->short_videos,
                 'thumbnails' => $this->thumbnails,
-            ])
+            ]),
         ];
     }
 }

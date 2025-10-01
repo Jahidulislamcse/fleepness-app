@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\LiveStreaming;
 
+use App\Models\Livestream;
+use Illuminate\Routing\Controller;
 use App\Data\Dto\AddLivestreamProductData;
 use App\Data\Dto\RemoveLivestreamProductData;
-use App\Data\Resources\LivestreamData;
-use App\Models\Livestream;
-use Illuminate\Routing\Controller as Controller;
-
 
 class LivestreamProductController extends Controller
 {
@@ -21,8 +19,6 @@ class LivestreamProductController extends Controller
      */
     public function store($livestreamId, AddLivestreamProductData $data)
     {
-
-        // dd($livestream_id);
         $livestream = Livestream::findOrFail($livestreamId);
         $livestream->products()->sync($data->productIds, false);
 

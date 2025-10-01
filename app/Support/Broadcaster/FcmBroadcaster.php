@@ -3,14 +3,19 @@
 namespace App\Support\Broadcaster;
 
 use Illuminate\Support\Str;
+use UnexpectedValueException;
+use App\Events\FcmBroadcastFailed;
 use Illuminate\Support\Collection;
+use Kreait\Firebase\Messaging\SendReport;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Support\HigherOrderWhenProxy;
 use Kreait\Laravel\Firebase\Facades\Firebase;
 use Illuminate\Broadcasting\BroadcastException;
+use Kreait\Firebase\Messaging\MulticastSendReport;
 use Illuminate\Broadcasting\Broadcasters\Broadcaster;
 use Illuminate\Broadcasting\Broadcasters\UsePusherChannelConventions;
+use App\Support\Notification\Contracts\FcmBroadcastNotifiableByDevice;
 
 class FcmBroadcaster extends Broadcaster
 {
@@ -51,11 +56,54 @@ class FcmBroadcaster extends Broadcaster
         return response(['success' => true, 'result' => $result]);
     }
 
+    /**
+     * @param  \Illuminate\Support\Collection<int,string>  $channels
+     * @return \Illuminate\Support\Collection<int,string>
+     */
+    private function normalizeChannelCollection(Collection $channels)
+    {
+        return $channels->map($this->normalizeChannelName(...))
+            ->map(fn ($channel) => Str::snake($channel))
+            ->unique();
+    }
+
+    /**
+     * Handle the report for the notification and dispatch any failed notifications.
+     */
+    protected function checkReportForFailures(mixed $notifiable, string $event, MulticastSendReport $report): MulticastSendReport
+    {
+        collect($report->getItems())
+            ->filter(fn (SendReport $report) => $report->isFailure())
+            ->each(fn (SendReport $report) => $this->dispatchFailedNotification($notifiable, $event, $report));
+
+        return $report;
+    }
+
+    /**
+     * Dispatch failed event.
+     */
+    protected function dispatchFailedNotification(mixed $notifiable, string $event, SendReport $report): void
+    {
+        event(new FcmBroadcastFailed($notifiable, $event, self::class, [
+            'report' => $report,
+        ]));
+    }
+
     public function broadcast(array $channels, $event, array $payload = [])
     {
         data_forget($payload, 'socket');
-        $notification = data_get($payload, 'notification');
+        $notifiable = data_get($payload, 'notifiable');
 
+        if ($notifiable) {
+            throw_unless(
+                $notifiable instanceof FcmBroadcastNotifiableByDevice,
+                UnexpectedValueException::class,
+                'notifiable must implement '.FcmBroadcastNotifiableByDevice::class
+            );
+            data_forget($payload, 'notifiable');
+        }
+
+        $notification = data_get($payload, 'notification');
         if ($notification) {
             data_forget($payload, 'notification');
         }
@@ -70,12 +118,56 @@ class FcmBroadcaster extends Broadcaster
             }
         }
 
-        /** @var Collection<int,string> */
-        $channels = collect($this->formatChannels($channels))
-            ->map($this->normalizeChannelName(...))
-            ->map(Str::snake(...))
-            ->unique();
+        [$privateChannels, $publicChannels] = collect($this->formatChannels($channels))
+            ->partition(fn ($channel) => $this->isGuardedChannel($channel));
 
+        $publicChannels = $this->normalizeChannelCollection($publicChannels);
+        $privateChannels = $this->normalizeChannelCollection($privateChannels);
+
+        /** @var FcmBroadcastNotifiableByDevice|null $notifiable */
+        if ($notifiable) {
+            $this->handlePrivateChannels($notifiable, $event, $payload, $notification);
+        }
+
+        $this->handlePublicChannels($publicChannels, $payload, $notification);
+    }
+
+    private function handlePrivateChannels(FcmBroadcastNotifiableByDevice $notifiable, string $event, array $payload, ?array $notification = null)
+    {
+        if (! empty($notifiable->routeBroadcastNotificationForFcmTokens())) {
+
+            try {
+                /** @var HigherOrderWhenProxy|CloudMessage $message */
+                $message = (new HigherOrderWhenProxy(CloudMessage::new()))
+                    ->negateConditionOnCapture()
+                    ->condition(is_null($notification));
+
+                /** @var CloudMessage $message */
+                $message = $message
+                    ->withData($payload)
+                    ->withNotification($notification);
+
+                $report = Firebase::messaging()->sendMulticast(
+                    $message,
+                    $notifiable->routeBroadcastNotificationForFcmTokens()
+                );
+                $this->checkReportForFailures($notifiable, $event, $report);
+            } catch (\Throwable $th) {
+                throw new BroadcastException(
+                    $th->getMessage(),
+                    $th->getCode(),
+                    $th
+                );
+            }
+        }
+    }
+
+    /**
+     * @param  Collection<int,string>  $channels
+     * @return void
+     */
+    private function handlePublicChannels(Collection $channels, array $payload, ?array $notification = null)
+    {
         try {
             $channels
                 ->chunk(100)
@@ -84,7 +176,8 @@ class FcmBroadcaster extends Broadcaster
 
                         /** @var HigherOrderWhenProxy|CloudMessage $message */
                         $message = (new HigherOrderWhenProxy(CloudMessage::new()))
-                            ->condition($notification);
+                            ->condition(is_null($notification))
+                            ->negateConditionOnCapture();
 
                         /** @var CloudMessage $message */
                         $message = $message

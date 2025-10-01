@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use Illuminate\Support\Arr;
+use App\Events\FcmBroadcastFailed;
 use Kreait\Firebase\Messaging\SendReport;
 use App\Support\Notification\Channels\FcmDeviceChannel;
 use Illuminate\Notifications\Events\NotificationFailed;
@@ -21,9 +22,9 @@ class DeleteExpiredNotificationTokens
     /**
      * Handle the event.
      */
-    public function handle(NotificationFailed $event): void
+    public function handle(FcmBroadcastFailed|NotificationFailed $event): void
     {
-        if (FcmDeviceChannel::class === $event->channel) {
+        if ($event instanceof NotificationFailed && (FcmDeviceChannel::class === $event->channel || 'fcm-device' === $event->channel)) {
             /** @var SendReport */
             $report = Arr::get($event->data, 'report');
 
@@ -34,6 +35,17 @@ class DeleteExpiredNotificationTokens
             if ($notifiable instanceof FcmNotifiableByDevice) {
                 $notifiable->removeDeviceToken($target->value());
             }
+        }
+
+        if ($event instanceof FcmBroadcastFailed) {
+            /** @var SendReport */
+            $report = Arr::get($event->data, 'report');
+
+            $target = $report->target();
+
+            $notifiable = $event->notifiable;
+
+            $notifiable->removeDeviceToken($target->value());
         }
     }
 }

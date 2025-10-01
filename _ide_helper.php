@@ -10041,7 +10041,6 @@ namespace Illuminate\Support\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
-         * @param \Closure $callback
          * @return \Illuminate\Hashing\HashManager
          * @static
          */
@@ -10081,7 +10080,6 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the container instance used by the manager.
          *
-         * @param \Illuminate\Contracts\Container\Container $container
          * @return \Illuminate\Hashing\HashManager
          * @static
          */
@@ -11805,7 +11803,6 @@ namespace Illuminate\Support\Facades {
          *
          * @param \Illuminate\Support\Collection|mixed $notifiables
          * @param mixed $notification
-         * @param array|null $channels
          * @return void
          * @static
          */
@@ -11897,7 +11894,6 @@ namespace Illuminate\Support\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
-         * @param \Closure $callback
          * @return \Illuminate\Notifications\ChannelManager
          * @static
          */
@@ -11937,7 +11933,6 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the container instance used by the manager.
          *
-         * @param \Illuminate\Contracts\Container\Container $container
          * @return \Illuminate\Notifications\ChannelManager
          * @static
          */
@@ -18872,7 +18867,6 @@ namespace Illuminate\Support\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
-         * @param \Closure $callback
          * @return \Illuminate\Session\SessionManager
          * @static
          */
@@ -18912,7 +18906,6 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the container instance used by the manager.
          *
-         * @param \Illuminate\Contracts\Container\Container $container
          * @return \Illuminate\Session\SessionManager
          * @static
          */
@@ -22966,6 +22959,159 @@ namespace Kreait\Laravel\Firebase\Facades {
             }
     }
 
+namespace Laravel\Octane\Facades {
+    /**
+     * @see \Laravel\Octane\Octane
+     */
+    class Octane {
+        /**
+         * Get a Swoole table instance.
+         *
+         * @static
+         */
+        public static function table($table)
+        {
+            /** @var \Laravel\Octane\Octane $instance */
+            return $instance->table($table);
+        }
+
+        /**
+         * Format an exception to a string that should be returned to the client.
+         *
+         * @static
+         */
+        public static function formatExceptionForClient($e, $debug = false)
+        {
+            return \Laravel\Octane\Octane::formatExceptionForClient($e, $debug);
+        }
+
+        /**
+         * Write an error message to STDERR or to the SAPI logger if not in CLI mode.
+         *
+         * @static
+         */
+        public static function writeError($message)
+        {
+            return \Laravel\Octane\Octane::writeError($message);
+        }
+
+        /**
+         * Concurrently resolve the given callbacks via background tasks, returning the results.
+         * 
+         * Results will be keyed by their given keys - if a task did not finish, the tasks value will be "false".
+         *
+         * @return array
+         * @throws \Laravel\Octane\Exceptions\TaskException
+         * @throws \Laravel\Octane\Exceptions\TaskTimeoutException
+         * @static
+         */
+        public static function concurrently($tasks, $waitMilliseconds = 3000)
+        {
+            /** @var \Laravel\Octane\Octane $instance */
+            return $instance->concurrently($tasks, $waitMilliseconds);
+        }
+
+        /**
+         * Get the task dispatcher.
+         *
+         * @return \Laravel\Octane\Contracts\DispatchesTasks
+         * @static
+         */
+        public static function tasks()
+        {
+            /** @var \Laravel\Octane\Octane $instance */
+            return $instance->tasks();
+        }
+
+        /**
+         * Get the listeners that will prepare the Laravel application for a new request.
+         *
+         * @static
+         */
+        public static function prepareApplicationForNextRequest()
+        {
+            return \Laravel\Octane\Octane::prepareApplicationForNextRequest();
+        }
+
+        /**
+         * Get the listeners that will prepare the Laravel application for a new operation.
+         *
+         * @static
+         */
+        public static function prepareApplicationForNextOperation()
+        {
+            return \Laravel\Octane\Octane::prepareApplicationForNextOperation();
+        }
+
+        /**
+         * Get the container bindings / services that should be pre-resolved by default.
+         *
+         * @static
+         */
+        public static function defaultServicesToWarm()
+        {
+            return \Laravel\Octane\Octane::defaultServicesToWarm();
+        }
+
+        /**
+         * Register a Octane route.
+         *
+         * @static
+         */
+        public static function route($method, $uri, $callback)
+        {
+            /** @var \Laravel\Octane\Octane $instance */
+            return $instance->route($method, $uri, $callback);
+        }
+
+        /**
+         * Determine if a route exists for the given method and URI.
+         *
+         * @static
+         */
+        public static function hasRouteFor($method, $uri)
+        {
+            /** @var \Laravel\Octane\Octane $instance */
+            return $instance->hasRouteFor($method, $uri);
+        }
+
+        /**
+         * Invoke the route for the given method and URI.
+         *
+         * @static
+         */
+        public static function invokeRoute($request, $method, $uri)
+        {
+            /** @var \Laravel\Octane\Octane $instance */
+            return $instance->invokeRoute($request, $method, $uri);
+        }
+
+        /**
+         * Get the registered Octane routes.
+         *
+         * @static
+         */
+        public static function getRoutes()
+        {
+            /** @var \Laravel\Octane\Octane $instance */
+            return $instance->getRoutes();
+        }
+
+        /**
+         * Register a callback to be called every N seconds.
+         *
+         * @return \Laravel\Octane\Swoole\InvokeTickCallable
+         * @static
+         */
+        public static function tick($key, $callback, $seconds = 1, $immediate = true)
+        {
+            /** @var \Laravel\Octane\Octane $instance */
+            return $instance->tick($key, $callback, $seconds, $immediate);
+        }
+
+            }
+    }
+
 namespace Laravel\Socialite\Facades {
     /**
      * @method array getScopes()
@@ -23072,7 +23218,6 @@ namespace Laravel\Socialite\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
-         * @param \Closure $callback
          * @return \Laravel\Socialite\SocialiteManager
          * @static
          */
@@ -23310,8 +23455,8 @@ namespace Illuminate\Http\Client {
          * Specify the number of times the request should be attempted.
          *
          * @param array<int,int>|int $times
-         * @param (\Closure(int $attempts,HttpClientRequest $request,?HttpClientResponse $response):int)|int|null $sleepMilliseconds
-         * @param (\Closure(int $attempts,HttpClientRequest $request,?HttpClientResponse $response,?Exception $exception):bool)|null $when
+         * @param (\Closure(int $attempts,\Illuminate\Http\Client\Request $request,?\Illuminate\Http\Client\Response $response):int)|int|null $sleepMilliseconds
+         * @param (\Closure(int $attempts,\Illuminate\Http\Client\Request $request,?\Illuminate\Http\Client\Response $response,?Exception $exception):bool)|null $when
          * @see \App\Providers\AppServiceProvider::boot()
          * @return \Illuminate\Http\Client\PendingRequest
          * @static
@@ -28186,6 +28331,7 @@ namespace  {
     class View extends \Illuminate\Support\Facades\View {}
     class Vite extends \Illuminate\Support\Facades\Vite {}
     class Firebase extends \Kreait\Laravel\Firebase\Facades\Firebase {}
+    class Octane extends \Laravel\Octane\Facades\Octane {}
     class Socialite extends \Laravel\Socialite\Facades\Socialite {}
 }
 

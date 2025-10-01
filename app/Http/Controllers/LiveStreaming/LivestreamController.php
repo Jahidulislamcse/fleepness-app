@@ -2,29 +2,29 @@
 
 namespace App\Http\Controllers\LiveStreaming;
 
+use Closure;
+use App\Models\User;
+use App\Models\Livestream;
+use Illuminate\Http\Request;
+use App\Models\LivestreamLike;
+use App\Models\LivestreamSave;
+use Spatie\LaravelData\Optional;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use App\Constants\LivestreamStatuses;
 use App\Data\Dto\CreateLivestremData;
 use App\Data\Dto\UpdateLivestremData;
-use App\Data\Resources\LivestreamData;
-use App\Http\Resources\LivestreamResource;
-use App\Models\Livestream;
-use App\Models\LivestreamLike;
-use App\Models\LivestreamSave;
-use App\Models\User;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Routing\Controller as Controller;
-use Closure;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Pipeline;
-use Spatie\LaravelData\Optional;
-use Spatie\LaravelData\PaginatedDataCollection;
 use Spatie\QueryBuilder\QueryBuilder;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Pipeline;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Container\Attributes\CurrentUser;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class LivestreamController extends Controller
 {
     use AuthorizesRequests, DispatchesJobs;
+
     public function __construct()
     {
         $this->middleware('auth:sanctum', ['except' => ['index', 'show']]);
@@ -36,35 +36,43 @@ class LivestreamController extends Controller
     public function index()
     {
         $livestreams = QueryBuilder::for(Livestream::class)
-            ->orderBy('created_at', 'desc')
+            ->latest()
             ->paginate();
 
-        return $livestreams;
+        return $livestreams->toResourceCollection();
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateLivestremData $createLivestremData)
+    public function store(CreateLivestremData $createLivestremData, #[CurrentUser] User $user, GetLivestreamPublisherTokenController $controller)
     {
-        $vendor = User::find($createLivestremData->vendorId);
-        // $this->authorize('create-livestream', $vendor);
+        $this->authorize('create-livestream', $user);
 
-        /** @var Livestream */
-        $newLivestream = Livestream::create($createLivestremData->toArray());
+        try {
+            DB::beginTransaction();
+            $newLivestream = $user->livestreams()->create($createLivestremData->toArray());
+            $newLivestream->products()->attach($createLivestremData->products);
+            $response = $controller->__invoke($newLivestream, $user);
+            $publisherToken = data_get($response->getData(true), 'token');
+            DB::commit();
 
-        // $newLivestream->addAllMediaFromTokens($createLivestremData->thumbnailPicture, 'thumbnail');
-
-        // return LivestreamData::from($newLivestream);
-        return $newLivestream->toResource();
+            return $newLivestream->toResource()->additional([
+                'published_token' => $publisherToken,
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($livestreamId)
+    public function show(Livestream $ls)
     {
-        $livestream = Livestream::with(['livestreamProducts', 'comments', 'likes'])->findOrFail($livestreamId);
+        $livestream = $ls->load(['livestreamProducts', 'comments', 'likes']);
+
         return $livestream->toResource();
     }
 
@@ -77,7 +85,6 @@ class LivestreamController extends Controller
         $livestream = Livestream::find($livestreamId);
         $livestream->fill($updateLivestremData->toArray());
 
-
         Pipeline::send($updateLivestremData)
             ->through([
                 function (UpdateLivestremData $updateLivestremData, Closure $next) use (&$livestream) {
@@ -88,14 +95,14 @@ class LivestreamController extends Controller
                     return $next($updateLivestremData);
                 },
                 function (UpdateLivestremData $updateLivestremData, Closure $next) use (&$livestream) {
-                    if ($updateLivestremData->status === LivestreamStatuses::STARTED) {
+                    if (LivestreamStatuses::STARTED === $updateLivestremData->status) {
                         $livestream->startRecording();
                     }
 
                     return $next($updateLivestremData);
                 },
                 function (UpdateLivestremData $updateLivestremData, Closure $next) use (&$livestream) {
-                    if ($updateLivestremData->status === LivestreamStatuses::FINISHED) {
+                    if (LivestreamStatuses::FINISHED === $updateLivestremData->status) {
                         $livestream->stopRecording();
                     }
 
@@ -129,16 +136,17 @@ class LivestreamController extends Controller
 
         if ($like) {
             $like->delete();
+
             return response()->json(['message' => 'Livestream unliked successfully'], 200);
         } else {
             LivestreamLike::create([
                 'user_id' => $userId,
                 'livestream_id' => $livestream->id,
             ]);
+
             return response()->json(['message' => 'Livestream liked successfully'], 200);
         }
     }
-
 
     public function save(Request $request, $id)
     {
@@ -152,12 +160,14 @@ class LivestreamController extends Controller
 
         if ($save) {
             $save->delete();
+
             return response()->json(['message' => 'Livestream unsaved successfully'], 200);
         } else {
             LivestreamSave::create([
                 'user_id' => $userId,
                 'livestream_id' => $livestream->id,
             ]);
+
             return response()->json(['message' => 'Livestream saved successfully'], 200);
         }
     }
@@ -169,9 +179,9 @@ class LivestreamController extends Controller
 
         $likedLivestreamIds = LivestreamLike::where('user_id', $userId)
             ->pluck('livestream_id');
+
         return response()->json($likedLivestreamIds);
     }
-
 
     public function getSavedLivestreams()
     {

@@ -53,7 +53,7 @@ class SMSController extends Controller
             return response()->json([
                 'ErrorCode' => 0,
                 'ErrorDescription' => 'Success',
-                'Data' => $response->json()['Data'] ?? [],
+                'Data' => $response->json('Data', []),
             ]);
         } else {
             return response()->json([

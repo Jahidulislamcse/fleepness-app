@@ -2,31 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Container\Attributes\CurrentUser;
+use Illuminate\Notifications\DatabaseNotification;
 
 class NotificationController extends Controller
 {
-    public function getNotifications()
+    public function index(Request $request, #[CurrentUser] User $user)
     {
-        $userId = auth()->id();
+        $perPage = $request->integer('per_page', 15);
 
-        $notifications = Notification::where('user_id', $userId)
-            ->where('status', 'unread')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $notifications = $user
+            ->when('read' === $request->get('type'))
+            ->readNotifications()
+            ->when('unread' === $request->get('type'))
+            ->unreadNotifications()
+            ->latest()
+            ->paginate(perPage: $perPage);
 
         return response()->json([
             'success' => true,
+            'notifications' => $notifications,
             'message' => 'Unread notifications retrieved successfully.',
-            'notifications' => $notifications
-        ], 200);
+        ]);
     }
 
-    public function markAsRead()
+    public function markAsRead(DatabaseNotification $notification, #[CurrentUser] User $user)
     {
-        $userId = auth()->id();
-        Notification::where('user_id', $userId)->update(['status' => 'read']);
+        abort_if($notification->notifiable()->isNot($user), Response::HTTP_NOT_FOUND);
+
+        $notification->markAsRead();
+
         return response()->json(['message' => 'Notifications marked as read']);
+    }
+
+    public function markAllAsRead(#[CurrentUser] User $user)
+    {
+        return DB::transaction(function () use ($user) {
+            $user->notifications->markAsRead();
+
+            return response()->json(['message' => 'Notifications marked as read']);
+        });
     }
 }

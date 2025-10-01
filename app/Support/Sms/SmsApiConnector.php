@@ -2,14 +2,15 @@
 
 namespace App\Support\Sms;
 
-use ArrayIterator;
 use SensitiveParameter;
+use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\Utils;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\Response;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Container\Attributes\Config;
+use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Support\Traits\ForwardsCalls;
 
 /**
@@ -25,30 +26,43 @@ class SmsApiConnector
     public function __construct(
         protected PendingRequest $client,
 
-        #[Config('sms.api_key')]
+        #[Config('services.smsq.api_key')]
         #[SensitiveParameter]
         private readonly string $apiKey,
-        #[Config('sms.client_id')]
+        #[Config('services.smsq.client_id')]
         #[SensitiveParameter]
         private readonly string $clientId,
-        #[Config('sms.sender_id')]
+        #[Config('services.smsq.sender_id')]
         #[SensitiveParameter]
         private readonly string $senderId,
-        #[Config('sms.api_url')]
+        #[Config('services.smsq.api_url')]
         private readonly string $apiUrl,
     ) {
         $this
-            ->baseUrl($this->apiUrl)
             ->acceptJson()
+            ->baseUrl($this->apiUrl)
             ->beforeSending(function (Request $request, array $options, PendingRequest $client) {
                 $payload = $request->data();
+
+                if ('GET' === $request->method()) {
+                    $payload = Query::parse($request->toPsrRequest()->getUri()->getQuery());
+                }
+
                 data_set($payload, 'ApiKey', $this->apiKey);
                 data_set($payload, 'ClientId', $this->clientId);
                 data_set($payload, 'SenderId', $this->senderId);
 
-                return Utils::modifyRequest($request->toPsrRequest(), [
-                    'body' => new ArrayIterator($payload),
-                ]);
+                $changes = [];
+
+                if ('POST' === $request->method()) {
+                    $changes['body'] = Json::encode($payload);
+                }
+
+                if ('GET' === $request->method()) {
+                    $changes['query'] = Query::build($payload);
+                }
+
+                return Utils::modifyRequest($request->toPsrRequest(), $changes);
             });
     }
 

@@ -6,15 +6,19 @@ namespace App\Models;
 
 use Illuminate\Support\Arr;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use App\Support\Notification\Contracts\SupportsFcmChannel;
 use App\Support\Notification\Contracts\FcmNotifiableByDevice;
+use App\Support\Notification\Contracts\FcmBroadcastNotifiableByDevice;
 
-class User extends Authenticatable implements FcmNotifiableByDevice
+class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, FcmNotifiableByDevice
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
@@ -37,6 +41,11 @@ class User extends Authenticatable implements FcmNotifiableByDevice
         'password',
         'remember_token',
     ];
+
+    public function routeBroadcastNotificationForFcmTokens(): null|array|string
+    {
+        return $this->deviceTokens->pluck('token')->toArray();
+    }
 
     public function removeDeviceToken(array|string $token): mixed
     {
@@ -77,14 +86,14 @@ class User extends Authenticatable implements FcmNotifiableByDevice
             ->useDisk('public'); // You can use a different disk if needed
     }
 
-    public function getCoverImageAttribute($value)
+    protected function coverImage(): Attribute
     {
-        return $value ? url($value) : null;
+        return Attribute::get(fn ($value) => $value ? Storage::url($value) : null);
     }
 
-    public function getBannerImageAttribute($value)
+    protected function bannerImage()
     {
-        return $value ? url($value) : null;
+        return Attribute::get(fn ($value) => $value ? Storage::url($value) : null);
     }
 
     public function reviews()
@@ -101,6 +110,14 @@ class User extends Authenticatable implements FcmNotifiableByDevice
     public function payments()
     {
         return $this->hasMany(UserPayment::class);
+    }
+
+    /**
+     * @return HasMany<Livestream,$this>
+     */
+    public function livestreams(): HasMany
+    {
+        return $this->hasMany(Livestream::class, 'vendor_id');
     }
 
     public function likedLivestreams()

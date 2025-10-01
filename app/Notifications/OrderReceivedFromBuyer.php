@@ -9,7 +9,6 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Illuminate\Notifications\AnonymousNotifiable;
-use App\Support\Notification\Channels\FcmDeviceChannel;
 use App\Support\Notification\Contracts\SupportsFcmChannel;
 use App\Support\Notification\Contracts\FcmNotifiableByTopic;
 use App\Support\Notification\Contracts\FcmNotifiableByDevice;
@@ -31,6 +30,11 @@ class OrderReceivedFromBuyer extends Notification implements ShouldQueue, Suppor
         return SellerOrderStatus::Pending === $this->sellerOrder->status;
     }
 
+    public function databaseType(): string
+    {
+        return 'order_received_from_buyer';
+    }
+
     public function toFcm(AnonymousNotifiable|FcmNotifiableByDevice|FcmNotifiableByTopic $notifiable): CloudMessage
     {
         return CloudMessage::new()
@@ -38,9 +42,7 @@ class OrderReceivedFromBuyer extends Notification implements ShouldQueue, Suppor
                 'title' => 'New Order Received',
                 'body' => 'You have received a new order from a buyer.',
             ])
-            ->withData([
-                'total_amount' => (string) $this->sellerOrder->product_cost,
-            ]);
+            ->withData($this->buildNotificationData());
     }
 
     /**
@@ -51,7 +53,19 @@ class OrderReceivedFromBuyer extends Notification implements ShouldQueue, Suppor
     public function via(object $notifiable): array
     {
         return [
-            FcmDeviceChannel::class,
+            'fcm-device',
+            'database',
+        ];
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private function buildNotificationData(): array
+    {
+        return [
+            'buyer' => $this->sellerOrder->order->user->name,
+            'total_amount' => (string) $this->sellerOrder->product_cost,
         ];
     }
 
@@ -63,7 +77,9 @@ class OrderReceivedFromBuyer extends Notification implements ShouldQueue, Suppor
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'title' => 'New Order Received',
+            'body' => 'You have received a new order from a buyer.',
+            ...$this->buildNotificationData(),
         ];
     }
 }

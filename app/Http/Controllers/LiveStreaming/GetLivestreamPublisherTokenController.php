@@ -19,9 +19,8 @@ class GetLivestreamPublisherTokenController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke($id, #[CurrentUser] User $user)
+    public function __invoke(Livestream $livestream, #[CurrentUser] User $user)
     {
-        $livestream = Livestream::findOrFail($id);
         $this->authorize(GateNames::GET_LIVESTREAM_PUBLISHER_TOKEN->value, $livestream);
 
         $userId = $user->getKey();

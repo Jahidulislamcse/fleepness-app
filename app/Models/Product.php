@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Product extends Model
 {
@@ -41,7 +41,7 @@ class Product extends Model
             $ids = [];
         }
 
-        if (count($ids) === 0) {
+        if (0 === count($ids)) {
             return collect(); // empty Collection
         }
 
@@ -52,6 +52,7 @@ class Product extends Model
     {
         return $this->hasMany(ProductImage::class);
     }
+
     public function stocks()
     {
         return $this->hasMany(Stock::class);
@@ -81,6 +82,7 @@ class Product extends Model
     {
         return $this->belongsToMany(Livestream::class)->withTimestamps();
     }
+
     public function firstImage()
     {
         return $this->hasOne(ProductImage::class)->oldestOfMany();
@@ -91,20 +93,17 @@ class Product extends Model
         return $this->firstImage ? asset($this->firstImage->path) : null;
     }
 
-
-
-
     // Automatically set the slug attribute
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($product) {
-            $product->slug = Str::slug($product->name . '-' . rand(1000, 99999));
+            $product->slug = Str::slug($product->name.'-'.rand(1000, 99999));
         });
 
         static::updating(function ($product) {
-            $product->slug = Str::slug($product->name . '-' . rand(1000, 99999));
+            $product->slug = Str::slug($product->name.'-'.rand(1000, 99999));
         });
     }
 }

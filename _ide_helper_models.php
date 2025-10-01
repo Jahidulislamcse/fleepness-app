@@ -167,6 +167,7 @@ namespace App\Models{
  * @property int $id
  * @property int $user_id
  * @property string $token
+ * @property array<array-key, mixed>|null $meta
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\User $user
@@ -175,6 +176,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DeviceToken query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DeviceToken whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DeviceToken whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DeviceToken whereMeta($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DeviceToken whereToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DeviceToken whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|DeviceToken whereUserId($value)
@@ -226,6 +228,7 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+ * @property-read string $status
  * @property int $id
  * @property string $title
  * @property int $vendor_id
@@ -236,6 +239,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $egress_id
+ * @property string|null $room_id
  * @property int $total_participants
  * @property array<array-key, mixed>|null $egress_data
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LivestreamComment> $comments
@@ -272,6 +276,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereEgressId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereEndedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereRoomId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereScheduledTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereStartedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereTitle($value)
@@ -280,7 +285,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereVendorId($value)
  */
-	class Livestream extends \Eloquent implements \Spatie\MediaLibrary\HasMedia {}
+	class Livestream extends \Eloquent implements \App\Support\Notification\Contracts\FcmNotifiableByTopic, \Spatie\MediaLibrary\HasMedia {}
 }
 
 namespace App\Models{
@@ -373,20 +378,24 @@ namespace App\Models{
 namespace App\Models{
 /**
  * @property int $id
- * @property int $user_id
- * @property string $message
- * @property string $status
+ * @property string $type
+ * @property string $notifiable_type
+ * @property int $notifiable_id
+ * @property string $data
+ * @property string|null $read_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereData($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereMessage($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereNotifiableId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereNotifiableType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereReadAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereUserId($value)
  */
 	class Notification extends \Eloquent {}
 }
@@ -967,6 +976,8 @@ namespace App\Models{
  * @property-read int|null $device_tokens_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LivestreamLike> $likedLivestreams
  * @property-read int|null $liked_livestreams_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Livestream> $livestreams
+ * @property-read int|null $livestreams_count
  * @property-read \Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media> $media
  * @property-read int|null $media_count
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
@@ -1010,7 +1021,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereWithdrawnAmount($value)
  */
-	class User extends \Eloquent implements \App\Support\Notification\Contracts\FcmNotifiableByDevice {}
+	class User extends \Eloquent implements \App\Support\Notification\Contracts\FcmBroadcastNotifiableByDevice, \App\Support\Notification\Contracts\FcmNotifiableByDevice {}
 }
 
 namespace App\Models{

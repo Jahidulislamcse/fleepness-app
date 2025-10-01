@@ -16,6 +16,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Support\Notification\Contracts\SupportsFcmChannel;
 use App\Support\Notification\Contracts\FcmNotifiableByTopic;
 
+/**
+ * @property-read string $status
+ */
 class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 {
     use HasFactory, HasStatuses, InteractsWithMedia, Notifiable;

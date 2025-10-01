@@ -2,35 +2,28 @@
 
 namespace App\Policies;
 
-use App\Constants\LivestreamStatuses;
-use App\Models\Livestream;
 use App\Models\User;
-// use App\Models\Vendor;
+use App\Models\Livestream;
 use Illuminate\Auth\Access\Response;
+// use App\Models\Vendor;
+use App\Constants\LivestreamStatuses;
 
 class LivestreamPolicy
 {
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): Response|bool
+    public function create(User $user): bool|Response
     {
-        // Ensure that the user has the 'vendor' role
-        // if ($user->role !== 'vendor') {
-        // return Response::denyAsNotFound(); // Deny if the user is not a vendor
-        // }
-
-        return true; // Proceed if the user is a vendor
+        return 'vendor' === $user->role;
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Livestream $livestream): Response|bool
+    public function update(User $user, Livestream $livestream): bool|Response
     {
-        // $userVendor = $user->vendors->first();
-
-        $canSee = $livestream->status !== LivestreamStatuses::FINISHED->value && is_null($livestream->ended_at);
+        $canSee = 'vendor' === $user->role && $livestream->status !== LivestreamStatuses::FINISHED->value && is_null($livestream->ended_at);
 
         if (! $canSee) {
             return Response::denyAsNotFound();
@@ -39,14 +32,14 @@ class LivestreamPolicy
         return true;
     }
 
-    public function getPublisherToken(User $user, Livestream $livestream): Response|bool
+    public function getPublisherToken(User $user, Livestream $livestream): bool|Response
     {
         return $this->update($user, $livestream);
     }
 
-    public function getSubscriberToken(?User $user, Livestream $livestream): Response|bool
+    public function getSubscriberToken(?User $user, Livestream $livestream): bool|Response
     {
-        $canSee = $livestream->status !== LivestreamStatuses::FINISHED->value && is_null($livestream->ended_at);
+        $canSee = 'user' === $user->role && $livestream->status !== LivestreamStatuses::FINISHED->value && is_null($livestream->ended_at);
 
         if (! $canSee) {
             return Response::denyAsNotFound();
@@ -55,15 +48,14 @@ class LivestreamPolicy
         return true;
     }
 
-    public function addProducts(User $user, Livestream $livestream): Response|bool
+    public function addProducts(User $user, Livestream $livestream): bool|Response
     {
         return $this->update($user, $livestream);
     }
 
-    public function removeProducts(User $user, Livestream $livestream): Response|bool
+    public function removeProducts(User $user, Livestream $livestream): bool|Response
     {
         // return $this->update($user, $livestream);
         return true;
-
     }
 }

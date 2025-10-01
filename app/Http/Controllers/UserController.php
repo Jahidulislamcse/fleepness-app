@@ -50,7 +50,7 @@ class UserController extends Controller
             'status' => 'approved',
         ]);
 
-        return redirect()->route('admin.user.list')->with('success', 'User created successfully!');
+        return to_route('admin.user.list')->with('success', 'User created successfully!');
     }
 
     // Applying for Seller account after registering as a customer
@@ -249,7 +249,7 @@ class UserController extends Controller
         }
 
         // Otherwise redirect with success
-        return redirect()->route('create.vendor.account')
+        return to_route('create.vendor.account')
             ->with('success', 'OTP sent to your phone. Please verify to complete registration.');
     }
 
@@ -267,7 +267,6 @@ class UserController extends Controller
 
     public function checkProfile(#[CurrentUser] User $user)
     {
-
         return response()->json([
             'user_id' => $user->id,
             'name' => $user->name,
@@ -366,7 +365,7 @@ class UserController extends Controller
 
         // $smsSent = $this->smsService->sendSMS($user->phone, $message);
 
-        return redirect()->route('admin.user.list')->with('success', 'User updated successfully');
+        return to_route('admin.user.list')->with('success', 'User updated successfully');
     }
 
     public function status($id)
@@ -450,6 +449,6 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $user->delete();
 
-        return redirect()->route('admin.user.list')->with('success', 'User deleted successfully');
+        return to_route('admin.user.list')->with('success', 'User deleted successfully');
     }
 }

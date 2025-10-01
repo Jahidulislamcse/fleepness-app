@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SMSController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\EmailController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\CategoryController;
@@ -45,16 +44,17 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::post('/verify-otp', [OTPAuthController::class, 'verifyOtp']);    // Verifying OTP 1
     Route::post('/resend-otp', [OTPAuthController::class, 'resendOtp']);    // Resending OTP 1
     Route::post('/seller/register', [UserController::class, 'application']);    // Seller registration 1
-    Route::middleware('auth:sanctum')->post('/seller/application', [UserController::class, 'applyForSeller']); // Regular user to seller application
     // Route::post('/', [AuthenticatedSessionController::class, 'storeapi']); //Login to the system
-
-    // Logout from the system
-    Route::middleware('auth:sanctum')->post('/logout', [AuthenticatedSessionController::class, 'destroyapi']);
-    Route::middleware('auth:sanctum')->post('/store-device-token', [AuthenticatedSessionController::class, 'storeDeviceToken'])->name('auth.store-device-token');
 
     Route::get('/payment_methods', [UserProfileController::class, 'getPaymenMethods']);
 
     Route::middleware(['auth:sanctum'])->group(function () {
+        Route::post('/seller/application', [UserController::class, 'applyForSeller']); // Regular user to seller application
+
+        // Logout from the system
+        Route::post('/logout', [AuthenticatedSessionController::class, 'destroyapi']);
+        Route::post('/store-device-token', [AuthenticatedSessionController::class, 'storeDeviceToken'])->name('auth.store-device-token');
+
         Route::get('/user/profile', [UserProfileController::class, 'show']); // Show user profile
         Route::post('/seller/profile', [UserProfileController::class, 'updateSeller']); // Update Seller profile
         Route::post('/user/profile', [UserProfileController::class, 'updateUser']); // Update user profile
@@ -66,8 +66,9 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
 
         // Checking Seller profile info, specially role for determining UI
         Route::get('/me/role', [UserController::class, 'checkProfile']);
-        Route::get('/notifications', [NotificationController::class, 'getNotifications']);  // fetching Notifications
-        Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead']);  // Marking a notification as read
+        Route::get('/notifications', [NotificationController::class, 'index']);  // fetching Notifications
+        Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAllAsRead']);  // Marking all notifications as read
+        Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead']);  // Marking a notification as read
 
         // Only admins can access these routes
         Route::middleware(['role:admin'])->group(function () {
@@ -76,9 +77,6 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
             Route::get('/admin/seller-requests', [UserController::class, 'sellerRequest']);  // Getting all seller requests
         });
     });
-
-    Route::post('/send-email', [EmailController::class, 'sendTestEmail']);
-    Route::post('/get-email', [EmailController::class, 'receiveCustomerEmail']);
 
     Route::get('/search/product', [UserProductController::class, 'search']); // Searching a product
     Route::get('/search', [UserSearchController::class, 'search']); // Searching by seller/tag
@@ -176,8 +174,8 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::delete('/cart/{item}', [CartController::class, 'destroy']);
         Route::get('/cart/summary', [CartController::class, 'summary']);
 
-        Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/orders', [OrderController::class, 'index']);
+        Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/orders/{id}', [OrderController::class, 'show']);
         Route::get('/seller/orders', [OrderController::class, 'sellerOrders']);
         Route::get('/seller/orders/{id}', [OrderController::class, 'sellerOrderDetail']);
@@ -202,9 +200,12 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::match(['put', 'patch'], 'livestreams/{livestream}', [LivestreamController::class, 'update'])->name('livestreams.update');
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('livestreams/{livestream}/publisher-token', GetLivestreamPublisherTokenController::class)->name('livestreams.get-publisher-token');
-        Route::post('livestreams/{ls}/products', [LivestreamProductController::class, 'store'])->name('livestream-products.store');
-        Route::delete('livestreams/{ls}/products', [LivestreamProductController::class, 'destroy'])->name('livestream-products.destroy');
+        Route::get('livestreams/{livestream}/publisher-token', GetLivestreamPublisherTokenController::class)
+            ->name('livestreams.get-publisher-token');
+        Route::post('livestreams/{ls}/products', [LivestreamProductController::class, 'store'])
+            ->name('livestream-products.store');
+        Route::delete('livestreams/{ls}/products', [LivestreamProductController::class, 'destroy'])
+            ->name('livestream-products.destroy');
 
         Route::prefix('livestreams/{id}')->group(function () {
             Route::post('like', [LivestreamController::class, 'like']);

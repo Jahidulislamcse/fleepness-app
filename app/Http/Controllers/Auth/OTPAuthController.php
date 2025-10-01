@@ -4,13 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\SMSController;
+use Illuminate\Support\Facades\Validator;
 
 class OTPAuthController extends Controller
 {
@@ -46,7 +44,7 @@ class OTPAuthController extends Controller
 
         $otp = rand(1000, 9999);
 
-        Cache::put('otp_' . $user->phone_number, $otp, now()->addMinutes(10));
+        cache()->put('otp_'.$user->phone_number, $otp, now()->addMinutes(10));
 
         (new SMSController)->sendSMS(new Request([
             'Message' => "Your OTP is: $otp",
@@ -61,24 +59,20 @@ class OTPAuthController extends Controller
         ]);
     }
 
-
     // Verify OTP
     public function verifyOtp(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|string|exists:users,phone_number',
-            'otp' => 'required|digits:4'
+            'otp' => 'required|digits:4',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+        $validator->validate();
 
         $user = User::where('phone_number', $request->phone_number)->first();
 
-        $cachedOtp = Cache::get('otp_' . $user->phone_number);
-
-        if (!$cachedOtp) {
+        $cachedOtp = cache()->get('otp_'.$user->phone_number);
+        if (! $cachedOtp) {
             return response()->json(['message' => 'OTP expired.'], 400);
         }
 
@@ -87,7 +81,7 @@ class OTPAuthController extends Controller
         }
 
         // OTP verified, remove OTP from cache
-        Cache::forget('otp_' . $user->phone_number);
+        cache()->forget('otp_'.$user->phone_number);
 
         // Create and return a token
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -97,8 +91,6 @@ class OTPAuthController extends Controller
             'token' => $token,
         ]);
     }
-
-
 
     // Resend OTP
     public function resendOtp(Request $request): JsonResponse
@@ -118,10 +110,10 @@ class OTPAuthController extends Controller
         // dd($otp);
 
         // Store the new OTP in cache
-        Cache::put('otp_' . $user->phone_number, $otp, now()->addMinutes(10));
+        cache()->put('otp_'.$user->phone_number, $otp, now()->addMinutes(10));
 
         // Send new OTP via SMS
-        $smsController = new SMSController();
+        $smsController = new SMSController;
         $smsController->sendSMS(new Request([
             'Message' => "Your new OTP is: $otp",
             'MobileNumbers' => $user->phone_number,
