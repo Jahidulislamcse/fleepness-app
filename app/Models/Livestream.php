@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\ModelStatus\HasStatuses;
 use App\Constants\LivestreamStatuses;
@@ -87,7 +86,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 
     public function getRoomName(): string
     {
-        return sprintf('livestream_%s_%s', Str::snake($this->title), $this->getKey());
+        return sprintf('livestream_%s', $this->getKey());
     }
 
     public function getEncodedFileOutputName(): string

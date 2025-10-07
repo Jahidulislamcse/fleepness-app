@@ -8,16 +8,13 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Illuminate\Database\Eloquent\Casts\Json;
-use Illuminate\Notifications\AnonymousNotifiable;
-// use App\Support\Notification\Channels\FcmTopicChannel;
+use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use App\Support\Notification\Contracts\FcmNotifiableByTopic;
-use App\Support\Notification\Contracts\FcmNotifiableByDevice;
 use App\Support\Notification\Contracts\SupportsFcmTopicChannel;
 
 class NewLivestreamCommentNotification extends Notification implements ShouldBroadcast, ShouldQueue, SupportsFcmTopicChannel
 {
-    use Queueable;
+    use InteractsWithSockets, Queueable;
 
     /**
      * Create a new notification instance.
@@ -27,12 +24,12 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
         //
     }
 
-    public function toFcmTopic(AnonymousNotifiable|FcmNotifiableByTopic $notifiable): string
+    public function toFcmTopics(object $notifiable)
     {
         return $notifiable->routeNotificationForFcmTopics($this);
     }
 
-    public function toFcm(AnonymousNotifiable|FcmNotifiableByDevice|FcmNotifiableByTopic $notifiable): CloudMessage
+    public function toFcm(object $notifiable): CloudMessage
     {
         $commenter = $this->comment->user;
 

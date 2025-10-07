@@ -8,18 +8,20 @@ use App\Enums\SellerOrderStatus;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Kreait\Firebase\Messaging\CloudMessage;
-use Illuminate\Notifications\AnonymousNotifiable;
-use App\Support\Notification\Contracts\SupportsFcmChannel;
-use App\Support\Notification\Contracts\FcmNotifiableByTopic;
-use App\Support\Notification\Contracts\FcmNotifiableByDevice;
+use App\Support\Notification\Contracts\SupportsFcmDeviceChannel;
 
-class OrderReceivedFromBuyer extends Notification implements ShouldQueue, SupportsFcmChannel
+class OrderReceivedFromBuyer extends Notification implements ShouldQueue, SupportsFcmDeviceChannel
 {
     use Queueable;
 
     public function __construct(public SellerOrder $sellerOrder)
     {
         $this->afterCommit();
+    }
+
+    public function toFcmTokens(object $notifiable)
+    {
+        return $notifiable->routeNotificationForFcmTokens($this);
     }
 
     /**
@@ -35,7 +37,7 @@ class OrderReceivedFromBuyer extends Notification implements ShouldQueue, Suppor
         return 'order_received_from_buyer';
     }
 
-    public function toFcm(AnonymousNotifiable|FcmNotifiableByDevice|FcmNotifiableByTopic $notifiable): CloudMessage
+    public function toFcm(object $notifiable): CloudMessage
     {
         return CloudMessage::new()
             ->withNotification([
