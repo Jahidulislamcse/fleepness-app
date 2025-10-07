@@ -39,6 +39,9 @@ class LivestreamPolicy
 
     public function getSubscriberToken(?User $user, Livestream $livestream): bool|Response
     {
+        if(!$user){
+            return true;
+        }
         $canSee = 'user' === $user->role && $livestream->status !== LivestreamStatuses::FINISHED->value && is_null($livestream->ended_at);
 
         if (! $canSee) {

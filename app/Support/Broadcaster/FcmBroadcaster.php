@@ -123,7 +123,6 @@ class FcmBroadcaster extends Broadcaster
 
         $publicChannels = $this->normalizeChannelCollection($publicChannels);
         $privateChannels = $this->normalizeChannelCollection($privateChannels);
-
         /** @var FcmBroadcastNotifiableByDevice|null $notifiable */
         if ($notifiable) {
             $this->handlePrivateChannels($notifiable, $event, $payload, $notification);
@@ -139,8 +138,7 @@ class FcmBroadcaster extends Broadcaster
             try {
                 /** @var HigherOrderWhenProxy|CloudMessage $message */
                 $message = (new HigherOrderWhenProxy(CloudMessage::new()))
-                    ->negateConditionOnCapture()
-                    ->condition(is_null($notification));
+                    ->condition(!is_null($notification));
 
                 /** @var CloudMessage $message */
                 $message = $message
@@ -175,9 +173,9 @@ class FcmBroadcaster extends Broadcaster
                     return $chunk->map(function ($channel) use ($payload, $notification) {
 
                         /** @var HigherOrderWhenProxy|CloudMessage $message */
+                        /** @var HigherOrderWhenProxy|CloudMessage $message */
                         $message = (new HigherOrderWhenProxy(CloudMessage::new()))
-                            ->condition(is_null($notification))
-                            ->negateConditionOnCapture();
+                            ->condition(!is_null($notification));
 
                         /** @var CloudMessage $message */
                         $message = $message

@@ -87,7 +87,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 
     public function getRoomName(): string
     {
-        return sprintf('%s_%s', Str::snake($this->title), $this->getKey());
+        return sprintf('livestream_%s_%s', Str::snake($this->title), $this->getKey());
     }
 
     public function getEncodedFileOutputName(): string

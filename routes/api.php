@@ -194,10 +194,13 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('/sections', [SectionController::class, 'sections']);
     Route::get('/search-section', [SectionController::class, 'searchSection']);
 
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('livestreams', [LivestreamController::class, 'store'])->name('livestreams.store');
+        Route::match(['put', 'patch'], 'livestreams/{livestream}', [LivestreamController::class, 'update'])->name('livestreams.update');
+     });
+
     Route::get('livestreams', [LivestreamController::class, 'index'])->name('livestreams.index');
     Route::get('livestreams/{ls}', [LivestreamController::class, 'show'])->name('livestreams.show');
-    Route::post('livestreams', [LivestreamController::class, 'store'])->name('livestreams.store');
-    Route::match(['put', 'patch'], 'livestreams/{livestream}', [LivestreamController::class, 'update'])->name('livestreams.update');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('livestreams/{livestream}/publisher-token', GetLivestreamPublisherTokenController::class)
