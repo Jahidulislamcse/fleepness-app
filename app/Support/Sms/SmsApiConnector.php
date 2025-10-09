@@ -55,7 +55,17 @@ class SmsApiConnector
                 $changes = [];
 
                 if ('POST' === $request->method()) {
-                    $changes['body'] = Json::encode($payload);
+                    if ($request->isForm()) {
+                        $changes['body'] = Query::build($payload);
+                    }
+
+                    if ($request->isJson()) {
+                        $changes['body'] = Json::encode($payload);
+                    }
+
+                    if ($request->isMultipart()) {
+                        $changes['body'] = $payload;
+                    }
                 }
 
                 if ('GET' === $request->method()) {
