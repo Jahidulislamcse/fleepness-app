@@ -11,7 +11,7 @@ use Illuminate\Container\Attributes\Singleton;
 use Google\Protobuf\Internal\GPBDecodeException;
 
 #[Singleton]
-class EgressJsonService extends EgressAbstractClient implements Egress
+class EgressProtobufService extends EgressAbstractClient implements Egress
 {
     protected function doRequest(array $ctx, string $url, Message $in, Message $out): void
     {

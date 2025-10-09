@@ -11,13 +11,13 @@ use Livekit\RoomService as RoomServiceContract;
 use Google\Protobuf\Internal\GPBDecodeException;
 
 #[Singleton]
-class RoomJsonService extends RoomServiceAbstractClient implements RoomServiceContract
+class RoomProtobufService extends RoomServiceAbstractClient implements RoomServiceContract
 {
     protected function doRequest(array $ctx, string $url, Message $in, Message $out): void
     {
-        $body = $in->serializeToJsonString();
+        $body = $in->serializeToString();
 
-        $req = $this->newRequest($ctx, $url, $body, 'application/json');
+        $req = $this->newRequest($ctx, $url, $body, 'application/protobuf');
 
         try {
             activity(__CLASS__)->withProperties([
@@ -25,8 +25,7 @@ class RoomJsonService extends RoomServiceAbstractClient implements RoomServiceCo
                 'url' => $req->getUri(),
             ])->log('[before]: request to room service');
 
-            $apiResponse = Http::acceptJson()
-                ->withBody($req->getBody())
+            $apiResponse = Http::withBody($req->getBody(), 'application/protobuf')
                 ->withHeaders($req->getHeaders())
                 ->send($req->getMethod(), $req->getUri(), [
                     RequestOptions::VERSION => $req->getProtocolVersion(),
@@ -36,7 +35,7 @@ class RoomJsonService extends RoomServiceAbstractClient implements RoomServiceCo
                 'response' => $apiResponse->json(),
                 'method' => $req->getMethod(),
                 'url' => $req->getUri(),
-            ])->log('[after]: request to egress service');
+            ])->log('[after]: request to room service');
 
             $resp = $apiResponse->toPsrResponse();
 
@@ -49,9 +48,9 @@ class RoomJsonService extends RoomServiceAbstractClient implements RoomServiceCo
         }
 
         try {
-            $out->mergeFromJsonString((string) $resp->getBody());
+            $out->mergeFromString((string) $resp->getBody());
         } catch (GPBDecodeException $e) {
-            throw $this->clientError('failed to unmarshal json response', $e);
+            throw $this->clientError('failed to unmarshal proto response', $e);
         }
     }
 }
