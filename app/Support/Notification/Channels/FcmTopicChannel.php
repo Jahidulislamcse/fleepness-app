@@ -7,11 +7,9 @@ use Kreait\Firebase\Messaging\SendReport;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Events\Dispatcher;
 use Kreait\Laravel\Firebase\Facades\Firebase;
-use Illuminate\Notifications\AnonymousNotifiable;
 use Kreait\Firebase\Exception\MessagingException;
 use Kreait\Firebase\Messaging\MulticastSendReport;
 use Illuminate\Notifications\Events\NotificationFailed;
-use App\Support\Notification\Contracts\FcmNotifiableByTopic;
 use App\Support\Notification\Contracts\SupportsFcmTopicChannel;
 use App\Support\Notification\Concerns\CanProcessFcmNotification;
 
@@ -30,9 +28,9 @@ class FcmTopicChannel
     /**
      * Send the given notification.
      */
-    public function send(AnonymousNotifiable|FcmNotifiableByTopic $notifiable, Notification&SupportsFcmTopicChannel $notification): ?array
+    public function send($notifiable, Notification&SupportsFcmTopicChannel $notification): ?array
     {
-        $topics = collect(Arr::wrap($notification->toFcmTopic($notifiable)))->filter();
+        $topics = collect(Arr::wrap($notification->toFcmTopics($notifiable)))->filter();
 
         if ($topics->isEmpty()) {
             return null;

@@ -10,9 +10,8 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Kreait\Laravel\Firebase\Facades\Firebase;
 use Kreait\Firebase\Messaging\MulticastSendReport;
 use Illuminate\Notifications\Events\NotificationFailed;
-use App\Support\Notification\Contracts\SupportsFcmChannel;
-use App\Support\Notification\Contracts\FcmNotifiableByDevice;
 use App\Support\Notification\Concerns\CanProcessFcmNotification;
+use App\Support\Notification\Contracts\SupportsFcmDeviceChannel;
 
 class FcmDeviceChannel
 {
@@ -30,18 +29,18 @@ class FcmDeviceChannel
      */
     public function __construct(protected Dispatcher $events) {}
 
-    public function send(FcmNotifiableByDevice $notifiable, Notification&SupportsFcmChannel $notification): ?Collection
+    public function send($notifiable, Notification&SupportsFcmDeviceChannel $notification): ?Collection
     {
-        $tokens = Arr::wrap($notifiable->routeNotificationForFcmTokens($notification));
+        $tokens = collect(Arr::wrap($notification->toFcmTokens($notifiable)))->filter();
 
-        if (empty($tokens)) {
+        if ($tokens->isEmpty()) {
             return null;
         }
 
         $fcmMessage = $notification->toFcm($notifiable);
         $fcmMessage = $this->addEventToFcmMessage($fcmMessage, $notification);
 
-        return Collection::make($tokens)
+        return $tokens
             ->chunk(self::TOKENS_PER_REQUEST)
             ->map(fn ($tokens) => Firebase::messaging()->sendMulticast($fcmMessage, $tokens->all()))
             ->map(fn (MulticastSendReport $report) => $this->checkReportForFailures($notifiable, $notification, $report));
@@ -52,7 +51,7 @@ class FcmDeviceChannel
      */
     protected function checkReportForFailures(mixed $notifiable, Notification $notification, MulticastSendReport $report): MulticastSendReport
     {
-        Collection::make($report->getItems())
+        collect($report->getItems())
             ->filter(fn (SendReport $report) => $report->isFailure())
             ->each(fn (SendReport $report) => $this->dispatchFailedNotification($notifiable, $notification, $report));
 

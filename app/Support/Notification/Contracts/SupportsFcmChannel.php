@@ -2,9 +2,7 @@
 
 namespace App\Support\Notification\Contracts;
 
-use Illuminate\Notifications\AnonymousNotifiable;
-
 interface SupportsFcmChannel
 {
-    public function toFcm(AnonymousNotifiable|FcmNotifiableByDevice|FcmNotifiableByTopic $notifiable): \Kreait\Firebase\Messaging\CloudMessage;
+    public function toFcm(object $notifiable): \Kreait\Firebase\Messaging\CloudMessage;
 }
