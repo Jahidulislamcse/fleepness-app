@@ -60,13 +60,13 @@ class LivestreamServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(Egress::class, function (Application $app) {
-            return new EgressJsonService(
-                config('services.livekit.host'),
-            );
-
-            // return new EgressProtobufService(
+            // return new EgressJsonService(
             //     config('services.livekit.host'),
             // );
+
+            return new EgressProtobufService(
+                config('services.livekit.host'),
+            );
         });
 
         $this->app->singleton(S3Upload::class, function (Application $app) {
