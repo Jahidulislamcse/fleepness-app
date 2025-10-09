@@ -8,11 +8,13 @@ use Kreait\Firebase\Messaging\SendReport;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Events\Dispatcher;
 use Kreait\Laravel\Firebase\Facades\Firebase;
+use Illuminate\Container\Attributes\Singleton;
 use Kreait\Firebase\Messaging\MulticastSendReport;
 use Illuminate\Notifications\Events\NotificationFailed;
 use App\Support\Notification\Concerns\CanProcessFcmNotification;
 use App\Support\Notification\Contracts\SupportsFcmDeviceChannel;
 
+#[Singleton]
 class FcmDeviceChannel
 {
     use CanProcessFcmNotification;

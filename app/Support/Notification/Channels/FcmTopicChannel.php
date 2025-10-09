@@ -7,12 +7,14 @@ use Kreait\Firebase\Messaging\SendReport;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Events\Dispatcher;
 use Kreait\Laravel\Firebase\Facades\Firebase;
+use Illuminate\Container\Attributes\Singleton;
 use Kreait\Firebase\Exception\MessagingException;
 use Kreait\Firebase\Messaging\MulticastSendReport;
 use Illuminate\Notifications\Events\NotificationFailed;
 use App\Support\Notification\Contracts\SupportsFcmTopicChannel;
 use App\Support\Notification\Concerns\CanProcessFcmNotification;
 
+#[Singleton]
 class FcmTopicChannel
 {
     use CanProcessFcmNotification;

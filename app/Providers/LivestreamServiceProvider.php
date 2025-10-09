@@ -2,19 +2,25 @@
 
 namespace App\Providers;
 
-use Agence104\LiveKit\AccessToken;
-use Agence104\LiveKit\EgressServiceClient;
-use Agence104\LiveKit\RoomServiceClient;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\ServiceProvider;
-use Livekit\EncodedFileOutput;
-use Livekit\ImageFileSuffix;
-use Livekit\ImageOutput;
+use Livekit\Egress;
 use Livekit\S3Upload;
+use Livekit\ImageOutput;
+use Livekit\ImageFileSuffix;
+use Livekit\EncodedFileOutput;
 use Livekit\SegmentedFileOutput;
 use Livekit\SegmentedFileSuffix;
+use Agence104\LiveKit\AccessToken;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\ServiceProvider;
+use App\Support\Livekit\RoomJsonService;
+use App\Support\Livekit\EgressJsonService;
+use App\Support\Livekit\RoomServiceClient;
+use App\Support\Livekit\EgressServiceClient;
+use Livekit\RoomService as RoomServiceContract;
+use App\Support\Livekit\Contracts\RoomServiceClient as RoomServiceClientContract;
+use App\Support\Livekit\Contracts\EgressServiceClient as EgressServiceClientContract;
 
-class LivekitServiceProvider extends ServiceProvider
+class LivestreamServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
@@ -28,19 +34,33 @@ class LivekitServiceProvider extends ServiceProvider
             );
         });
 
-        $this->app->singleton(RoomServiceClient::class, function (Application $app) {
+        $this->app->singleton(RoomServiceClientContract::class, function (Application $app) {
             return new RoomServiceClient(
+                $app->make(RoomServiceContract::class),
                 config('services.livekit.host'),
                 config('services.livekit.api_key'),
                 config('services.livekit.api_secret'),
             );
         });
 
-        $this->app->singleton(EgressServiceClient::class, function (Application $app) {
+        $this->app->singleton(RoomServiceContract::class, function (Application $app) {
+            return new RoomJsonService(
+                config('services.livekit.host'),
+            );
+        });
+
+        $this->app->singleton(EgressServiceClientContract::class, function (Application $app) {
             return new EgressServiceClient(
+                $app->make(Egress::class),
                 config('services.livekit.host'),
                 config('services.livekit.api_key'),
                 config('services.livekit.api_secret'),
+            );
+        });
+
+        $this->app->singleton(Egress::class, function (Application $app) {
+            return new EgressJsonService(
+                config('services.livekit.host'),
             );
         });
 
@@ -57,7 +77,7 @@ class LivekitServiceProvider extends ServiceProvider
         $this->app->bind(EncodedFileOutput::class, function (Application $app) {
             $s3Config = $app->get(S3Upload::class);
 
-            return tap(new EncodedFileOutput())
+            return tap(new EncodedFileOutput)
                 ->setFilepath('{room_name}/{time}')
                 ->setS3($s3Config);
         });
@@ -65,7 +85,7 @@ class LivekitServiceProvider extends ServiceProvider
         $this->app->bind(ImageOutput::class, function (Application $app) {
             $s3Config = $app->get(S3Upload::class);
 
-            return tap(new ImageOutput())
+            return tap(new ImageOutput)
                 ->setS3($s3Config)
                 ->setWidth(1280)
                 ->setHeight(720)
@@ -77,13 +97,12 @@ class LivekitServiceProvider extends ServiceProvider
         $this->app->bind(SegmentedFileOutput::class, function (Application $app) {
             $s3Config = $app->get(S3Upload::class);
 
-            return tap(new SegmentedFileOutput())
+            return tap(new SegmentedFileOutput)
                 ->setFilenamePrefix('{room_name}/{time}')
                 ->setFilenameSuffix(SegmentedFileSuffix::TIMESTAMP)
                 ->setS3($s3Config)->setSegmentDuration(config()->integer('services.livekit.egress.short_video_duration'));
         });
     }
-
 
     public function boot(): void
     {

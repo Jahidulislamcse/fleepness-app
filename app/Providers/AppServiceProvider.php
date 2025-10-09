@@ -18,6 +18,8 @@ use GuzzleHttp\RequestOptions;
 use GuzzleHttp\RetryMiddleware;
 use GuzzleHttp\MessageFormatter;
 use League\Uri\Uri as LeagueUri;
+use App\Support\HttpClientFactory;
+use Illuminate\Http\Client\Factory;
 use App\Support\Sms\SmsApiConnector;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Foundation\Application;
@@ -44,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(Factory::class, HttpClientFactory::class);
         $this->app->singleton(HandlerStack::class, function (): HandlerStack {
             $stack = new HandlerStack;
 

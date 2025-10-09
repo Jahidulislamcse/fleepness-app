@@ -2,10 +2,12 @@
 
 namespace App\Support;
 
+use Override;
 use GuzzleHttp\HandlerStack;
 use Illuminate\Http\Client\Factory;
-use Override;
+use Illuminate\Container\Attributes\Singleton;
 
+#[Singleton]
 class HttpClientFactory extends Factory
 {
     #[Override]

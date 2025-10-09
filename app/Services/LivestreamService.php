@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use Closure;
-use Carbon\Carbon;
 use Livekit\FileInfo;
 use Livekit\EgressInfo;
 use Livekit\ImagesInfo;
@@ -18,16 +17,18 @@ use Agence104\LiveKit\AccessToken;
 use Illuminate\Support\Collection;
 use Agence104\LiveKit\EncodedOutputs;
 use Agence104\LiveKit\RoomCreateOptions;
-use Agence104\LiveKit\RoomServiceClient;
 use Illuminate\Support\Facades\Pipeline;
 use Agence104\LiveKit\AccessTokenOptions;
-use Agence104\LiveKit\EgressServiceClient;
 use Illuminate\Contracts\Filesystem\Cloud;
 use App\Data\Dto\GeneratePublisherTokenData;
 use Illuminate\Container\Attributes\Storage;
 use App\Data\Dto\GenerateSubscriberTokenData;
+use Illuminate\Container\Attributes\Singleton;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use App\Support\Livekit\Contracts\RoomServiceClient;
+use App\Support\Livekit\Contracts\EgressServiceClient;
 
+#[Singleton]
 class LivestreamService
 {
     public function __construct(

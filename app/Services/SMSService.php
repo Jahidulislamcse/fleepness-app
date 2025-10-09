@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Support\Sms\SmsApiConnector;
+use Illuminate\Container\Attributes\Singleton;
 
+#[Singleton]
 class SMSService
 {
     public function __construct(
