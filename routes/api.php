@@ -228,6 +228,8 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
             Route::delete('{commentId}', [LivestreamCommentController::class, 'destroy']);
         });
     });
+    Route::get('livestream/{id}/products', [LivestreamController::class, 'addedProducts']);
+
 
     Route::get('livestreams/{livestream}/subscriber-token', GetLivestreamSubscriberTokenController::class)->name('livestreams.get-subscriber-token');
 });
