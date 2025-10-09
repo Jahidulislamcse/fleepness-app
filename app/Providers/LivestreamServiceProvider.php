@@ -12,9 +12,9 @@ use Livekit\SegmentedFileSuffix;
 use Agence104\LiveKit\AccessToken;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
+use App\Support\Livekit\RoomJsonService;
 use App\Support\Livekit\RoomServiceClient;
 use App\Support\Livekit\EgressServiceClient;
-use App\Support\Livekit\RoomProtobufService;
 use App\Support\Livekit\EgressProtobufService;
 use Livekit\RoomService as RoomServiceContract;
 use App\Support\Livekit\Contracts\RoomServiceClient as RoomServiceClientContract;
@@ -44,7 +44,7 @@ class LivestreamServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(RoomServiceContract::class, function (Application $app) {
-            return new RoomProtobufService(
+            return new RoomJsonService(
                 config('services.livekit.host'),
             );
         });
