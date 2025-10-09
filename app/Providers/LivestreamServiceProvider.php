@@ -13,7 +13,6 @@ use Agence104\LiveKit\AccessToken;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use App\Support\Livekit\RoomJsonService;
-use App\Support\Livekit\EgressJsonService;
 use App\Support\Livekit\RoomServiceClient;
 use App\Support\Livekit\EgressServiceClient;
 use App\Support\Livekit\EgressProtobufService;
@@ -60,13 +59,9 @@ class LivestreamServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(Egress::class, function (Application $app) {
-            return new EgressJsonService(
+            return new EgressProtobufService(
                 config('services.livekit.host'),
             );
-
-            // return new EgressProtobufService(
-            //     config('services.livekit.host'),
-            // );
         });
 
         $this->app->singleton(S3Upload::class, function (Application $app) {
