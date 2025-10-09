@@ -20,13 +20,26 @@ class RoomJsonService extends RoomServiceAbstractClient implements RoomServiceCo
         $req = $this->newRequest($ctx, $url, $body, 'application/json');
 
         try {
-            $resp = Http::acceptJson()
+            activity(__CLASS__)->withProperties([
+                'method' => $req->getMethod(),
+                'url' => $req->getUri(),
+            ])->log('[before]: request to room service');
+
+            $apiResponse = Http::acceptJson()
                 ->withBody($req->getBody())
                 ->withHeaders($req->getHeaders())
                 ->send($req->getMethod(), $req->getUri(), [
                     RequestOptions::VERSION => $req->getProtocolVersion(),
-                ])
-                ->toPsrResponse();
+                ]);
+
+            activity(__CLASS__)->withProperties([
+                'response' => $apiResponse->json(),
+                'method' => $req->getMethod(),
+                'url' => $req->getUri(),
+            ])->log('[after]: request to egress service');
+
+            $resp = $apiResponse->toPsrResponse();
+
         } catch (\Throwable $e) {
             throw $this->clientError('failed to send request', $e);
         }
