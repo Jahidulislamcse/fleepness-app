@@ -5,6 +5,7 @@ namespace App\Http\Controllers\LiveStreaming;
 use Closure;
 use App\Models\User;
 use App\Models\Livestream;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\LivestreamLike;
 use App\Models\LivestreamSave;
@@ -16,11 +17,10 @@ use App\Constants\LivestreamStatuses;
 use App\Data\Dto\CreateLivestremData;
 use App\Data\Dto\UpdateLivestremData;
 use Spatie\QueryBuilder\QueryBuilder;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Pipeline;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class LivestreamController extends Controller
@@ -32,18 +32,17 @@ class LivestreamController extends Controller
         $this->middleware('auth:sanctum', ['except' => ['index', 'show', 'addedProducts']]);
     }
 
-
     public function index()
     {
         $livestreams = QueryBuilder::for(Livestream::class)
-            ->with(['vendor:id,name,cover_image']) 
+            ->with(['vendor:id,name,cover_image'])
             ->latest()
             ->paginate();
 
         $livestreams->getCollection()->transform(function ($livestream) {
             $coverImage = $livestream->vendor->cover_image ?? null;
 
-            if ($coverImage && !Str::startsWith($coverImage, ['http://', 'https://'])) {
+            if ($coverImage && ! Str::startsWith($coverImage, ['http://', 'https://'])) {
                 $coverImage = Storage::url($coverImage);
             }
 
@@ -105,7 +104,6 @@ class LivestreamController extends Controller
         ]);
     }
 
-
     public function store(CreateLivestremData $createLivestremData, #[CurrentUser] User $user, GetLivestreamPublisherTokenController $controller)
     {
         $this->authorize('create-livestream', $user);
@@ -114,17 +112,19 @@ class LivestreamController extends Controller
             DB::beginTransaction();
             $newLivestream = $user->livestreams()->create($createLivestremData->toArray());
             $newLivestream->products()->attach($createLivestremData->products);
-            $response = $controller->__invoke($newLivestream, $user);
-            $publisherToken = data_get($response->getData(true), 'token');
             DB::commit();
 
-            return $newLivestream->toResource()->additional([
-                'published_token' => $publisherToken,
-            ]);
         } catch (\Throwable $th) {
             DB::rollBack();
             throw $th;
         }
+
+        $response = $controller->__invoke($newLivestream, $user);
+        $publisherToken = data_get($response->getData(true), 'token');
+
+        return $newLivestream->toResource()->additional([
+            'published_token' => $publisherToken,
+        ]);
     }
 
     /**
