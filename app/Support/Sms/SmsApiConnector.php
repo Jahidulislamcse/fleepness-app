@@ -20,25 +20,17 @@ class SmsApiConnector
 {
     use ForwardsCalls;
 
-    /**
-     * Create a new class instance.
-     */
-    public function __construct(
-        protected PendingRequest $client,
+    protected PendingRequest $pendingClient {
+        set(PendingRequest $newPendingClient) {
+            $this->pendingClient = $newPendingClient;
 
-        #[Config('services.smsq.api_key')]
-        #[SensitiveParameter]
-        private readonly string $apiKey,
-        #[Config('services.smsq.client_id')]
-        #[SensitiveParameter]
-        private readonly string $clientId,
-        #[Config('services.smsq.sender_id')]
-        #[SensitiveParameter]
-        private readonly string $senderId,
-        #[Config('services.smsq.api_url')]
-        private readonly string $apiUrl,
-    ) {
-        $this
+            $this->setupClientDefaults();
+        }
+    }
+
+    protected function setupClientDefaults()
+    {
+        return $this
             ->acceptJson()
             ->baseUrl($this->apiUrl)
             ->beforeSending(function (Request $request, array $options, PendingRequest $client) {
@@ -77,6 +69,28 @@ class SmsApiConnector
     }
 
     /**
+     * Create a new class instance.
+     */
+    public function __construct(
+        PendingRequest $client,
+
+        #[Config('services.smsq.api_key')]
+        #[SensitiveParameter]
+        private readonly string $apiKey,
+        #[Config('services.smsq.client_id')]
+        #[SensitiveParameter]
+        private readonly string $clientId,
+        #[Config('services.smsq.sender_id')]
+        #[SensitiveParameter]
+        private readonly string $senderId,
+        #[Config('services.smsq.api_url')]
+        private readonly string $apiUrl,
+    ) {
+        $this->pendingClient = $client;
+
+    }
+
+    /**
      * SMS payload data.
      *
      * @param array{
@@ -108,6 +122,6 @@ class SmsApiConnector
 
     public function __call($name, $arguments)
     {
-        return $this->forwardDecoratedCallTo($this->client, $name, $arguments);
+        return $this->forwardDecoratedCallTo($this->pendingClient, $name, $arguments);
     }
 }
