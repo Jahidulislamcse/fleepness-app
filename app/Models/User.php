@@ -91,7 +91,7 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
         return Attribute::get(fn ($value) => $value ? Storage::url($value) : null);
     }
 
-    protected function bannerImage()
+    protected function bannerImage(): Attribute
     {
         return Attribute::get(fn ($value) => $value ? Storage::url($value) : null);
     }
