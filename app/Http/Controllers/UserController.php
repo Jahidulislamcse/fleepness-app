@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\UserPayment;
 use App\Services\SMSService;
@@ -10,6 +12,7 @@ use App\Events\SellerStatusUpdated;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Container\Attributes\CurrentUser;
+use App\Models\SellerOrder;
 
 class UserController extends Controller
 {
@@ -53,7 +56,34 @@ class UserController extends Controller
         return to_route('admin.user.list')->with('success', 'User created successfully!');
     }
 
-    // Applying for Seller account after registering as a customer
+    public function getBalanceStats()
+    {
+        $user = Auth::user();
+
+        $lifetimeBalance = $user->balance ?? 0;
+
+        $sellerOrders = SellerOrder::where('seller_id', $user->id)
+            ->where('status', 'delivered')
+            ->get();
+
+        $today = Carbon::today();
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $startOfMonth = Carbon::now()->startOfMonth();
+
+        $dailyBalance = $sellerOrders->where('created_at', '>=', $today)->sum('balance');
+        $weeklyBalance = $sellerOrders->where('created_at', '>=', $startOfWeek)->sum('balance');
+        $monthlyBalance = $sellerOrders->where('created_at', '>=', $startOfMonth)->sum('balance');
+
+        return response()->json([
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'daily_balance' => $dailyBalance,
+            'weekly_balance' => $weeklyBalance,
+            'monthly_balance' => $monthlyBalance,
+            'lifetime_balance' => $lifetimeBalance,
+        ]);
+    }
+
     public function applyForSeller(Request $request, #[CurrentUser] User $user)
     {
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Category extends Model
@@ -15,13 +16,13 @@ class Category extends Model
 
     public function getProfileImgAttribute($value)
     {
-        return $value ? url($value) : null;
+        return $value ? Storage::url($value) : null;
     }
 
 
     public function getCoverImgAttribute($value)
     {
-        return $value ? url($value) : null;
+        return $value ? Storage::url($value) : null;
     }
 
     // Parent Category

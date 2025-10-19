@@ -156,6 +156,8 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::delete('/shop-categories/{id}', [ShopCategoryController::class, 'destroy']); // Delete category
     });
 
+    Route::middleware('auth:sanctum')->get('/user/balance-stats', [UserController::class, 'getBalanceStats']);
+
     Route::get('short-videos/{id}', [VendorShortVideoController::class, 'show_api']);
 
     Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');

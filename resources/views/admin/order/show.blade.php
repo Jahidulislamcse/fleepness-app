@@ -29,6 +29,13 @@
                     <p><strong>Phone:</strong> {{ $order->user->phone_number ?? 'N/A' }}</p>
                     <p><strong>Email:</strong> {{ $order->user->email ?? 'N/A' }}</p>
                     <p><strong>Placed On:</strong> {{ $order->created_at->format('d M Y h:i A') }}</p>
+                    <p><strong>Time Spent:</strong> 
+                        {{ $order->created_at->diffForHumans(now(), [
+                            'parts' => 3, 
+                            'short' => true, 
+                            'syntax' => \Carbon\CarbonInterface::DIFF_ABSOLUTE,
+                        ]) }}
+                    </p>
                     <p><strong>Seller:</strong>
                         @if ($order->is_multi_seller)
                         <span class="badge bg-info">Multi Seller</span>
@@ -48,9 +55,9 @@
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title">
-                        Seller: {{ $sellerOrder->seller->name ?? 'Unknown Seller' }}
+                        Seller: {{ $sellerOrder->seller->name ?? 'Unknown Seller' }}  ({{ $sellerOrder->seller->phone_number ?? 'Unknown' }})
                     </h5>
-                    <span class="badge bg-primary">Status: {{ ucfirst($sellerOrder->status) }}</span>
+                    <span class="badge bg-primary">Status: {{ $sellerOrder->status->value }}</span>
                 </div>
                 <div class="card-body">
 
@@ -79,42 +86,40 @@
                     </table>
 
                     {{-- Update Seller Order Form --}}
-                    @if(!in_array($sellerOrder->status, ['rejected', 'pending', 'delivered']))
-                    <form action="{{ route('admin.order.updateSellerOrder', $sellerOrder->id) }}" method="POST" class="row g-3">
-                        @csrf
-                        @method('PUT')
+                    @if(!in_array($sellerOrder->status->value, ['rejected', 'pending', 'delivered']))
+                        <form action="{{ route('admin.order.updateSellerOrder', $sellerOrder->id) }}" method="POST" class="row g-3">
+                            @csrf
+                            @method('PUT')
 
-                        @if(!in_array($sellerOrder->status, ['packaging']))
-                        <div class="col-md-4">
-                            <label for="status" class="form-label">Update Status</label>
-                            <select name="status" id="status_{{ $sellerOrder->id }}" class="form-control">
-                                <option value="" selected disabled>Change Status</option>
-                                <option value="delivered" {{ $sellerOrder->status == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                            </select>
-                        </div>
-                        @endif
+                            @if(!in_array($sellerOrder->status->value, ['packaging']))
+                                <div class="col-md-4">
+                                    <label for="status" class="form-label">Update Status</label>
+                                    <select name="status" id="status_{{ $sellerOrder->id }}" class="form-control">
+                                        <option value="" selected disabled>Change Status</option>
+                                        <option value="delivered" {{ $sellerOrder->status->value == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                                    </select>
+                                </div>
+                            @endif
 
-                        @if(!in_array($sellerOrder->status, ['rejected', 'pending', 'on_the_way']))
-                        <div class="col-md-4 d-flex align-items-center">
-                            <div class="form-check mt-4">
-                                <input type="checkbox" name="rider_assigned" value="1"
-                                    id="rider_assigned_{{ $sellerOrder->id }}"
-                                    {{ $sellerOrder->rider_assigned ? 'checked' : '' }}
-                                    {{ $sellerOrder->status != 'packaging' ? 'disabled' : '' }}>
-                                <label class="form-check-label" for="rider_assigned_{{ $sellerOrder->id }}">
-                                    Assign Rider
-                                </label>
+                            @if(!in_array($sellerOrder->status->value, ['rejected', 'pending', 'on_the_way']))
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <div class="form-check mt-4">
+                                        <input type="checkbox" name="rider_assigned" value="1"
+                                            id="rider_assigned_{{ $sellerOrder->id }}"
+                                            {{ $sellerOrder->rider_assigned ? 'checked' : '' }}
+                                            {{ $sellerOrder->status->value != 'packaging' ? 'disabled' : '' }}>
+                                        <label class="form-check-label" for="rider_assigned_{{ $sellerOrder->id }}">
+                                            Assign Rider
+                                        </label>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary">Update</button>
                             </div>
-                        </div>
-                        @endif
-
-                        <div class="col-md-4 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary">Update</button>
-                        </div>
-                    </form>
+                        </form>
                     @endif
-
-
                 </div>
             </div>
             @endforeach

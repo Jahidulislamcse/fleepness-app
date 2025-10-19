@@ -16,16 +16,15 @@ use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
-    public function store(Request $request)
+   public function store(Request $request)
     {
         $fee = Fee::first();
 
         $userId = auth()->id();
-        if (! $userId) {
+        if (!$userId) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        // Get selected cart items for this user
         $cartItems = CartItem::with(['product', 'size'])
             ->where('user_id', $userId)
             ->where('selected', 1)
@@ -36,9 +35,8 @@ class OrderController extends Controller
         }
 
         $deliveryModel = DeliveryModel::find($request->delivery_model_id);
-        // dd($deliveryModel);
 
-        if (! $deliveryModel) {
+        if (!$deliveryModel) {
             return response()->json(['message' => 'Invalid delivery model.'], 422);
         }
 
@@ -50,12 +48,11 @@ class OrderController extends Controller
 
             $order = new Order;
             $order->user_id = $userId;
-            $order->order_code = '#ORD'.strtoupper(Str::random(8));
+            $order->order_code = '#ORD-' . random_int(10000, 99999);
             $order->is_multi_seller = $isMultiSeller;
             $order->total_sellers = $uniqueSellerCount;
             $order->delivery_model = $deliveryModel->id;
 
-            // if multiple sellers, multiply delivery fee
             $order->delivery_fee = $deliveryModel->fee * $uniqueSellerCount;
 
             $order->product_cost = 0;
@@ -76,6 +73,8 @@ class OrderController extends Controller
                 $sellerOrder->status = SellerOrderStatus::Pending;
                 $sellerOrder->product_cost = 0;
                 $sellerOrder->commission = 0;
+                $sellerOrder->vat = 0;
+                $sellerOrder->delivery_fee = 0;
                 $sellerOrder->balance = 0;
                 $sellerOrder->rider_assigned = false;
                 $sellerOrder->save();
@@ -86,7 +85,6 @@ class OrderController extends Controller
                     $product = $cartItem->product;
                     $qty = $cartItem->quantity;
 
-                    // discount_price logic
                     $price = ($product->discount_price && $product->discount_price > 0)
                         ? $product->discount_price
                         : $product->selling_price;
@@ -103,12 +101,15 @@ class OrderController extends Controller
 
                     $sellerTotal += $totalCost;
 
-                    // Decrement product stock
                     $product->decrement('quantity', $qty);
                 }
 
                 $sellerOrder->product_cost = $sellerTotal;
                 $sellerOrder->commission = $sellerTotal * ($fee->commission / 100);
+                $sellerOrder->vat = $sellerTotal * ($fee->vat / 100);
+
+                $sellerOrder->delivery_fee = $order->delivery_fee / $uniqueSellerCount;
+
                 $sellerOrder->save();
 
                 $sellerOrder->notifySellerAboutNewOrderFromBuyer();
@@ -116,9 +117,7 @@ class OrderController extends Controller
                 $orderProductCost += $sellerTotal;
             }
 
-            // Final totals
             $order->product_cost = $orderProductCost;
-
             $order->commission = $orderProductCost * ($fee->commission / 100);
             $order->platform_fee = $fee->platform_fee;
             $order->vat = $orderProductCost * ($fee->vat / 100);
@@ -129,7 +128,6 @@ class OrderController extends Controller
                 + (float) $order->vat;
             $order->save();
 
-            // Clear purchased cart items
             CartItem::where('user_id', $userId)
                 ->where('selected', 1)
                 ->delete();
@@ -154,6 +152,7 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
 
     public function sellerOrders(Request $request)
     {
