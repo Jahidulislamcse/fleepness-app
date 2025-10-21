@@ -25,13 +25,14 @@ jobs:
                   password: "${{ secrets.SSH_PASSWORD_STAGING }}"
                   port: 22
                   script: |
-                      cd /var/www/backend_v2
-                      git checkout staging
-                      git pull origin staging
-                      composer install --no-dev --optimize-autoloader
-                      php artisan optimize:clear
-                      php artisan migrate --force
-                      php artisan queue:restart
-                      php artisan octane:reload
-                      php artisan optimize
-                      echo "✅ Deployment completed successfully!"
+                    echo "host_is : ${{ secrets.SSH_HOST_STAGING }}"
+                    cd /var/www/backend_v2
+                    git checkout staging
+                    git pull origin staging
+                    composer install --no-dev --optimize-autoloader
+                    php artisan optimize:clear
+                    php artisan migrate --force
+                    php artisan queue:restart
+                    php artisan octane:reload
+                    php artisan optimize
+                    echo "✅ Deployment completed successfully!"
