@@ -32,7 +32,7 @@ class UserProfileController extends Controller
             'success' => true,
             'user' => $user->makeHidden(['payments']), 
             'product_count' => $productCount,
-            'follower_count' => $followerCount,
+            'follower_count' => $followerCount ,
             'payments' => $formattedPayments, 
         ]);
     }

@@ -179,6 +179,11 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::get('/orders', [OrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/orders/{id}', [OrderController::class, 'show']);
+
+        Route::get('/my-orders', [OrderController::class, 'MyOrders']);
+        Route::get('/my-orders/search', [OrderController::class, 'searchOrderById']);
+        Route::get('/my-store-orders', [OrderController::class, 'MyStoreOrders']);
+
         Route::get('/seller/orders', [OrderController::class, 'sellerOrders']);
         Route::get('/seller/orders/{id}', [OrderController::class, 'sellerOrderDetail']);
         Route::patch('/seller/orders/{id}/accept', [OrderController::class, 'acceptSellerOrder']);

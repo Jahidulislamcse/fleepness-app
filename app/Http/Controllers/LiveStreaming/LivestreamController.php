@@ -48,6 +48,7 @@ class LivestreamController extends Controller
 
             return [
                 ...$livestream->toArray(),
+                 'status' => $livestream->status,
 
                 'vendor' => [
                     'id' => $livestream->vendor->id ?? null,

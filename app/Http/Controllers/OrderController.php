@@ -70,6 +70,7 @@ class OrderController extends Controller
                 $sellerOrder = new SellerOrder;
                 $sellerOrder->order_id = $order->id;
                 $sellerOrder->seller_id = $sellerId;
+                $sellerOrder->customer_id = $userId;
                 $sellerOrder->status = SellerOrderStatus::Pending;
                 $sellerOrder->product_cost = 0;
                 $sellerOrder->commission = 0;
@@ -162,7 +163,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $orders = \App\Models\SellerOrder::with([
+        $orders = SellerOrder::with([
             'items',
         ])
             ->where('seller_id', $sellerId)
@@ -174,6 +175,121 @@ class OrderController extends Controller
             'data' => $orders,
         ]);
     }
+
+    public function MyOrders(Request $request)
+    {
+        $userId = auth()->id();
+
+        if (! $userId) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $status = $request->query('status');
+
+        $ordersQuery = Order::with([
+            'sellerOrders',
+        ])
+            ->where('user_id', $userId)
+            ->latest();
+
+        if ($status === 'delivered') {
+            $ordersQuery->whereHas('sellerOrders', function ($q) {
+                $q->where('status', 'delivered');
+            });
+        } elseif ($status === 'active') {
+            $ordersQuery->whereHas('sellerOrders', function ($q) {
+                $q->whereNotIn('status', ['delivered', 'rejected']);
+            });
+        } elseif ($status === 'rejected') {
+            $ordersQuery->whereHas('sellerOrders', function ($q) {
+                $q->where('status', 'rejected');
+            });
+        }
+
+        $orders = $ordersQuery->paginate(10);
+
+        return response()->json([
+            'message' => 'Orders retrieved successfully',
+            'data' => $orders,
+        ]);
+    }
+
+    public function MyStoreOrders(Request $request)
+    {
+        $userId = auth()->id();
+
+        if (! $userId) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $status = $request->query('status');
+        $search = $request->query('search');
+
+        $ordersQuery = SellerOrder::where('seller_id', $userId)
+            ->latest();
+
+        if ($status === 'delivered') {
+            $ordersQuery->where('status', 'delivered');
+        } elseif ($status === 'pending') {
+            $ordersQuery->where('status', 'pending');
+        } elseif ($status === 'accepted') {
+            $ordersQuery->where('status', 'packaging');
+        } elseif ($status === 'rejected') {
+            $ordersQuery->where('status', 'rejected');
+        } elseif ($status === 'delayed') {
+            $ordersQuery->where('status', 'delayed');
+        }
+
+        if ($search) {
+            $ordersQuery->whereHas('customer', function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone_number', 'like', "%{$search}%");
+            });
+        }
+
+        $orders = $ordersQuery->paginate(10);
+
+        return response()->json([
+            'message' => 'Store orders retrieved successfully',
+            'data' => $orders,
+        ]);
+    }
+
+
+    public function searchOrderById(Request $request)
+    {
+        $userId = auth()->id();
+
+        if (! $userId) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $search = $request->query('order_code');
+
+        if (! $search) {
+            return response()->json(['message' => 'Order ID is required.'], 400);
+        }
+
+        $numericPart = preg_replace('/[^0-9]/', '', $search);
+
+        $order = Order::with(['sellerOrders'])
+            ->where('user_id', $userId)
+            ->where(function ($query) use ($search, $numericPart) {
+                $query->where('order_code', 'like', "%$search%")
+                    ->orWhere('order_code', 'like', "%$numericPart%");
+            })
+            ->first();
+
+        if (! $order) {
+            return response()->json(['message' => 'Order not found.'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Order retrieved successfully',
+            'data' => $order,
+        ]);
+    }
+
 
     public function sellerOrderDetail(Request $request, $id)
     {

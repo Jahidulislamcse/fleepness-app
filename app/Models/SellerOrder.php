@@ -41,6 +41,11 @@ class SellerOrder extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function customer()
+    {
+        return $this->belongsTo(User::class, 'customer_id');
+    }
+
     public function notifySellerAboutNewOrderFromBuyer()
     {
         $this->seller->notify(new \App\Notifications\OrderReceivedFromBuyer($this));
