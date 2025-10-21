@@ -16,13 +16,14 @@ jobs:
             - name: Execute deployment commands over SSH
               uses: appleboy/ssh-action@v1.2.0
               with:
-                  host: ${{ secrets.SSH_HOST }}
-                  username: ${{ secrets.SSH_USER }}
-                  password: ${{ secrets.SSH_PASSWORD }}
+                  host: ${{ secrets.SSH_HOST_STAGING }}
+                  username: ${{ secrets.SSH_USER_STAGING }}
+                  password: ${{ secrets.SSH_PASSWORD_STAGING }}
                   port: 22
                   script: |
                       cd /var/www/backend_v2
-                      git pull origin main
+                      git checkout staging
+                      git pull origin staging
                       php artisan optimize:clear
                       php artisan migrate --force
                       php artisan queue:restart
