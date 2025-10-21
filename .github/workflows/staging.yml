@@ -20,19 +20,20 @@ jobs:
             - name: Execute deployment commands over SSH
               uses: appleboy/ssh-action@v1.2.0
               with:
-                  host: "${{ secrets.SSH_HOST_STAGING }}"
-                  username: "${{ secrets.SSH_USER_STAGING }}"
-                  password: "${{ secrets.SSH_PASSWORD_STAGING }}"
+                  host: ${{ secrets.SSH_HOST_STAGING }}
+                  username: ${{ secrets.SSH_USER_STAGING }}
+                  password: ${{ secrets.SSH_PASSWORD_STAGING }}
                   port: 22
                   script: |
-                    echo "host_is : ${{ secrets.SSH_HOST_STAGING }}"
-                    cd /var/www/backend_v2
-                    git checkout staging
-                    git pull origin staging
-                    composer install --no-dev --optimize-autoloader
-                    php artisan optimize:clear
-                    php artisan migrate --force
-                    php artisan queue:restart
-                    php artisan octane:reload
-                    php artisan optimize
-                    echo "✅ Deployment completed successfully!"
+                      scp -P 22 .env ${{ secrets.SSH_USER_STAGING }}@${{ secrets.SSH_HOST_STAGING }}:/var/www/shared/.env
+                      ln -sf /var/www/shared/.env /var/www/backend_v2/.env
+                      cd /var/www/backend_v2
+                      git checkout staging
+                      git pull origin staging
+                      composer install --no-dev --optimize-autoloader
+                      php artisan optimize:clear
+                      php artisan migrate --force
+                      php artisan queue:restart
+                      php artisan octane:reload
+                      php artisan optimize
+                      echo "✅ Deployment completed successfully!"
