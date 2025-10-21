@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->boolean('platform_fee_added')->default(false)->after('balance');
+            $table->boolean('platform_fee_added')->default(false);
         });
     }
 
