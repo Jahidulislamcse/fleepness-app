@@ -20,13 +20,11 @@ jobs:
             - name: Execute deployment commands over SSH
               uses: appleboy/ssh-action@v1.2.0
               with:
-                  host: ${{ secrets.SSH_HOST_STAGING }}
-                  username: ${{ secrets.SSH_USER_STAGING }}
-                  password: ${{ secrets.SSH_PASSWORD_STAGING }}
+                  host: "${{ secrets.SSH_HOST_STAGING }}"
+                  username: "${{ secrets.SSH_USER_STAGING }}"
+                  password: "${{ secrets.SSH_PASSWORD_STAGING }}"
                   port: 22
                   script: |
-                      scp -P 22 .env ${{ secrets.SSH_USER_STAGING }}@${{ secrets.SSH_HOST_STAGING }}:/var/www/shared/.env
-                      ln -sf /var/www/shared/.env /var/www/backend_v2/.env
                       cd /var/www/backend_v2
                       git checkout staging
                       git pull origin staging
