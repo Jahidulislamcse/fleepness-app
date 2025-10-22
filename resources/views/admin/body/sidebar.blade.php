@@ -77,7 +77,12 @@
                         <ul class="nav nav-collapse">
                             <li class="">
                                 <a href="{{ route('admin.order.all') }}">
-                                    Orders
+                                    Processing Orders
+                                </a>
+                            </li>
+                            <li class="">
+                                <a href="{{ route('admin.order.completed') }}">
+                                    Completed Orders
                                 </a>
                             </li>
                             <li class=""> <a href="{{ route('admin.payment.history') }}">Payment History</a></li>

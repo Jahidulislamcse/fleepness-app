@@ -21,7 +21,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="card-title">All Orders</h4>
+                    <h4 class="card-title">Processing Orders</h4>
                 </div>
 
                 <div class="card-body">
@@ -36,7 +36,7 @@
                                     <th>Product Cost</th>
                                     <th>Delivery Fee</th>
                                     <th>Grand Total</th>
-                                    <th>Status</th>
+                                    <th>Delivery Status</th>
                                     <th>Date</th>
                                     <th>Action</th>
                                 </tr>
@@ -46,16 +46,18 @@
                                     <tr>
                                         <td>{{ $key + 1 }}</td>
                                         <td>{{ $order->order_code }}</td>
-                                        <td>{{ $order->user->name ?? 'N/A' }}</td>
+                                        <td>{{ $order->user->name ?: ($order->user->phone_number ?: 'N/A') }}</td>
                                         <td>{{ $order->total_sellers }}</td>
                                         <td>{{ number_format($order->product_cost, 2) }}</td>
                                         <td>{{ number_format($order->delivery_fee, 2) }}</td>
                                         <td>{{ number_format($order->grand_total, 2) }}</td>
                                         <td>
-                                            @if ($order->is_multi_seller)
-                                                <span class="badge bg-info">Multi Seller</span>
+                                            @if ($order->completed_order == $order->total_sellers)
+                                                <span class="badge bg-success">Completed</span>
                                             @else
-                                                <span class="badge bg-success">Single Seller</span>
+                                                <span class="badge bg-primary">
+                                                    {{ $order->completed_order ?? 0 }}/{{ $order->total_sellers }}
+                                                </span>
                                             @endif
                                         </td>
                                         <td>{{ $order->created_at->format('d M Y h:i A') }}</td>

@@ -13,17 +13,7 @@ class SellerOrder extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'order_id',
-        'seller_id',
-        'delivery_status',
-        'delivery_message',
-        'delivery_start_time',
-        'delivery_end_time',
-        'product_total',
-        'commission_amount',
-        'rider_assigned',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'delivery_start_time' => 'datetime',
@@ -49,6 +39,11 @@ class SellerOrder extends Model
     public function seller(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(User::class, 'customer_id');
     }
 
     public function notifySellerAboutNewOrderFromBuyer()

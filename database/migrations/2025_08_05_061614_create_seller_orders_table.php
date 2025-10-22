@@ -29,7 +29,7 @@ return new class extends Migration
 
             $table->boolean('rider_assigned')->nullable();
 
-            $table->timestamps(); // created_at & updated_at
+            $table->timestamps(); 
         });
     }
 

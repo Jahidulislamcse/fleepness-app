@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\ShopCategoryController;
 use App\Http\Controllers\Vendor\VendorOrderController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\Vendor\VendorProfileController;
 use App\Http\Controllers\Vendor\VendorDashboardController;
@@ -28,7 +29,9 @@ Route::webhooks('livekit', 'livekit');
 Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']);
 Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'handleProviderCallback']);
 
-Route::view('/', 'welcome');
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -117,6 +120,7 @@ Route::middleware('role:admin')->group(function () {
         Route::controller(AdminOrderController::class)->group(function () {
             Route::prefix('order')->name('order.')->group(function () {
                 Route::get('/', 'index')->name('all');
+                Route::get('/completed', 'completed')->name('completed');
                 Route::get('/view/{id}', 'show')->name('view');
                 Route::put('/seller-order/{id}/update', [AdminOrderController::class, 'updateSellerOrder'])
                     ->name('updateSellerOrder');

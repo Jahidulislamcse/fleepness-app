@@ -35,7 +35,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended('/');
+        return redirect()->intended('/admin/dashboard');
     }
 
     public function storeapi(Request $request): JsonResponse
@@ -195,7 +195,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/login');
     }
 
     public function destroyapi(Request $request)

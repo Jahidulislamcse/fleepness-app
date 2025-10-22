@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
@@ -85,25 +86,9 @@ class AdminCategoryController extends Controller
     }
 
 
-    // Function to handle image upload
-    private function uploadImage($image, $folder)
+    private function uploadImage(UploadedFile $image, $folder)
     {
-        // Generate a unique name for the image
-        $name_gen = hexdec(uniqid()) . '.' . $image->getClientOriginalExtension();
-
-        // Path to save the image
-        $path = public_path('upload/' . $folder);
-
-        // Check if the folder exists, create it if it doesn't
-        if (!file_exists($path)) {
-            mkdir($path, 0777, true);
-        }
-
-        // Move the image to the designated folder
-        $image->move($path, $name_gen);
-
-        // Return the path where the image is saved
-        return 'upload/' . $folder . '/' . $name_gen;
+        return $image->store('upload/'.$folder);
     }
 
 

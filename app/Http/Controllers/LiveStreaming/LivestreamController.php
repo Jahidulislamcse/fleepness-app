@@ -37,7 +37,7 @@ class LivestreamController extends Controller
         $livestreams = QueryBuilder::for(Livestream::class)
             ->with(['vendor:id,name,cover_image'])
             ->latest()
-            ->paginate();
+            ->cursorPaginate(1);
 
         $livestreams->getCollection()->transform(function ($livestream) {
             $coverImage = $livestream->vendor->cover_image ?? null;
@@ -48,6 +48,7 @@ class LivestreamController extends Controller
 
             return [
                 ...$livestream->toArray(),
+                 'status' => $livestream->status,
 
                 'vendor' => [
                     'id' => $livestream->vendor->id ?? null,
@@ -235,23 +236,71 @@ class LivestreamController extends Controller
 
     public function getLikedLivestreams()
     {
-
         $userId = auth()->id();
 
         $likedLivestreamIds = LivestreamLike::where('user_id', $userId)
             ->pluck('livestream_id');
 
-        return response()->json($likedLivestreamIds);
+        $likedLivestreams = Livestream::select('id', 'title', 'vendor_id')
+            ->with([
+                'vendor:id,shop_name,cover_image',
+            ])
+            ->withCount(['likes', 'comments', 'participants as total_participants'])
+            ->whereIn('id', $likedLivestreamIds)
+            ->get()
+            ->map(function ($livestream) {
+                return [
+                    'id' => $livestream->id,
+                    'title' => $livestream->title,
+                    'vendor' => $livestream->vendor,
+                    'total_participants' => $livestream->total_participants ?? 0,
+                    'likes_count' => $livestream->likes_count ?? 0,
+                    'comments_count' => $livestream->comments_count ?? 0,
+                    'recordings' => $livestream->recordings, 
+                ];
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $likedLivestreams,
+        ]);
     }
+
 
     public function getSavedLivestreams()
     {
         $userId = auth()->id();
 
-        $savedLivestreams = LivestreamSave::where('user_id', $userId)
+        $savedLivestreamIds = LivestreamSave::where('user_id', $userId)
             ->pluck('livestream_id');
 
-        return response()->json($savedLivestreams);
+        $savedLivestreams = Livestream::select('id', 'title', 'vendor_id')
+            ->with([
+                'vendor:id,shop_name,cover_image',
+            ])
+            ->withCount([
+                'likes',
+                'comments',
+                'participants as total_participants'
+            ])
+            ->whereIn('id', $savedLivestreamIds)
+            ->get()
+            ->map(function ($livestream) {
+                return [
+                    'id' => $livestream->id,
+                    'title' => $livestream->title,
+                    'vendor' => $livestream->vendor,
+                    'total_participants' => $livestream->total_participants ?? 0,
+                    'likes_count' => $livestream->likes_count ?? 0,
+                    'comments_count' => $livestream->comments_count ?? 0,
+                    'recordings' => $livestream->recordings,
+                ];
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $savedLivestreams,
+        ]);
     }
 
     public function getLikesCount($id)

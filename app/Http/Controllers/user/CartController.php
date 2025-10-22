@@ -41,7 +41,6 @@ class CartController extends Controller
             $user = Auth::user();
             $product = Product::findOrFail($request->product_id);
 
-            // Custom quantity checks
             if ($request->quantity <= 0) {
                 return response()->json(['message' => 'Quantity must be greater than zero.'], 400);
             }
@@ -50,7 +49,6 @@ class CartController extends Controller
                 return response()->json(['message' => 'Quantity exceeds available stock.'], 400);
             }
 
-            // Create or update cart item
             $cartItem = CartItem::updateOrCreate(
                 [
                     'user_id' => $user->id,
@@ -132,7 +130,7 @@ class CartController extends Controller
     public function summary(Request $request)
     {
         $user = Auth::user();
-        $deliveryModelId = $request->query('delivery_model_id', 1); // default to Express id = 1
+        $deliveryModelId = $request->query('delivery_model_id', 1); 
         $deliveryModel = DeliveryModel::find($deliveryModelId) ?? DeliveryModel::find(1);
 
         $selectedItems = CartItem::with('product')

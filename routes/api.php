@@ -156,6 +156,8 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::delete('/shop-categories/{id}', [ShopCategoryController::class, 'destroy']); // Delete category
     });
 
+    Route::middleware('auth:sanctum')->get('/user/balance-stats', [UserController::class, 'getBalanceStats']);
+
     Route::get('short-videos/{id}', [VendorShortVideoController::class, 'show_api']);
 
     Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
@@ -177,6 +179,11 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::get('/orders', [OrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/orders/{id}', [OrderController::class, 'show']);
+
+        Route::get('/my-orders', [OrderController::class, 'MyOrders']);
+        Route::get('/my-orders/search', [OrderController::class, 'searchOrderById']);
+        Route::get('/my-store-orders', [OrderController::class, 'MyStoreOrders']);
+
         Route::get('/seller/orders', [OrderController::class, 'sellerOrders']);
         Route::get('/seller/orders/{id}', [OrderController::class, 'sellerOrderDetail']);
         Route::patch('/seller/orders/{id}/accept', [OrderController::class, 'acceptSellerOrder']);

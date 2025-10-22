@@ -21,77 +21,63 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <div class="d-flex align-items-center">
-                        <h4 class="card-title">Completed Orders</h4>
-
-                    </div>
+                    <h4 class="card-title">Completed Orders</h4>
                 </div>
+
                 <div class="card-body">
-                    <!-- Modal -->
-                    <div class="modal fade" id="addRowModal" tabindex="-1" aria-labelledby="exampleModalLabel"
-                        aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Add New</h1>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                        aria-label="Close"></button>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="table-responsive">
                         <table id="basic-datatables" class="display table table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>SN</th>
-                                    <th>Customer & Phone</th>
-                                    <th>Vendor ID & store</th>
-                                    <th>Status</th>
-                                    <th>Total</th>
-                                    <th>Order date</th>
-                                    <th>Payment Type</th>
-                                    <th>Payment Status</th>
-                                    <th>Updated Date</th>
-                                    <th>Actions</th>
+                                    <th>Order Code</th>
+                                    <th>Customer</th>
+                                    <th>Total Sellers</th>
+                                    <th>Product Cost</th>
+                                    <th>Delivery Fee</th>
+                                    <th>Grand Total</th>
+                                    <th>Delivery Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($orderList as $key => $orderInfo)
-                                <tr>
-                                    <td>{{ $key + 1 }}</td>
-                                    <td>{{ $orderInfo->customerInfo->name }} <br />
-                                        {{ $orderInfo->customerInfo->phone_number }}
-                                    </td>
-                                    <td> {{ $orderInfo->vendor->id }} <br />
-                                        {{ $orderInfo->vendor->name }}
-                                    </td>
-                                    <td><span class="badge bg-success" style="font-size: 15px;">completed</span>
-                                    </td>
-                                    <td>{{ $orderInfo->amount + $orderInfo->shipping_cost }}</td>
-                                    <td>{{ $orderInfo->order_date }}</td>
-                                    <td>{{ $orderInfo->payment_type }}</td>
-                                    <td>{{ $orderInfo->payment_status }}</td>
-                                    <td>{{ $orderInfo->delivered_date}}</td>
-                                    <td>
-                                        <a href="{{ route('admin.order.details', $orderInfo->id) }}"
-                                            class="btn btn-warning btn-sm">View</a>
-                                        <a href="{{ route('admin.order.invoice.download', $orderInfo->id) }}" class="btn btn-danger"
-                                            title="Invoice Pdf"><i class="fa fa-download"></i> </a>
-
-                                    </td>
-                                </tr>
+                                @foreach ($orders as $key => $order)
+                                    <tr>
+                                        <td>{{ $key + 1 }}</td>
+                                        <td>{{ $order->order_code }}</td>
+                                        <td>{{ $order->user->name ?: ($order->user->phone_number ?: 'N/A') }}</td>
+                                        <td>{{ $order->total_sellers }}</td>
+                                        <td>{{ number_format($order->product_cost, 2) }}</td>
+                                        <td>{{ number_format($order->delivery_fee, 2) }}</td>
+                                        <td>{{ number_format($order->grand_total, 2) }}</td>
+                                        <td>
+                                            @if ($order->completed_order == $order->total_sellers)
+                                                <span class="badge bg-success">Completed</span>
+                                            @else
+                                                <span class="badge bg-primary">
+                                                    {{ $order->completed_order ?? 0 }}/{{ $order->total_sellers }}
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td>{{ $order->created_at->format('d M Y h:i A') }}</td>
+                                        <td>
+                                            <a href="{{ route('admin.order.view', $order->id) }}" 
+                                               class="btn btn-primary btn-sm">View</a>
+                                        </td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
-                    </div>
 
+                        <div class="mt-3">
+                            {{ $orders->links() }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </div>  
 </div>
 
 
