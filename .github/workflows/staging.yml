@@ -32,7 +32,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD_STAGING }}
           port: 22
           script: |
-            ln -sf /var/www/shared/.env /var/www/backend_v2/.env
+            echo "${{ secrets.ENV_STAGING }}" > /var/www/backend_v2/.env
             cd /var/www/backend_v2
             composer install --no-dev --optimize-autoloader
             php artisan optimize:clear
