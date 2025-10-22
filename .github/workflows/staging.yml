@@ -37,7 +37,15 @@ jobs:
             composer install --no-dev --optimize-autoloader
             php artisan optimize:clear
             php artisan migrate --force
+
+            # Graceful restarts
             php artisan queue:restart
             php artisan octane:reload
+
+            # Restart supervisor-managed services gracefully
+            sudo supervisorctl reread
+            sudo supervisorctl update
+            sudo supervisorctl restart all
+
             php artisan optimize
-            echo "✅ Deployment completed successfully!"
+            echo "✅ Deployment completed successfully with Supervisor restart!"
