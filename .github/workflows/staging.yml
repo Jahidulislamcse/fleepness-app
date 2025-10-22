@@ -1,39 +1,43 @@
 name: Deploy to Staging
 
 on:
-    push:
-        branches:
-            - staging
+  push:
+    branches:
+      - staging
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Create .env file from GitHub secret
-              run: |
-                  echo "${{ secrets.ENV_STAGING }}" > .env
+      - name: Create .env file from GitHub secret
+        run: |
+          echo "${{ secrets.ENV_STAGING }}" > .env
 
-            - name: Execute deployment commands over SSH
-              uses: appleboy/ssh-action@v1.2.0
-              with:
-                  host: ${{ secrets.SSH_HOST_STAGING }}
-                  username: ${{ secrets.SSH_USER_STAGING }}
-                  password: ${{ secrets.SSH_PASSWORD_STAGING }}
-                  port: 22
-                  script: |
-                      scp -P 22 .env ${{ secrets.SSH_USER_STAGING }}@${{ secrets.SSH_HOST_STAGING }}:/var/www/shared/.env
-                      ln -sf /var/www/shared/.env /var/www/backend_v2/.env
-                      cd /var/www/backend_v2
-                      git checkout staging
-                      git pull origin staging
-                      composer install --no-dev --optimize-autoloader
-                      php artisan optimize:clear
-                      php artisan migrate --force
-                      php artisan queue:restart
-                      php artisan octane:reload
-                      php artisan optimize
-                      echo "✅ Deployment completed successfully!"
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Sync files to remote server using rsync and sshpass
+        run: |
+          sshpass -p "${{ secrets.SSH_PASSWORD_STAGING }}" rsync -avz --delete --exclude=".git" --exclude=".github" --exclude="node_modules" --exclude="storage/logs" --exclude=".env" -e "ssh -o StrictHostKeyChecking=no -p 22" ./ ${{ secrets.SSH_USER_STAGING }}@${{ secrets.SSH_HOST_STAGING }}:/var/www/backend_v2
+
+      - name: Execute deployment commands over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST_STAGING }}
+          username: ${{ secrets.SSH_USER_STAGING }}
+          password: ${{ secrets.SSH_PASSWORD_STAGING }}
+          port: 22
+          script: |
+            ln -sf /var/www/shared/.env /var/www/backend_v2/.env
+            cd /var/www/backend_v2
+            composer install --no-dev --optimize-autoloader
+            php artisan optimize:clear
+            php artisan migrate --force
+            php artisan queue:restart
+            php artisan octane:reload
+            php artisan optimize
+            echo "✅ Deployment completed successfully!"
