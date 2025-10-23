@@ -2,7 +2,7 @@
 set -e
 
 # Configuration
-SECRETS_FILE="secrets/firebase_credentials.json"
+SECRETS_FILE="$HOME/secrets/firebase_credentials.json"
 REMOTE_PATH="/var/www/backend_v2/firebase_credentials.json"
 
 # Upload to remote server

@@ -3,7 +3,7 @@ set -e
 
 # Configuration
 ENV_FILE=".env"
-SECRETS_FILE="secrets/secrets.json"
+SECRETS_FILE="$HOME/secrets/secrets.json"
 REMOTE_PATH="/var/www/backend_v2/.env"
 
 # Generate .env from secrets.json
