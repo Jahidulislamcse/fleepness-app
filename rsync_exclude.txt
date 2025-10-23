@@ -17,3 +17,4 @@ rsync_exclude.txt
 .editorconfig
 .gitignore*
 .gitattributes
+.phpstorm.meta.php
