@@ -6,3 +6,14 @@ storage/logs
 .env.example
 scripts
 secrets
+phpstan*
+phpunit*
+_ide_helper*
+pint*
+.git*
+tests*
+.github*
+rsync_exclude.txt
+.editorconfig
+.gitignore*
+.gitattributes

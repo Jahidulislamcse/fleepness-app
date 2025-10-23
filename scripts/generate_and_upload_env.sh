@@ -14,6 +14,6 @@ echo "✅ .env generated successfully"
 
 # Upload to remote server
 echo "🚀 Uploading .env to $SSH_HOST..."
-sshpass -p "$SSH_PASSWORD" scp "$ENV_FILE" "$SSH_HOST@$SSH_USER:$REMOTE_PATH"
+sshpass -p "$SSH_PASSWORD" scp "$ENV_FILE" "$SSH_USER@$SSH_HOST:$REMOTE_PATH"
 
 echo "✅ .env uploaded successfully"
