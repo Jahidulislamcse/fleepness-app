@@ -1,0 +1,79 @@
+on:
+    workflow_call:
+        inputs:
+            environment:
+                required: true
+                type: string
+            secrets_path:
+                required: true
+                type: string
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        environment: ${{ inputs.environment }}
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Decrypt app env secrets
+              run: ./scripts/decrypt_secret.sh
+              env:
+                  SECRETS_GPG_PATH: ${{ inputs.secrets_path }}/secrets.json.gpg
+                  LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+            - name: Decrypt firebase creds secrets
+              run: ./scripts/decrypt_firebase_credentials.sh
+              env:
+                  LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+                  FIREBASE_CREDS_GPG_PATH: ${{ inputs.secrets_path }}/firebase_credentials.json.gpg
+
+            - name: Install sshpass and jq
+              run: sudo apt-get update && sudo apt-get install -y sshpass jq
+
+            - name: Sync files to remote server using rsync and sshpass
+              run: |
+                  sshpass -p "${{ secrets.SSH_PASSWORD }}" rsync -avz --delete \
+                    --exclude-from=rsync_exclude.txt \
+                    -e "ssh -o StrictHostKeyChecking=no -p 22" ./ \
+                    ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/backend_v2
+
+            - name: Sync app .env
+              run: ./scripts/generate_and_upload_env.sh
+              env:
+                  SSH_USER: ${{ secrets.SSH_USER }}
+                  SSH_HOST: ${{ secrets.SSH_HOST }}
+                  SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+
+            - name: Sync firebase credentials
+              run: ./scripts/upload_firebase_credentials.sh
+              env:
+                  SSH_USER: ${{ secrets.SSH_USER }}
+                  SSH_HOST: ${{ secrets.SSH_HOST }}
+                  SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+
+            - name: Execute deployment commands over SSH
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  password: ${{ secrets.SSH_PASSWORD }}
+                  port: 22
+                  script: |
+                      cd /var/www/backend_v2
+                      composer install --no-dev --optimize-autoloader
+                      php artisan optimize:clear
+                      php artisan migrate --force
+
+                      # Graceful restarts
+                      php artisan queue:restart
+                      php artisan octane:reload
+
+                      # Restart supervisor-managed services gracefully
+                      sudo supervisorctl reread
+                      sudo supervisorctl update
+                      sudo supervisorctl restart all
+
+                      php artisan optimize
+                      echo "✅ Deployment completed successfully with Supervisor restart!"
