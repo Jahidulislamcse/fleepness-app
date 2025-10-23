@@ -1,14 +1,14 @@
-name: Deploy to Staging
+name: Deploy to Production
 
 on:
   push:
     branches:
-      - staging
+      - master
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: staging
+    environment: production
 
     steps:
       - name: Checkout code
@@ -17,14 +17,14 @@ jobs:
       - name: Decrypt app env secrets
         run: ./scripts/decrypt_secret.sh
         env:
-          SECRETS_GPG_PATH: secrets/staging/secrets.json.gpg
+          SECRETS_GPG_PATH: secrets/production/secrets.json.gpg
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Decrypt firebase creds secrets
         run: ./scripts/decrypt_firebase_credentials.sh
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-          FIREBASE_CREDS_GPG_PATH: secrets/staging/firebase_credentials.json.gpg
+          FIREBASE_CREDS_GPG_PATH: secrets/production/firebase_credentials.json.gpg
 
       - name: Install sshpass and jq
         run: sudo apt-get update && sudo apt-get install -y sshpass jq
