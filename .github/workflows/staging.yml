@@ -6,8 +6,9 @@ on:
       - staging
 
 jobs:
-  call-template:
+  call-deploy-template:
     uses: ./.github/workflows/deploy-template.yml
     with:
       environment: staging
       secrets_path: secrets/staging
+    secrets: inherit

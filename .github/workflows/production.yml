@@ -6,8 +6,9 @@ on:
       - master
 
 jobs:
-  call-template:
+  call-deploy-template:
     uses: ./.github/workflows/deploy-template.yml
     with:
       environment: production
       secrets_path: secrets/production
+    secrets: inherit
