@@ -44,7 +44,7 @@ jobs:
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
 
       - name: Sync firebase credentials
-        run: ./scripts/generate_and_upload_env.sh
+        run: ./scripts/upload_firebase_credentials.sh
         env:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
