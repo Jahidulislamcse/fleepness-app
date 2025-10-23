@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SellerOrderItem extends Model
 {
@@ -18,12 +19,18 @@ class SellerOrderItem extends Model
         'size',
     ];
 
-    public function sellerOrder()
+    /**
+     * @return BelongsTo<SellerOrder,$this>
+     */
+    public function sellerOrder(): BelongsTo
     {
         return $this->belongsTo(SellerOrder::class);
     }
 
-    public function product()
+    /**
+     * @return BelongsTo<Product,$this>
+     */
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }

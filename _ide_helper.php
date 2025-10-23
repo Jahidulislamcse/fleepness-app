@@ -5,7 +5,7 @@
 
 /**
  * A helper file for Laravel, to provide autocomplete information to your IDE
- * Generated for Laravel 12.28.0.
+ * Generated for Laravel 12.34.0.
  *
  * This file should not be included in your code, only analyzed by your IDE!
  *
@@ -3869,7 +3869,6 @@ namespace Illuminate\Support\Facades {
         /**
          * Attempt to find the batch with the given ID.
          *
-         * @param string $batchId
          * @return \Illuminate\Bus\Batch|null
          * @static
          */
@@ -3962,7 +3961,6 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the pipes through which commands should be piped before dispatching.
          *
-         * @param array $pipes
          * @return \Illuminate\Bus\Dispatcher
          * @static
          */
@@ -3975,7 +3973,6 @@ namespace Illuminate\Support\Facades {
         /**
          * Map a command to a handler.
          *
-         * @param array $map
          * @return \Illuminate\Bus\Dispatcher
          * @static
          */
@@ -7598,7 +7595,7 @@ namespace Illuminate\Support\Facades {
          * Register a callback to be invoked when the connection queries for longer than a given amount of time.
          *
          * @param \DateTimeInterface|\Carbon\CarbonInterval|float|int $threshold
-         * @param (callable(\Illuminate\Database\Connection, class-string<\Illuminate\Database\Events\QueryExecuted>): mixed) $handler
+         * @param (callable(\Illuminate\Database\Connection, \Illuminate\Database\Events\QueryExecuted): mixed) $handler
          * @return void
          * @static
          */
@@ -8367,6 +8364,21 @@ namespace Illuminate\Support\Facades {
             //Method inherited from \Illuminate\Database\Connection 
             /** @var \Illuminate\Database\MySqlConnection $instance */
             $instance->afterCommit($callback);
+        }
+
+        /**
+         * Execute the callback after a transaction rolls back.
+         *
+         * @param callable $callback
+         * @return void
+         * @throws \RuntimeException
+         * @static
+         */
+        public static function afterRollBack($callback)
+        {
+            //Method inherited from \Illuminate\Database\Connection 
+            /** @var \Illuminate\Database\MySqlConnection $instance */
+            $instance->afterRollBack($callback);
         }
 
             }
@@ -10041,6 +10053,7 @@ namespace Illuminate\Support\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
+         * @param \Closure $callback
          * @return \Illuminate\Hashing\HashManager
          * @static
          */
@@ -10080,6 +10093,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the container instance used by the manager.
          *
+         * @param \Illuminate\Contracts\Container\Container $container
          * @return \Illuminate\Hashing\HashManager
          * @static
          */
@@ -10150,6 +10164,7 @@ namespace Illuminate\Support\Facades {
      * @method static \Illuminate\Http\Client\Response put(string $url, array|\JsonSerializable|\Illuminate\Contracts\Support\Arrayable $data = [])
      * @method static \Illuminate\Http\Client\Response delete(string $url, array|\JsonSerializable|\Illuminate\Contracts\Support\Arrayable $data = [])
      * @method static array pool(callable $callback)
+     * @method static \Illuminate\Http\Client\Batch batch(callable $callback)
      * @method static \Illuminate\Http\Client\Response send(string $method, string $url, array $options = [])
      * @method static \GuzzleHttp\Client buildClient()
      * @method static \GuzzleHttp\Client createClient(\GuzzleHttp\HandlerStack $handlerStack)
@@ -10175,15 +10190,25 @@ namespace Illuminate\Support\Facades {
      */
     class Http {
         /**
+         * @static
+         */
+        public static function createPendingRequest()
+        {
+            /** @var \App\Support\HttpClientFactory $instance */
+            return $instance->createPendingRequest();
+        }
+
+        /**
          * Add middleware to apply to every request.
          *
          * @param callable $middleware
-         * @return \Illuminate\Http\Client\Factory
+         * @return \App\Support\HttpClientFactory
          * @static
          */
         public static function globalMiddleware($middleware)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->globalMiddleware($middleware);
         }
 
@@ -10191,12 +10216,13 @@ namespace Illuminate\Support\Facades {
          * Add request middleware to apply to every request.
          *
          * @param callable $middleware
-         * @return \Illuminate\Http\Client\Factory
+         * @return \App\Support\HttpClientFactory
          * @static
          */
         public static function globalRequestMiddleware($middleware)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->globalRequestMiddleware($middleware);
         }
 
@@ -10204,12 +10230,13 @@ namespace Illuminate\Support\Facades {
          * Add response middleware to apply to every request.
          *
          * @param callable $middleware
-         * @return \Illuminate\Http\Client\Factory
+         * @return \App\Support\HttpClientFactory
          * @static
          */
         public static function globalResponseMiddleware($middleware)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->globalResponseMiddleware($middleware);
         }
 
@@ -10217,12 +10244,13 @@ namespace Illuminate\Support\Facades {
          * Set the options to apply to every request.
          *
          * @param \Closure|array $options
-         * @return \Illuminate\Http\Client\Factory
+         * @return \App\Support\HttpClientFactory
          * @static
          */
         public static function globalOptions($options)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->globalOptions($options);
         }
 
@@ -10237,7 +10265,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function response($body = null, $status = 200, $headers = [])
         {
-            return \Illuminate\Http\Client\Factory::response($body, $status, $headers);
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            return \App\Support\HttpClientFactory::response($body, $status, $headers);
         }
 
         /**
@@ -10251,7 +10280,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function psr7Response($body = null, $status = 200, $headers = [])
         {
-            return \Illuminate\Http\Client\Factory::psr7Response($body, $status, $headers);
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            return \App\Support\HttpClientFactory::psr7Response($body, $status, $headers);
         }
 
         /**
@@ -10265,7 +10295,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function failedRequest($body = null, $status = 200, $headers = [])
         {
-            return \Illuminate\Http\Client\Factory::failedRequest($body, $status, $headers);
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            return \App\Support\HttpClientFactory::failedRequest($body, $status, $headers);
         }
 
         /**
@@ -10277,7 +10308,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function failedConnection($message = null)
         {
-            return \Illuminate\Http\Client\Factory::failedConnection($message);
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            return \App\Support\HttpClientFactory::failedConnection($message);
         }
 
         /**
@@ -10289,7 +10321,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function sequence($responses = [])
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->sequence($responses);
         }
 
@@ -10297,12 +10330,13 @@ namespace Illuminate\Support\Facades {
          * Register a stub callable that will intercept requests and be able to return stub responses.
          *
          * @param callable|array<string, mixed>|null $callback
-         * @return \Illuminate\Http\Client\Factory
+         * @return \App\Support\HttpClientFactory
          * @static
          */
         public static function fake($callback = null)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->fake($callback);
         }
 
@@ -10315,7 +10349,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function fakeSequence($url = '*')
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->fakeSequence($url);
         }
 
@@ -10324,12 +10359,13 @@ namespace Illuminate\Support\Facades {
          *
          * @param string $url
          * @param \Illuminate\Http\Client\Response|\GuzzleHttp\Promise\PromiseInterface|callable|int|string|array|\Illuminate\Http\Client\ResponseSequence $callback
-         * @return \Illuminate\Http\Client\Factory
+         * @return \App\Support\HttpClientFactory
          * @static
          */
         public static function stubUrl($url, $callback)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->stubUrl($url, $callback);
         }
 
@@ -10337,12 +10373,13 @@ namespace Illuminate\Support\Facades {
          * Indicate that an exception should be thrown if any request is not faked.
          *
          * @param bool $prevent
-         * @return \Illuminate\Http\Client\Factory
+         * @return \App\Support\HttpClientFactory
          * @static
          */
         public static function preventStrayRequests($prevent = true)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->preventStrayRequests($prevent);
         }
 
@@ -10354,7 +10391,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function preventingStrayRequests()
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->preventingStrayRequests();
         }
 
@@ -10362,24 +10400,26 @@ namespace Illuminate\Support\Facades {
          * Allow stray, unfaked requests entirely, or optionally allow only specific URLs.
          *
          * @param array<int, string>|null $only
-         * @return \Illuminate\Http\Client\Factory
+         * @return \App\Support\HttpClientFactory
          * @static
          */
         public static function allowStrayRequests($only = null)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->allowStrayRequests($only);
         }
 
         /**
          * Begin recording request / response pairs.
          *
-         * @return \Illuminate\Http\Client\Factory
+         * @return \App\Support\HttpClientFactory
          * @static
          */
         public static function record()
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->record();
         }
 
@@ -10393,7 +10433,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function recordRequestResponsePair($request, $response)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             $instance->recordRequestResponsePair($request, $response);
         }
 
@@ -10406,7 +10447,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function assertSent($callback)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             $instance->assertSent($callback);
         }
 
@@ -10419,7 +10461,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function assertSentInOrder($callbacks)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             $instance->assertSentInOrder($callbacks);
         }
 
@@ -10432,7 +10475,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function assertNotSent($callback)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             $instance->assertNotSent($callback);
         }
 
@@ -10444,7 +10488,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function assertNothingSent()
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             $instance->assertNothingSent();
         }
 
@@ -10457,7 +10502,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function assertSentCount($count)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             $instance->assertSentCount($count);
         }
 
@@ -10469,7 +10515,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function assertSequencesAreEmpty()
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             $instance->assertSequencesAreEmpty();
         }
 
@@ -10482,20 +10529,9 @@ namespace Illuminate\Support\Facades {
          */
         public static function recorded($callback = null)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->recorded($callback);
-        }
-
-        /**
-         * Create a new pending request instance for this factory.
-         *
-         * @return \Illuminate\Http\Client\PendingRequest
-         * @static
-         */
-        public static function createPendingRequest()
-        {
-            /** @var \Illuminate\Http\Client\Factory $instance */
-            return $instance->createPendingRequest();
         }
 
         /**
@@ -10506,7 +10542,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function getDispatcher()
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->getDispatcher();
         }
 
@@ -10518,7 +10555,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function getGlobalMiddleware()
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->getGlobalMiddleware();
         }
 
@@ -10533,7 +10571,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function macro($name, $macro)
         {
-            \Illuminate\Http\Client\Factory::macro($name, $macro);
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            \App\Support\HttpClientFactory::macro($name, $macro);
         }
 
         /**
@@ -10547,7 +10586,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function mixin($mixin, $replace = true)
         {
-            \Illuminate\Http\Client\Factory::mixin($mixin, $replace);
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            \App\Support\HttpClientFactory::mixin($mixin, $replace);
         }
 
         /**
@@ -10559,7 +10599,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function hasMacro($name)
         {
-            return \Illuminate\Http\Client\Factory::hasMacro($name);
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            return \App\Support\HttpClientFactory::hasMacro($name);
         }
 
         /**
@@ -10570,7 +10611,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function flushMacros()
         {
-            \Illuminate\Http\Client\Factory::flushMacros();
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            \App\Support\HttpClientFactory::flushMacros();
         }
 
         /**
@@ -10584,7 +10626,8 @@ namespace Illuminate\Support\Facades {
          */
         public static function macroCall($method, $parameters)
         {
-            /** @var \Illuminate\Http\Client\Factory $instance */
+            //Method inherited from \Illuminate\Http\Client\Factory 
+            /** @var \App\Support\HttpClientFactory $instance */
             return $instance->macroCall($method, $parameters);
         }
 
@@ -11803,6 +11846,7 @@ namespace Illuminate\Support\Facades {
          *
          * @param \Illuminate\Support\Collection|mixed $notifiables
          * @param mixed $notification
+         * @param array|null $channels
          * @return void
          * @static
          */
@@ -11894,6 +11938,7 @@ namespace Illuminate\Support\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
+         * @param \Closure $callback
          * @return \Illuminate\Notifications\ChannelManager
          * @static
          */
@@ -11933,6 +11978,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the container instance used by the manager.
          *
+         * @param \Illuminate\Contracts\Container\Container $container
          * @return \Illuminate\Notifications\ChannelManager
          * @static
          */
@@ -13351,6 +13397,33 @@ namespace Illuminate\Support\Facades {
         {
             //Method inherited from \Illuminate\Queue\Queue 
             \Illuminate\Queue\DatabaseQueue::createPayloadUsing($callback);
+        }
+
+        /**
+         * Get the queue configuration array.
+         *
+         * @return array
+         * @static
+         */
+        public static function getConfig()
+        {
+            //Method inherited from \Illuminate\Queue\Queue 
+            /** @var \Illuminate\Queue\DatabaseQueue $instance */
+            return $instance->getConfig();
+        }
+
+        /**
+         * Set the queue configuration array.
+         *
+         * @param array $config
+         * @return \Illuminate\Queue\DatabaseQueue
+         * @static
+         */
+        public static function setConfig($config)
+        {
+            //Method inherited from \Illuminate\Queue\Queue 
+            /** @var \Illuminate\Queue\DatabaseQueue $instance */
+            return $instance->setConfig($config);
         }
 
         /**
@@ -18037,7 +18110,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Specify the cache store that should be used to store mutexes.
          *
-         * @param string $store
+         * @param \UnitEnum|string $store
          * @return \Illuminate\Console\Scheduling\Schedule
          * @static
          */
@@ -18826,7 +18899,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Get the default session driver name.
          *
-         * @return string
+         * @return string|null
          * @static
          */
         public static function getDefaultDriver()
@@ -18867,6 +18940,7 @@ namespace Illuminate\Support\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
+         * @param \Closure $callback
          * @return \Illuminate\Session\SessionManager
          * @static
          */
@@ -18906,6 +18980,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the container instance used by the manager.
          *
+         * @param \Illuminate\Contracts\Container\Container $container
          * @return \Illuminate\Session\SessionManager
          * @static
          */
@@ -19257,6 +19332,18 @@ namespace Illuminate\Support\Facades {
         {
             /** @var \Illuminate\Session\Store $instance */
             $instance->flashInput($value);
+        }
+
+        /**
+         * Get the session cache instance.
+         *
+         * @return \Illuminate\Contracts\Cache\Repository
+         * @static
+         */
+        public static function cache()
+        {
+            /** @var \Illuminate\Session\Store $instance */
+            return $instance->cache();
         }
 
         /**
@@ -23218,6 +23305,7 @@ namespace Laravel\Socialite\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
+         * @param \Closure $callback
          * @return \Laravel\Socialite\SocialiteManager
          * @static
          */
@@ -23252,6 +23340,39 @@ namespace Laravel\Socialite\Facades {
             //Method inherited from \Illuminate\Support\Manager 
             /** @var \Laravel\Socialite\SocialiteManager $instance */
             return $instance->getContainer();
+        }
+
+            }
+    }
+
+namespace Illuminate\Support {
+    /**
+     */
+    class Str {
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param string $prefix
+         * @static
+         */
+        public static function orderId($prefix = '#ORD')
+        {
+            return \Illuminate\Support\Str::orderId($prefix);
+        }
+
+            }
+    /**
+     */
+    class Uri {
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param \Stringable|\League\Uri\UriTemplate|string $template
+         * @param iterable $variables
+         * @return \Illuminate\Support\Uri
+         * @static
+         */
+        public static function fromTemplate($template, $variables = [])
+        {
+            return \Illuminate\Support\Uri::fromTemplate($template, $variables);
         }
 
             }
@@ -23322,25 +23443,6 @@ namespace Illuminate\Http {
         public static function hasValidRelativeSignatureWhileIgnoring($ignoreQuery = [])
         {
             return \Illuminate\Http\Request::hasValidRelativeSignatureWhileIgnoring($ignoreQuery);
-        }
-
-            }
-    }
-
-namespace Illuminate\Support {
-    /**
-     */
-    class Uri {
-        /**
-         * @see \App\Providers\AppServiceProvider::boot()
-         * @param \Stringable|\League\Uri\UriTemplate|string $template
-         * @param iterable $variables
-         * @return \Illuminate\Support\Uri
-         * @static
-         */
-        public static function fromTemplate($template, $variables = [])
-        {
-            return \Illuminate\Support\Uri::fromTemplate($template, $variables);
         }
 
             }
@@ -23545,6 +23647,19 @@ namespace  {
         {
             /** @var \Illuminate\Database\Eloquent\Builder $instance */
             return $instance->withoutGlobalScopes($scopes);
+        }
+
+        /**
+         * Remove all global scopes except the given scopes.
+         *
+         * @param array $scopes
+         * @return \Illuminate\Database\Eloquent\Builder<static>
+         * @static
+         */
+        public static function withoutGlobalScopesExcept($scopes = [])
+        {
+            /** @var \Illuminate\Database\Eloquent\Builder $instance */
+            return $instance->withoutGlobalScopesExcept($scopes);
         }
 
         /**
@@ -25363,7 +25478,7 @@ namespace  {
          *
          * @param mixed $relations
          * @param \Illuminate\Contracts\Database\Query\Expression|string $column
-         * @param string $function
+         * @param string|null $function
          * @return \Illuminate\Database\Eloquent\Builder<static>
          * @static
          */
