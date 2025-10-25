@@ -22,3 +22,5 @@ yarn-error.log
 /.vscode
 /.zed
 fleepness-pushnotification-firebase-adminsdk-*.json
+secrets*.json
+gpg-passfile.txt

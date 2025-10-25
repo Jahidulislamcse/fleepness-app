@@ -1,0 +1,55 @@
+#!/bin/sh
+# Husky pre-commit hook
+# This script runs the encrypt-secrets.js script for staging and production environments
+# It detects the runtime environment (bun, deno, or node) and executes accordingly
+# Compatible with Husky v10+, POSIX-compliant, and cross-platform (Unix, Git Bash, WSL)
+
+# Function to run encrypt-secrets.js with the given runtime, profile, and passfile
+
+run_encrypt_secrets() {
+  runtime=$1
+  profile=$2
+  passfile=$3
+
+  case "$runtime" in
+    bun)
+      bun scripts/encrypt-secrets.js -p "$profile" -P "$passfile"
+      ;;
+    deno)
+      deno run --allow-read --allow-write scripts/encrypt-secrets.js -p "$profile" -P "$passfile"
+      ;;
+    node)
+      node scripts/encrypt-secrets.js -p "$profile" -P "$passfile"
+      ;;
+    *)
+      echo "Unsupported runtime: $runtime"
+      exit 1
+      ;;
+  esac
+}
+
+# Detect available runtime: bun > deno > node
+if command -v bun >/dev/null 2>&1; then
+  runtime="bun"
+elif command -v deno >/dev/null 2>&1; then
+  runtime="deno"
+elif command -v node >/dev/null 2>&1; then
+  runtime="node"
+else
+  echo "No suitable runtime found (bun, deno, or node required)."
+  exit 1
+fi
+
+# Detect lint-staged executor: bunx > npx > deno
+if command -v bunx >/dev/null 2>&1; then
+  lint_staged_cmd="bunx lint-staged"
+elif command -v npx >/dev/null 2>&1; then
+  lint_staged_cmd="npx lint-staged"
+else
+  lint_staged_cmd="deno run --allow-read --allow-write node_modules/.bin/lint-staged"
+fi
+
+# Run lint-staged with the detected executor
+$lint_staged_cmd
+run_encrypt_secrets "$runtime" staging gpg-passfile.txt
+run_encrypt_secrets "$runtime" production gpg-passfile.txt

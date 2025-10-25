@@ -416,6 +416,8 @@ namespace App\Models{
  * @property string|null $grand_total
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property int $platform_fee_added
+ * @property int $completed_order
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\SellerOrder> $sellerOrders
  * @property-read int|null $seller_orders_count
  * @property-read \App\Models\User $user
@@ -423,6 +425,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCommission($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCompletedOrder($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereDeliveryFee($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereDeliveryModel($value)
@@ -431,6 +434,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereIsMultiSeller($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOrderCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePlatformFee($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePlatformFeeAdded($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereProductCost($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTotalSellers($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)
@@ -670,16 +674,20 @@ namespace App\Models{
  * @property int $id
  * @property int $order_id
  * @property int $seller_id
+ * @property int|null $customer_id
  * @property \App\Enums\SellerOrderStatus|null $status
  * @property string|null $status_message
  * @property \Illuminate\Support\Carbon|null $delivery_start_time
  * @property \Illuminate\Support\Carbon|null $delivery_end_time
  * @property string|null $product_cost
  * @property string|null $commission
+ * @property string|null $vat
+ * @property string|null $delivery_fee
  * @property string|null $balance
  * @property bool|null $rider_assigned
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User|null $customer
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\SellerOrderItem> $items
  * @property-read int|null $items_count
  * @property-read \App\Models\Order $order
@@ -689,7 +697,9 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereBalance($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereCommission($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereCustomerId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereDeliveryEndTime($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereDeliveryFee($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereDeliveryStartTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereOrderId($value)
@@ -699,6 +709,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereStatusMessage($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereVat($value)
  */
 	class SellerOrder extends \Eloquent {}
 }
