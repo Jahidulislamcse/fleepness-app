@@ -19,6 +19,11 @@ class OrderStatusChanged extends Notification implements ShouldBroadcast
         //
     }
 
+    public function broadcastAs()
+    {
+        return str($this::class)->snake();
+    }
+
     /**
      * Get the notification's delivery channels.
      *
@@ -41,6 +46,10 @@ class OrderStatusChanged extends Notification implements ShouldBroadcast
 
             'status' => $this->sellerOrder->status->value,
             'status_message' => $this->sellerOrder->status_message,
+            'notification' => [
+                'title' => "Order #{$this->sellerOrder->order->order_code} status changed to {$this->sellerOrder->status->value}",
+                'body' => $this->sellerOrder->status_message,
+            ],
         ];
     }
 
