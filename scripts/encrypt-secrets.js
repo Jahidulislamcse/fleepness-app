@@ -134,7 +134,10 @@ function main() {
 
         // Stage the encrypted file in Git to prepare for commit
         // This automates adding the updated encrypted secrets to version control
-        execSync(`git add "${ENCRYPTED_FILE}"`, { stdio: "inherit" });
+        // Stage the hash file in Git as well
+        execSync(`git add "${ENCRYPTED_FILE}" "${SOURCE_HASH_FILE}"`, {
+            stdio: "inherit",
+        });
     } else {
         // If no changes detected, log a message and skip encryption
         console.log(
