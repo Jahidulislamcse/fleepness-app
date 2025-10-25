@@ -6,8 +6,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
-use App\Http\Controllers\SMSController;
 use Illuminate\Support\Facades\Validator;
 
 class OTPAuthController extends Controller
@@ -46,17 +44,20 @@ class OTPAuthController extends Controller
 
         cache()->put('otp_'.$user->phone_number, $otp, now()->addMinutes(10));
 
-        (new SMSController)->sendSMS(new Request([
-            'Message' => "Your OTP is: $otp",
-            'MobileNumbers' => $user->phone_number,
-        ]));
+        $user->sendOtpNotification($otp);
 
-        return response()->json([
+        $payloadToReturn = [
             'message' => 'OTP sent to your phone_number.',
             'user_id' => $user->id,
             'phone_number' => $user->phone_number,
             'otp' => $otp,
-        ]);
+        ];
+
+        if (app()->isProduction()) {
+            unset($payloadToReturn['otp']);
+        }
+
+        return response()->json($payloadToReturn);
     }
 
     // Verify OTP
@@ -107,21 +108,21 @@ class OTPAuthController extends Controller
 
         // Generate a new OTP
         $otp = rand(1000, 9999);
-        // dd($otp);
 
         // Store the new OTP in cache
         cache()->put('otp_'.$user->phone_number, $otp, now()->addMinutes(10));
 
-        // Send new OTP via SMS
-        $smsController = new SMSController;
-        $smsController->sendSMS(new Request([
-            'Message' => "Your new OTP is: $otp",
-            'MobileNumbers' => $user->phone_number,
-        ]));
+        $user->sendOtpNotification($otp);
 
-        return response()->json([
+        $payloadToReturn = [
             'message' => 'New OTP sent to your phone_number.',
             'otp' => $otp,
-        ]);
+        ];
+
+        if (app()->isProduction()) {
+            unset($payloadToReturn['otp']);
+        }
+
+        return response()->json($payloadToReturn);
     }
 }

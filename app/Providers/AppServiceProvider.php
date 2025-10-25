@@ -33,7 +33,9 @@ use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Http\Client\PendingRequest;
 use App\Support\Broadcaster\FcmBroadcaster;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Notification;
+use App\Support\Notification\Channels\SmsChannel;
 use App\Support\Notification\Channels\FcmTopicChannel;
 use App\Support\Notification\Channels\FcmDeviceChannel;
 use Illuminate\Http\Client\Request as HttpClientRequest;
@@ -52,6 +54,19 @@ class AppServiceProvider extends ServiceProvider
 
             return tap($stack)->setHandler(Utils::chooseHandler());
         });
+        Notification::resolved(function (ChannelManager $service) {
+            $service->extend('fcm-device', function (Application $app) {
+                return $app->make(FcmDeviceChannel::class);
+            });
+
+            $service->extend('fcm-topic', function (Application $app) {
+                return $app->make(FcmTopicChannel::class);
+            });
+
+            $service->extend('sms', function (Application $app) {
+                return $app->make(SmsChannel::class);
+            });
+        });
     }
 
     /**
@@ -59,14 +74,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Notification::extend('fcm-device', function (Application $app) {
-            return $app->make(FcmDeviceChannel::class);
-        });
-
-        Notification::extend('fcm-topic', function (Application $app) {
-            return $app->make(FcmTopicChannel::class);
-        });
-
         context()->hydrated(static function (Repository $context): void {
             if ($context->has('traceId') && $traceId = $context->get('traceId')) {
                 LogBatch::setBatch($traceId);
@@ -111,7 +118,7 @@ class AppServiceProvider extends ServiceProvider
         )));
 
         $this->app->singleton(SMSService::class, function (Application $app) {
-            return new SMSService(Http::sms());
+            return new SMSService;
         });
 
         PendingRequest::macro('sms', function (): SmsApiConnector {

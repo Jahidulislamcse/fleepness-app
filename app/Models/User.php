@@ -6,9 +6,11 @@ namespace App\Models;
 
 use Illuminate\Support\Arr;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Stringable;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
+use App\Notifications\LoginOtpNotification;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -60,6 +62,34 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
     public function routeNotificationForFcmTokens(Notification&SupportsFcmChannel $notification): null|array|string
     {
         return $this->deviceTokens->pluck('token')->toArray();
+    }
+
+    protected function phoneNumber(): Attribute
+    {
+        return Attribute::get(function (?string $value) {
+            if (empty($value)) {
+                return null;
+            }
+
+            return str($value)
+                ->pipe(function (Stringable $str) {
+                    return $str->when($str->startsWith('0'))->prepend('88');
+                })
+                ->pipe(function (Stringable $str) {
+                    return $str->unless($str->startsWith('880'))->prepend('880');
+                })
+                ->value();
+        });
+    }
+
+    public function routeNotificationForSms($notification = null)
+    {
+        return $this->phone_number;
+    }
+
+    public function sendOtpNotification(int|string $otp)
+    {
+        $this->notify(new LoginOtpNotification($otp));
     }
 
     public function deviceTokens()

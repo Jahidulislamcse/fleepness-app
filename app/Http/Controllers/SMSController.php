@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Support\Sms\Facades\Sms;
 use Illuminate\Support\Stringable;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 
 class SMSController extends Controller
@@ -38,28 +38,18 @@ class SMSController extends Controller
         $validated['MobileNumbers'] = $mobileNumber;
 
         // Send the request to the SMS API
-        $response = Http::sms()->sendSms([
-            'Message' => $validated['Message'],
-            'MobileNumbers' => $validated['MobileNumbers'],
-            'Is_Unicode' => true,
-            'Is_Flash' => false,
-            'DataCoding' => '8',
-            'ScheduleTime' => $validated['ScheduleTime'] ?? null,
-            'GroupId' => '',
-        ]);
+        $response = Sms::withMessage($validated['Message'])
+            ->withScheduleTime($validated['ScheduleTime'] ?? null)
+            ->withMobiles(
+                str($validated['MobileNumbers'])
+                    ->explode(',')
+                    ->map(str(...))
+                    ->map->trim()
+                    ->map->value()
+                    ->all()
+            )
+            ->send();
 
-        // Check for a successful response
-        if ($response->successful()) {
-            return response()->json([
-                'ErrorCode' => 0,
-                'ErrorDescription' => 'Success',
-                'Data' => $response->json('Data', []),
-            ]);
-        } else {
-            return response()->json([
-                'ErrorCode' => $response->status(),
-                'ErrorDescription' => $response->body(),
-            ], $response->status());
-        }
+        return response()->json($response);
     }
 }

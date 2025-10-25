@@ -138,12 +138,12 @@ class FcmBroadcaster extends Broadcaster
             try {
                 /** @var HigherOrderWhenProxy|CloudMessage $message */
                 $message = (new HigherOrderWhenProxy(CloudMessage::new()))
-                    ->condition(!is_null($notification));
+                    ->condition(! is_null($notification));
 
                 /** @var CloudMessage $message */
                 $message = $message
-                    ->withData($payload)
-                    ->withNotification($notification);
+                    ->withNotification($notification)
+                    ->withData($payload);
 
                 $report = Firebase::messaging()->sendMulticast(
                     $message,
@@ -175,7 +175,7 @@ class FcmBroadcaster extends Broadcaster
                         /** @var HigherOrderWhenProxy|CloudMessage $message */
                         /** @var HigherOrderWhenProxy|CloudMessage $message */
                         $message = (new HigherOrderWhenProxy(CloudMessage::new()))
-                            ->condition(!is_null($notification));
+                            ->condition(! is_null($notification));
 
                         /** @var CloudMessage $message */
                         $message = $message

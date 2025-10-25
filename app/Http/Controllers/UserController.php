@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\SellerOrder;
 use App\Models\UserPayment;
 use App\Services\SMSService;
 use Illuminate\Http\Request;
 use App\Events\SellerStatusUpdated;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Container\Attributes\CurrentUser;
-use App\Models\SellerOrder;
 
 class UserController extends Controller
 {
