@@ -402,6 +402,8 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+ * @property float|null $platform_fee
+ * @property float|null $delivery_fee
  * @property int $id
  * @property int $user_id
  * @property string $order_code
@@ -410,8 +412,6 @@ namespace App\Models{
  * @property string|null $delivery_model
  * @property string|null $product_cost
  * @property string|null $commission
- * @property string|null $delivery_fee
- * @property string|null $platform_fee
  * @property string|null $vat
  * @property string|null $grand_total
  * @property \Illuminate\Support\Carbon|null $created_at
