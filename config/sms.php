@@ -2,5 +2,5 @@
 
 return [
     // smsq, log
-    'driver' => env('SMS_DRIVER', 'smsq'),
+    'driver' => env('SMS_DRIVER', 'log'),
 ];
