@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
-use App\Support\Sms\Facades\Sms;
 use Illuminate\Support\Stringable;
+use App\Notifications\SmsNotification;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Notification;
 
 class SMSController extends Controller
 {
@@ -20,36 +22,34 @@ class SMSController extends Controller
         ]);
 
         $validated = $validator->validate();
+        $scheduleTime = $validator->safe()->date('ScheduleTime');
 
         // Ensure the number starts with '880'
-        $mobileNumber = $validator
+        $mobileNumbers = $validator
             ->safe()
             ->str('MobileNumbers')
-            ->trim()
-            ->pipe(function (Stringable $str) {
-                return $str->when($str->startsWith('0'))->prepend('88');
+            ->explode(',')
+            ->map(str(...))
+            ->map->trim()
+            ->map->whenStartsWith('0', function (Stringable $str) {
+                return $str->prepend('88');
             })
-            ->pipe(function (Stringable $str) {
-                return $str->unless($str->startsWith('880'))->prepend('880');
+            ->map->whenDoesntStartWith('880', function (Stringable $str) {
+                return $str->prepend('880');
             })
-            ->value();
+            ->map->value()
+            ->all();
 
-        // Update the validated data with the formatted number
-        $validated['MobileNumbers'] = $mobileNumber;
+        $smsNotification = (new SmsNotification($validated['Message']));
 
-        // Send the request to the SMS API
-        $response = Sms::withMessage($validated['Message'])
-            ->withScheduleTime($validated['ScheduleTime'] ?? null)
-            ->withMobiles(
-                str($validated['MobileNumbers'])
-                    ->explode(',')
-                    ->map(str(...))
-                    ->map->trim()
-                    ->map->value()
-                    ->all()
-            )
-            ->send();
+        if ($scheduleTime) {
+            $smsNotification->delay($scheduleTime);
+        }
 
-        return response()->json($response);
+        Notification::route('sms', $mobileNumbers)->notify($smsNotification);
+
+        return response()->json([
+            'message' => Response::$statusTexts[Response::HTTP_ACCEPTED],
+        ], Response::HTTP_ACCEPTED);
     }
 }

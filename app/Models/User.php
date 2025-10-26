@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
+use App\Enums\SellerStatus;
 use Illuminate\Support\Arr;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Stringable;
@@ -44,9 +43,18 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
         'remember_token',
     ];
 
-    public function routeBroadcastNotificationForFcmTokens(): null|array|string
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
     {
-        return $this->deviceTokens->pluck('token')->toArray();
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'status' => SellerStatus::class,
+        ];
     }
 
     public function removeDeviceToken(array|string $token): mixed
@@ -59,9 +67,24 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
             ->delete();
     }
 
+    public function receivesBroadcastNotificationsOn()
+    {
+        return sprintf('user_%s', $this->getKey());
+    }
+
+    public function routeBroadcastNotificationForFcmTokens(): null|array|string
+    {
+        return $this->deviceTokens->pluck('token')->toArray();
+    }
+
     public function routeNotificationForFcmTokens(Notification&SupportsFcmChannel $notification): null|array|string
     {
         return $this->deviceTokens->pluck('token')->toArray();
+    }
+
+    public function routeNotificationForSms($notification = null)
+    {
+        return $this->phone_number;
     }
 
     protected function phoneNumber(): Attribute
@@ -82,32 +105,14 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
         });
     }
 
-    public function routeNotificationForSms($notification = null)
-    {
-        return $this->phone_number;
-    }
-
-    public function sendOtpNotification(int|string $otp)
-    {
-        $this->notify(new LoginOtpNotification($otp));
-    }
-
     public function deviceTokens()
     {
         return $this->hasMany(DeviceToken::class);
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function sendOtpNotification(int|string $otp)
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        $this->notify(new LoginOtpNotification($otp));
     }
 
     public function registerMediaCollections(): void
@@ -158,5 +163,25 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
     public function savedLivestreams()
     {
         return $this->hasMany(LivestreamSave::class);
+    }
+
+    public function getOtpCacheKey()
+    {
+        return "otp_$this->phone_number";
+    }
+
+    public function getCachedOtp(mixed $default = null)
+    {
+        return cache()->get($this->getOtpCacheKey(), $default);
+    }
+
+    public function cacheOtpFor10Minutes(string $otp)
+    {
+        return cache()->put($this->getOtpCacheKey(), $otp, now()->addMinutes(10));
+    }
+
+    public function forgetCachedOtp()
+    {
+        return cache()->forget($this->getOtpCacheKey());
     }
 }

@@ -416,7 +416,7 @@ namespace App\Models{
  * @property string|null $grand_total
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property int $platform_fee_added
+ * @property bool $platform_fee_added
  * @property int $completed_order
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\SellerOrder> $sellerOrders
  * @property-read int|null $seller_orders_count
@@ -971,7 +971,7 @@ namespace App\Models{
  * @property string|null $pickup_location
  * @property string|null $description
  * @property string $role
- * @property string|null $status
+ * @property \App\Enums\SellerStatus|null $status
  * @property int|null $order_count
  * @property string $total_sales
  * @property string $balance

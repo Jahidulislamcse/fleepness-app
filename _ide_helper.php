@@ -5,7 +5,7 @@
 
 /**
  * A helper file for Laravel, to provide autocomplete information to your IDE
- * Generated for Laravel 12.34.0.
+ * Generated for Laravel 12.28.0.
  *
  * This file should not be included in your code, only analyzed by your IDE!
  *
@@ -3869,6 +3869,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Attempt to find the batch with the given ID.
          *
+         * @param string $batchId
          * @return \Illuminate\Bus\Batch|null
          * @static
          */
@@ -3961,6 +3962,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the pipes through which commands should be piped before dispatching.
          *
+         * @param array $pipes
          * @return \Illuminate\Bus\Dispatcher
          * @static
          */
@@ -3973,6 +3975,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Map a command to a handler.
          *
+         * @param array $map
          * @return \Illuminate\Bus\Dispatcher
          * @static
          */
@@ -7595,7 +7598,7 @@ namespace Illuminate\Support\Facades {
          * Register a callback to be invoked when the connection queries for longer than a given amount of time.
          *
          * @param \DateTimeInterface|\Carbon\CarbonInterval|float|int $threshold
-         * @param (callable(\Illuminate\Database\Connection, \Illuminate\Database\Events\QueryExecuted): mixed) $handler
+         * @param (callable(\Illuminate\Database\Connection, class-string<\Illuminate\Database\Events\QueryExecuted>): mixed) $handler
          * @return void
          * @static
          */
@@ -8364,21 +8367,6 @@ namespace Illuminate\Support\Facades {
             //Method inherited from \Illuminate\Database\Connection 
             /** @var \Illuminate\Database\MySqlConnection $instance */
             $instance->afterCommit($callback);
-        }
-
-        /**
-         * Execute the callback after a transaction rolls back.
-         *
-         * @param callable $callback
-         * @return void
-         * @throws \RuntimeException
-         * @static
-         */
-        public static function afterRollBack($callback)
-        {
-            //Method inherited from \Illuminate\Database\Connection 
-            /** @var \Illuminate\Database\MySqlConnection $instance */
-            $instance->afterRollBack($callback);
         }
 
             }
@@ -10053,7 +10041,6 @@ namespace Illuminate\Support\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
-         * @param \Closure $callback
          * @return \Illuminate\Hashing\HashManager
          * @static
          */
@@ -10093,7 +10080,6 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the container instance used by the manager.
          *
-         * @param \Illuminate\Contracts\Container\Container $container
          * @return \Illuminate\Hashing\HashManager
          * @static
          */
@@ -10164,7 +10150,6 @@ namespace Illuminate\Support\Facades {
      * @method static \Illuminate\Http\Client\Response put(string $url, array|\JsonSerializable|\Illuminate\Contracts\Support\Arrayable $data = [])
      * @method static \Illuminate\Http\Client\Response delete(string $url, array|\JsonSerializable|\Illuminate\Contracts\Support\Arrayable $data = [])
      * @method static array pool(callable $callback)
-     * @method static \Illuminate\Http\Client\Batch batch(callable $callback)
      * @method static \Illuminate\Http\Client\Response send(string $method, string $url, array $options = [])
      * @method static \GuzzleHttp\Client buildClient()
      * @method static \GuzzleHttp\Client createClient(\GuzzleHttp\HandlerStack $handlerStack)
@@ -11846,7 +11831,6 @@ namespace Illuminate\Support\Facades {
          *
          * @param \Illuminate\Support\Collection|mixed $notifiables
          * @param mixed $notification
-         * @param array|null $channels
          * @return void
          * @static
          */
@@ -11938,7 +11922,6 @@ namespace Illuminate\Support\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
-         * @param \Closure $callback
          * @return \Illuminate\Notifications\ChannelManager
          * @static
          */
@@ -11978,7 +11961,6 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the container instance used by the manager.
          *
-         * @param \Illuminate\Contracts\Container\Container $container
          * @return \Illuminate\Notifications\ChannelManager
          * @static
          */
@@ -13397,33 +13379,6 @@ namespace Illuminate\Support\Facades {
         {
             //Method inherited from \Illuminate\Queue\Queue 
             \Illuminate\Queue\DatabaseQueue::createPayloadUsing($callback);
-        }
-
-        /**
-         * Get the queue configuration array.
-         *
-         * @return array
-         * @static
-         */
-        public static function getConfig()
-        {
-            //Method inherited from \Illuminate\Queue\Queue 
-            /** @var \Illuminate\Queue\DatabaseQueue $instance */
-            return $instance->getConfig();
-        }
-
-        /**
-         * Set the queue configuration array.
-         *
-         * @param array $config
-         * @return \Illuminate\Queue\DatabaseQueue
-         * @static
-         */
-        public static function setConfig($config)
-        {
-            //Method inherited from \Illuminate\Queue\Queue 
-            /** @var \Illuminate\Queue\DatabaseQueue $instance */
-            return $instance->setConfig($config);
         }
 
         /**
@@ -18110,7 +18065,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Specify the cache store that should be used to store mutexes.
          *
-         * @param \UnitEnum|string $store
+         * @param string $store
          * @return \Illuminate\Console\Scheduling\Schedule
          * @static
          */
@@ -18899,7 +18854,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Get the default session driver name.
          *
-         * @return string|null
+         * @return string
          * @static
          */
         public static function getDefaultDriver()
@@ -18940,7 +18895,6 @@ namespace Illuminate\Support\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
-         * @param \Closure $callback
          * @return \Illuminate\Session\SessionManager
          * @static
          */
@@ -18980,7 +18934,6 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the container instance used by the manager.
          *
-         * @param \Illuminate\Contracts\Container\Container $container
          * @return \Illuminate\Session\SessionManager
          * @static
          */
@@ -19332,18 +19285,6 @@ namespace Illuminate\Support\Facades {
         {
             /** @var \Illuminate\Session\Store $instance */
             $instance->flashInput($value);
-        }
-
-        /**
-         * Get the session cache instance.
-         *
-         * @return \Illuminate\Contracts\Cache\Repository
-         * @static
-         */
-        public static function cache()
-        {
-            /** @var \Illuminate\Session\Store $instance */
-            return $instance->cache();
         }
 
         /**
@@ -23287,7 +23228,6 @@ namespace Laravel\Socialite\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
-         * @param \Closure $callback
          * @return \Laravel\Socialite\SocialiteManager
          * @static
          */
@@ -23331,6 +23271,17 @@ namespace Illuminate\Support {
     /**
      */
     class Str {
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param int $length
+         * @return string
+         * @static
+         */
+        public static function otp($length = 4)
+        {
+            return \Illuminate\Support\Str::otp($length);
+        }
+
         /**
          * @see \App\Providers\AppServiceProvider::boot()
          * @param string $prefix
@@ -23629,19 +23580,6 @@ namespace  {
         {
             /** @var \Illuminate\Database\Eloquent\Builder $instance */
             return $instance->withoutGlobalScopes($scopes);
-        }
-
-        /**
-         * Remove all global scopes except the given scopes.
-         *
-         * @param array $scopes
-         * @return \Illuminate\Database\Eloquent\Builder<static>
-         * @static
-         */
-        public static function withoutGlobalScopesExcept($scopes = [])
-        {
-            /** @var \Illuminate\Database\Eloquent\Builder $instance */
-            return $instance->withoutGlobalScopesExcept($scopes);
         }
 
         /**
@@ -25460,7 +25398,7 @@ namespace  {
          *
          * @param mixed $relations
          * @param \Illuminate\Contracts\Database\Query\Expression|string $column
-         * @param string|null $function
+         * @param string $function
          * @return \Illuminate\Database\Eloquent\Builder<static>
          * @static
          */

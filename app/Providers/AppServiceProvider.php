@@ -76,13 +76,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Str::macro('otp', function (int $length = 4): string {
+            $otp = '';
+            for ($i = 0; $i < $length; $i++) {
+                $otp .= random_int(0, 9);
+            }
+
+            return $otp;
+        });
+
         Str::macro('orderId', function (string $prefix = '#ORD') {
             $prefix = str($prefix)
                 ->trim()
                 ->whenDoesntEndWith('-', fn (SupportStringable $str) => $str->append('-'))
                 ->value();
 
-            return str(Str::random())->prepend($prefix);
+            return str(Str::random(6))->prepend($prefix);
         });
 
         Model::shouldBeStrict(! app()->isProduction());

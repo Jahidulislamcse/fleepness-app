@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
@@ -40,15 +41,15 @@ class OTPAuthController extends Controller
             'phone_number' => $request->phone_number,
         ]);
 
-        $otp = rand(1000, 9999);
+        $otp = Str::otp();
 
-        cache()->put('otp_'.$user->phone_number, $otp, now()->addMinutes(10));
+        $user->cacheOtpFor10Minutes($otp);
 
         $user->sendOtpNotification($otp);
 
         $payloadToReturn = [
-            'message' => 'OTP sent to your phone_number.',
-            'user_id' => $user->id,
+            'message' => 'OTP sent to your phone.',
+            'user_id' => $user->getKey(),
             'phone_number' => $user->phone_number,
             'otp' => $otp,
         ];
@@ -72,7 +73,7 @@ class OTPAuthController extends Controller
 
         $user = User::where('phone_number', $request->phone_number)->first();
 
-        $cachedOtp = cache()->get('otp_'.$user->phone_number);
+        $cachedOtp = $user->getCachedOtp();
         if (! $cachedOtp) {
             return response()->json(['message' => 'OTP expired.'], 400);
         }
@@ -82,8 +83,7 @@ class OTPAuthController extends Controller
         }
 
         // OTP verified, remove OTP from cache
-        cache()->forget('otp_'.$user->phone_number);
-
+        $user->forgetCachedOtp();
         // Create and return a token
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -107,7 +107,7 @@ class OTPAuthController extends Controller
         $user = User::where('phone_number', $request->phone_number)->first();
 
         // Generate a new OTP
-        $otp = rand(1000, 9999);
+        $otp = Str::otp();
 
         // Store the new OTP in cache
         cache()->put('otp_'.$user->phone_number, $otp, now()->addMinutes(10));
