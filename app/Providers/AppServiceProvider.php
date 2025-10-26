@@ -79,7 +79,11 @@ class AppServiceProvider extends ServiceProvider
         Str::macro('otp', function (int $length = 4): string {
             $otp = '';
             for ($i = 0; $i < $length; $i++) {
-                $otp .= random_int(0, 9);
+                if (! app()->isProduction()) {
+                    $otp .= 1;
+                } else {
+                    $otp .= random_int(0, 9);
+                }
             }
 
             return $otp;
