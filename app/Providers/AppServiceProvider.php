@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Foundation\Application;
 use Illuminate\Log\Context\Repository;
 use Psr\Http\Message\RequestInterface;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 use Psr\Http\Message\ResponseInterface;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -38,6 +39,7 @@ use Illuminate\Support\Facades\Notification;
 use App\Support\Notification\Channels\SmsChannel;
 use App\Support\Notification\Channels\FcmTopicChannel;
 use App\Support\Notification\Channels\FcmDeviceChannel;
+use Illuminate\Support\Stringable as SupportStringable;
 use Illuminate\Http\Client\Request as HttpClientRequest;
 use Illuminate\Http\Client\Response as HttpClientResponse;
 
@@ -49,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(Factory::class, HttpClientFactory::class);
-        $this->app->singleton(HandlerStack::class, function (): HandlerStack {
+        $this->app->singleton(function (): \GuzzleHttp\HandlerStack {
             $stack = new HandlerStack;
 
             return tap($stack)->setHandler(Utils::chooseHandler());
@@ -74,19 +76,39 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Str::macro('otp', function (int $length = 4): string {
+            $otp = '';
+            for ($i = 0; $i < $length; $i++) {
+                if (! app()->isProduction()) {
+                    $otp .= 1;
+                } else {
+                    $otp .= random_int(0, 9);
+                }
+            }
+
+            return $otp;
+        });
+
+        Str::macro('orderId', function (string $prefix = '#ORD') {
+            $prefix = str($prefix)
+                ->trim()
+                ->whenDoesntEndWith('-', fn (SupportStringable $str) => $str->append('-'))
+                ->value();
+
+            return str(Str::random(6))->prepend($prefix);
+        });
+
+        Model::shouldBeStrict(! app()->isProduction());
+
         context()->hydrated(static function (Repository $context): void {
             if ($context->has('traceId') && $traceId = $context->get('traceId')) {
                 LogBatch::setBatch($traceId);
             }
         });
 
-        RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
-        });
+        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip()));
 
-        Broadcast::extend('fcm', function (Application $app, array $config) {
-            return $app->make(FcmBroadcaster::class);
-        });
+        Broadcast::extend('fcm', fn (Application $app, array $config) => $app->make(FcmBroadcaster::class));
 
         Uri::macro('fromTemplate', fn (string|Stringable|UriTemplate $template, iterable $variables = []): Uri => Uri::of(LeagueUri::fromTemplate($template, $variables)));
 
@@ -109,11 +131,11 @@ class AppServiceProvider extends ServiceProvider
             );
         }
 
-        Http::globalRequestMiddleware(static fn (RequestInterface $request) => LogBatch::withinBatch(static fn ($reqTraceId) => $request->withHeader(
+        Http::globalRequestMiddleware(static fn (RequestInterface $request) => LogBatch::withinBatch(static fn ($reqTraceId): \Psr\Http\Message\MessageInterface => $request->withHeader(
             'x-trace-id', $reqTraceId
         )));
 
-        Http::globalResponseMiddleware(static fn (ResponseInterface $response) => LogBatch::withinBatch(static fn ($reqTraceId) => $response->withHeader(
+        Http::globalResponseMiddleware(static fn (ResponseInterface $response) => LogBatch::withinBatch(static fn ($reqTraceId): \Psr\Http\Message\MessageInterface => $response->withHeader(
             'x-trace-id', $reqTraceId
         )));
 
@@ -121,11 +143,9 @@ class AppServiceProvider extends ServiceProvider
             return new SMSService;
         });
 
-        PendingRequest::macro('sms', function (): SmsApiConnector {
-            return resolve(SmsApiConnector::class, [
-                'client' => $this,
-            ]);
-        });
+        PendingRequest::macro('sms', fn (): SmsApiConnector => resolve(SmsApiConnector::class, [
+            'client' => $this,
+        ]));
 
         PendingRequest::macro('debugRequest', function (?callable $onRequest = null, bool $die = false): PendingRequest {
             /** @var PendingRequest $this */
@@ -243,13 +263,13 @@ class AppServiceProvider extends ServiceProvider
                         return false;
                     }
 
-                    $illuminateResponse = $response ? new HttpClientResponse($response) : null;
+                    $illuminateResponse = $response instanceof \Psr\Http\Message\ResponseInterface ? new HttpClientResponse($response) : null;
 
                     if ($illuminateResponse && $illuminateResponse->failed()) {
                         $exception = $illuminateResponse->toException() ?? $exception;
                     }
 
-                    if ($when) {
+                    if ($when instanceof \Closure) {
                         return $when($attempts, new HttpClientRequest($request), $illuminateResponse, $exception);
                     }
 
@@ -262,7 +282,7 @@ class AppServiceProvider extends ServiceProvider
                     RequestInterface $request
                 ) use ($sleepMilliseconds, $backoff): int {
                     $delay = $backoff[$attempts - 1] ?? $sleepMilliseconds ?? RetryMiddleware::exponentialDelay($attempts);
-                    $illuminateResponse = $response ? new HttpClientResponse($response) : null;
+                    $illuminateResponse = $response instanceof \Psr\Http\Message\ResponseInterface ? new HttpClientResponse($response) : null;
 
                     // If closure provided for dynamic delay
                     return value($delay, $attempts, new HttpClientRequest($request), $illuminateResponse);
@@ -270,27 +290,23 @@ class AppServiceProvider extends ServiceProvider
 
                 $middleware = Middleware::retry($decider, $delay);
 
-                return $this->withMiddleware(function (callable $handler) use ($middleware, $throw) {
-                    return function (RequestInterface $request, array $options) use ($handler, $throw, $middleware) {
-                        /** @var \GuzzleHttp\Promise\PromiseInterface */
-                        $promise = $middleware($handler)($request, $options);
+                return $this->withMiddleware(fn (callable $handler): \Closure => function (RequestInterface $request, array $options) use ($handler, $throw, $middleware) {
+                    /** @var \GuzzleHttp\Promise\PromiseInterface */
+                    $promise = $middleware($handler)($request, $options);
 
-                        if (! $throw) {
-                            return $promise;
+                    if (! $throw) {
+                        return $promise;
+                    }
+
+                    return $promise->then(
+                        fn ($response) => $response,
+                        function ($reason) {
+                            // Only throw after retries exhausted
+                            throw_if($reason instanceof Exception, $reason);
+
+                            return $reason;
                         }
-
-                        return $promise->then(
-                            fn ($response) => $response,
-                            function ($reason) {
-                                // Only throw after retries exhausted
-                                if ($reason instanceof Exception) {
-                                    throw $reason;
-                                }
-
-                                return $reason;
-                            }
-                        );
-                    };
+                    );
                 });
 
             }

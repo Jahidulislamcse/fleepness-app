@@ -204,4 +204,12 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
     {
         return $this->hasMany(LivestreamSave::class);
     }
+
+    /**
+     * The channels the user receives notification broadcasts on.
+     */
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return $this->getRoomName();
+    }
 }

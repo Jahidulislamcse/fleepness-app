@@ -2,9 +2,9 @@
 
 namespace App\Notifications;
 
-use App\Constants\LivestreamStatuses;
 use Illuminate\Bus\Queueable;
 use App\Models\LivestreamComment;
+use App\Constants\LivestreamStatuses;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Kreait\Firebase\Messaging\CloudMessage;
@@ -78,18 +78,6 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
                 'id' => $this->comment->getKey(),
                 'title' => $this->comment->comment,
             ],
-        ];
-    }
-
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array
-     */
-    public function broadcastOn()
-    {
-        return [
-            $this->comment->livestream->getRoomName(),
         ];
     }
 

@@ -23267,6 +23267,50 @@ namespace Laravel\Socialite\Facades {
             }
     }
 
+namespace Illuminate\Support {
+    /**
+     */
+    class Str {
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param int $length
+         * @return string
+         * @static
+         */
+        public static function otp($length = 4)
+        {
+            return \Illuminate\Support\Str::otp($length);
+        }
+
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param string $prefix
+         * @static
+         */
+        public static function orderId($prefix = '#ORD')
+        {
+            return \Illuminate\Support\Str::orderId($prefix);
+        }
+
+            }
+    /**
+     */
+    class Uri {
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param \Stringable|\League\Uri\UriTemplate|string $template
+         * @param iterable $variables
+         * @return \Illuminate\Support\Uri
+         * @static
+         */
+        public static function fromTemplate($template, $variables = [])
+        {
+            return \Illuminate\Support\Uri::fromTemplate($template, $variables);
+        }
+
+            }
+    }
+
 namespace Illuminate\Http {
     /**
      */
@@ -23332,25 +23376,6 @@ namespace Illuminate\Http {
         public static function hasValidRelativeSignatureWhileIgnoring($ignoreQuery = [])
         {
             return \Illuminate\Http\Request::hasValidRelativeSignatureWhileIgnoring($ignoreQuery);
-        }
-
-            }
-    }
-
-namespace Illuminate\Support {
-    /**
-     */
-    class Uri {
-        /**
-         * @see \App\Providers\AppServiceProvider::boot()
-         * @param \Stringable|\League\Uri\UriTemplate|string $template
-         * @param iterable $variables
-         * @return \Illuminate\Support\Uri
-         * @static
-         */
-        public static function fromTemplate($template, $variables = [])
-        {
-            return \Illuminate\Support\Uri::fromTemplate($template, $variables);
         }
 
             }

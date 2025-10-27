@@ -4,16 +4,17 @@ namespace App\Http\Controllers\Auth;
 
 use App\Models\User;
 use Illuminate\View\View;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
-use App\Http\Controllers\SMSController;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Container\Attributes\CurrentUser;
 
 class AuthenticatedSessionController extends Controller
@@ -74,7 +75,7 @@ class AuthenticatedSessionController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => $validator->errors()->first('phone'),
-            ], 422);
+            ], HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $phone = $request->input('phone');
@@ -88,54 +89,23 @@ class AuthenticatedSessionController extends Controller
                 'status' => false,
                 'is_exist' => false,
                 'message' => 'Phone number is not registered.',
-            ], 404);
+            ], HttpResponse::HTTP_NOT_FOUND);
         }
 
         // Generate OTP
-        $otp = rand(1000, 9999);
+        $otp = Str::otp();
 
-        // Store OTP in cache for 5 minutes
-        cache()->put('otp_'.$user->phone_number, $otp, now()->addMinutes(10));
-        // cache()->put('otp_' . $user->id, $otp, now()->addMinutes(10));
+        // Store OTP in cache
+        $user->cacheOtpFor10Minutes($otp);
 
-        // Format the phone number (e.g., add country code '880' for Bangladesh)
-        $mobileNumber = trim($phone);
-        if (str_starts_with($mobileNumber, '0')) {
-            $mobileNumber = '880'.substr($mobileNumber, 1); // If it starts with '0', prepend '880'
-        } elseif (! str_starts_with($mobileNumber, '880')) {
-            $mobileNumber = '880'.$mobileNumber; // Add '880' if it doesn't already have it
-        }
-
-        // Create a new instance of SMSController
-        $smsController = new SMSController;
-
-        // Create the request to send OTP
-        $smsRequest = new Request([
-            'Message' => "Your OTP is: {$otp}",
-            'MobileNumbers' => $mobileNumber,
-        ]);
-
-        // Call the sendSMS function from SMSController
-        $smsResponse = $smsController->sendSMS($smsRequest);
-
-        // Retrieve response data
-        $smsResponseData = $smsResponse->getData(true);
-
-        // If the SMS API returns an error, send failure response
-        if (($smsResponseData['ErrorCode'] ?? 1) !== 0) {
-            return response()->json([
-                'message' => 'Failed to send OTP.',
-                'status' => false,
-                'details' => $smsResponseData['ErrorDescription'] ?? 'Unknown error',
-            ], 500);
-        }
+        $user->sendOtpNotification($otp);
 
         // If OTP sent successfully, return success response
         return response()->json([
             'status' => true,
-            'message' => 'OTP sent successfully.',
+            'message' => 'OTP sent to your phone.',
             'otp' => ! app()->isProduction() ? $otp : null,
-        ]);
+        ], HttpResponse::HTTP_ACCEPTED);
     }
 
     public function verifyCacheOtp(Request $request)
@@ -148,7 +118,7 @@ class AuthenticatedSessionController extends Controller
 
         // If validation fails, return errors
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json(['errors' => $validator->errors()], HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         // Find the user by phone number
@@ -156,11 +126,11 @@ class AuthenticatedSessionController extends Controller
 
         // If user doesn't exist, return an error
         if (! $user) {
-            return response()->json(['message' => 'User not found'], 404);
+            return response()->json(['message' => 'User not found'], HttpResponse::HTTP_NOT_FOUND);
         }
 
         // Retrieve the OTP from the cache
-        $cacheOtp = cache()->get('otp_'.$user->phone_number);  // Cache key using phone_number
+        $cacheOtp = $user->getCachedOtp();  // Cache key using phone_number
 
         // Check if OTP exists in cache
         if (! $cacheOtp) {
@@ -173,7 +143,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         // OTP is valid, clear it from cache to prevent reuse
-        cache()->forget('otp_'.$user->phone_number);
+        $user->forgetCachedOtp();
 
         // Generate and return an access token
         $token = $user->createToken('auth_token')->plainTextToken;
