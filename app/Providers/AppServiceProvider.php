@@ -99,6 +99,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Model::unguard();
+        Model::automaticallyEagerLoadRelationships();
         Model::shouldBeStrict(! app()->isProduction());
 
         context()->hydrated(static function (Repository $context): void {
