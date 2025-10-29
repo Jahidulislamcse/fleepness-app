@@ -98,6 +98,7 @@ class AppServiceProvider extends ServiceProvider
             return str(Str::random(6))->prepend($prefix);
         });
 
+        Model::unguard();
         Model::shouldBeStrict(! app()->isProduction());
 
         context()->hydrated(static function (Repository $context): void {
