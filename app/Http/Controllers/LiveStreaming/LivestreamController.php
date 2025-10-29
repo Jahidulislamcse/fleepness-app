@@ -145,7 +145,7 @@ class LivestreamController extends Controller
     {
         /** @var Livestream */
         $livestream = Livestream::find($livestreamId);
-        $livestream->fill($updateLivestremData->toArray());
+        $livestream->fill($updateLivestremData->except('status')->toArray());
 
         Pipeline::send($updateLivestremData)
             ->through([
