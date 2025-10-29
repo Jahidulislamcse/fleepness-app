@@ -48,7 +48,7 @@ class LivestreamController extends Controller
 
             return [
                 ...$livestream->toArray(),
-                 'status' => $livestream->status,
+                'status' => $livestream->status,
 
                 'vendor' => [
                     'id' => $livestream->vendor->id ?? null,
@@ -111,7 +111,7 @@ class LivestreamController extends Controller
 
         try {
             DB::beginTransaction();
-            $newLivestream = $user->livestreams()->create($createLivestremData->toArray());
+            $newLivestream = $user->livestreams()->create($createLivestremData->except('products')->toArray());
             $newLivestream->products()->attach($createLivestremData->products);
             DB::commit();
 
@@ -256,7 +256,7 @@ class LivestreamController extends Controller
                     'total_participants' => $livestream->total_participants ?? 0,
                     'likes_count' => $livestream->likes_count ?? 0,
                     'comments_count' => $livestream->comments_count ?? 0,
-                    'recordings' => $livestream->recordings, 
+                    'recordings' => $livestream->recordings,
                 ];
             });
 
@@ -265,7 +265,6 @@ class LivestreamController extends Controller
             'data' => $likedLivestreams,
         ]);
     }
-
 
     public function getSavedLivestreams()
     {
@@ -281,7 +280,7 @@ class LivestreamController extends Controller
             ->withCount([
                 'likes',
                 'comments',
-                'participants as total_participants'
+                'participants as total_participants',
             ])
             ->whereIn('id', $savedLivestreamIds)
             ->get()
