@@ -9,4 +9,5 @@ enum SellerOrderStatus: string
     case On_The_Way = 'on_the_way';
     case Delivered = 'delivered';
     case Delayed = 'delayed';
+    case Rejected = 'rejected';
 }

@@ -22,7 +22,7 @@
                             <div class="col col-stats ms-3 ms-sm-0">
                                 <div class="numbers">
                                     <p class="card-category">Pending Orders</p>
-                                    <h4 class="card-title"></h4>
+                                    <h4 class="card-title">{{ $pending_order }}</h4>
                                 </div>
                             </div>
                         </div>
@@ -44,7 +44,7 @@
                             <div class="col col-stats ms-3 ms-sm-0">
                                 <div class="numbers">
                                     <p class="card-category">Total sales</p>
-                                    <h4 class="card-title"></h4>
+                                    <h4 class="card-title">{{ $total_sales }}</h4>
                                 </div>
                             </div>
                         </div>
@@ -65,7 +65,7 @@
                         <div class="col col-stats ms-3 ms-sm-0">
                             <div class="numbers">
                                 <p class="card-category">Total Revenue</p>
-                                <h4 class="card-title"></h4>
+                                <h4 class="card-title">{{ $revenue }}</h4>
                             </div>
                         </div>
                     </div>

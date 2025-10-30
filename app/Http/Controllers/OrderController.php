@@ -63,6 +63,7 @@ class OrderController extends Controller
             $order->save();
 
             $orderProductCost = 0;
+            $sellerIndex = 1;
 
             $grouped = $cartItems->groupBy('product.user_id');
 
@@ -78,6 +79,7 @@ class OrderController extends Controller
                 $sellerOrder->delivery_fee = 0;
                 $sellerOrder->balance = 0;
                 $sellerOrder->rider_assigned = false;
+                $sellerOrder->seller_order_code = $order->order_code . $sellerIndex++;
                 $sellerOrder->save();
 
                 $sellerTotal = 0;
@@ -154,7 +156,6 @@ class OrderController extends Controller
         }
     }
 
-
     public function sellerOrders(Request $request)
     {
         $sellerId = auth()->id();
@@ -163,18 +164,42 @@ class OrderController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $orders = SellerOrder::with([
-            'items',
-        ])
-            ->where('seller_id', $sellerId)
-            ->latest()
-            ->paginate(10);
+        $query = SellerOrder::with([
+            'items' => function ($q) {
+                $q->with(['product:id,name,selling_price,discount_price', 'product.images:id,product_id,path']);
+            },
+            'customer:id,name,phone_number,email'
+        ])->where('seller_id', $sellerId);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $numericPart = preg_replace('/[^0-9]/', '', $search);
+
+            $query->where(function ($q) use ($search, $numericPart) {
+                $q->where('seller_order_code', 'like', "%{$search}%")
+                ->orWhere('seller_order_code', 'like', "%{$numericPart}%")
+                ->orWhereHas('items.product', function ($q2) use ($search) {
+                    $q2->where('name', 'like', "%{$search}%");
+                })
+                ->orWhereHas('customer', function ($q3) use ($search) {
+                    $q3->where('phone_number', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        $orders = $query->latest()->paginate(10);
 
         return response()->json([
             'message' => 'Seller orders retrieved successfully',
             'data' => $orders,
         ]);
     }
+
 
     public function MyOrders(Request $request)
     {
@@ -320,6 +345,72 @@ class OrderController extends Controller
             'data' => $sellerOrder,
         ]);
     }
+
+   public function myOrderDetail($id)
+    {
+        $userId = auth()->id();
+
+        if (!$userId) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $order = Order::with([
+            'sellerOrders.seller:id,name,shop_name,cover_image',
+            'sellerOrders.items.product' => function ($query) {
+                $query->select('id', 'name', 'discount_price', 'selling_price', 'quantity')
+                    ->with(['images:id,product_id,path']); 
+            },
+        ])
+        ->where('user_id', $userId)
+        ->find($id);
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found.'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Order detail fetched successfully.',
+            'order' => [
+                'id' => $order->id,
+                'order_code' => $order->order_code,
+                'created_at' => $order->created_at->toDateTimeString(),
+                'is_multi_seller' => $order->is_multi_seller,
+                'delivery_model' => $order->deliveryModel->name ?? null,
+                'delivery_fee' => $order->delivery_fee,
+                'product_cost' => $order->product_cost,
+                'vat' => $order->vat,
+                'platform_fee' => $order->platform_fee,
+                'grand_total' => $order->grand_total,
+                'sellers' => $order->sellerOrders->map(function ($sellerOrder) {
+                    return [
+                        'seller_id' => $sellerOrder->seller->id,
+                        'seller_name' => $sellerOrder->seller->shop_name ?? $sellerOrder->seller->name,
+                        'status' => $sellerOrder->status,
+                        'delivery_fee' => $sellerOrder->delivery_fee,
+                        'product_cost' => $sellerOrder->product_cost,
+                        'vat' => $sellerOrder->vat,
+                        'items' => $sellerOrder->items->map(function ($item) {
+                            $product = $item->product;
+
+                            return [
+                                'product_id' => $product->id,
+                                'product_name' => $product->name ?? '',
+                                'quantity' => $item->quantity,
+                                'size' => $item->size,
+                                'total_cost' => $item->total_cost,
+                                'unit_price' => $product->discount_price ?? $product->selling_price,
+                                'images' => $product->images->map(function ($img) {
+                                    return asset('upload/' . $img->path);
+                                }),
+                            ];
+                        }),
+                    ];
+                }),
+            ],
+        ]);
+    }
+
+
 
     // Accept Seller Order
     public function acceptSellerOrder(Request $request, $id)

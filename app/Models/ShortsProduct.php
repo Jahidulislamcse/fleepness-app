@@ -2,23 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class ProductImage extends Model
+class ShortsProduct extends Model
 {
     use HasFactory;
 
     protected $guarded = [];
 
-    public function getPathAttribute($value)
+    public function shortVideo()
     {
-        return $value ? \Illuminate\Support\Facades\Storage::url($value) : null;
+        return $this->belongsTo(ShortVideo::class);
     }
 
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
-
 }

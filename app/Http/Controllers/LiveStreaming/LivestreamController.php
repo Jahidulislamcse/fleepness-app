@@ -67,7 +67,6 @@ class LivestreamController extends Controller
     {
         $livestream = Livestream::with('vendor', 'products.images')->findOrFail($id);
 
-        // Prepare vendor info
         $vendor = $livestream->vendor;
         $vendorData = null;
         if ($vendor) {
@@ -82,7 +81,6 @@ class LivestreamController extends Controller
             ];
         }
 
-        // Prepare products
         $products = $livestream->products->map(function ($product) {
             return [
                 'id' => $product->id,

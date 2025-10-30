@@ -160,13 +160,12 @@ class UserProfileController extends Controller
 
         if ($request->hasFile('banner_image')) {
             $bannerImage = $request->file('banner_image');
-
-            $validatedData['banner_image'] = $bannerImage->store('upload/user');
+            $validatedData['banner_image'] = $bannerImage->store('users/banners');
         }
 
         if ($request->hasFile('cover_image')) {
             $coverImage = $request->file('cover_image');
-            $validatedData['cover_image'] = $coverImage->store('upload/user');
+            $validatedData['cover_image'] = $coverImage->store('users/covers');
         }
 
         $user->update($validatedData);

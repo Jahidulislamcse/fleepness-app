@@ -25,7 +25,6 @@
         </div>
 
         <script>
-            // Hide the success message after 3 seconds
             setTimeout(function() {
                 var successMessage = document.getElementById('successMessage');
                 if (successMessage) {
@@ -48,7 +47,6 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <!-- Modal for Adding Category -->
                     <div class="modal fade" id="addRowModal" tabindex="-1" aria-labelledby="exampleModalLabel"
                         aria-hidden="true">
                         <div class="modal-dialog">
@@ -63,7 +61,6 @@
                                     <div class="modal-body">
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <!-- Parent Category -->
                                                 <div class="form-group">
                                                     <label for="parent_id">Parent Category</label>
                                                     <select name="parent_id" id="parent_id" class="form-control">
@@ -74,7 +71,6 @@
                                                     </select>
                                                 </div>
 
-                                                <!-- Child Category Selection -->
                                                 <div class="form-group" id="childCategoryDiv" style="display:none;">
                                                     <label for="child_id">Select Sub Category</label>
                                                     <select name="child_id" id="child_id" class="form-control">
@@ -82,7 +78,6 @@
                                                     </select>
                                                 </div>
 
-                                                 <!-- Category Name -->
                                                 <div class="form-group">
                                                     <label for="name" id="nameLabel">Name <span class="text-danger">*</span></label>
                                                     <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror"
@@ -92,7 +87,6 @@
                                                     @enderror
                                                 </div>
 
-                                                <!-- Additional Fields -->
                                                 <div id="additionalFields" style="display:none;">
                                                     <div class="form-group">
                                                         <label for="store_title">Store Title </label>
@@ -103,13 +97,11 @@
                                                         @enderror
                                                     </div>
 
-                                                    <!-- Description -->
                                                     <div class="form-group">
                                                         <label for="description" id="descriptionLabel">Description</label>
                                                         <textarea name="description" id="description" class="form-control">{{ old('description') }}</textarea>
                                                     </div>
 
-                                                    <!-- Profile Image -->
                                                     <div class="form-group">
                                                         <label for="profile_img">Profile Image</label>
                                                         <input type="file" name="profile_img" id="profile_img" class="form-control @error('profile_img') is-invalid @enderror">
@@ -118,7 +110,6 @@
                                                         @enderror
                                                     </div>
 
-                                                    <!-- Cover Image -->
                                                     <div class="form-group">
                                                         <label for="cover_img">Cover Image</label>
                                                         <input type="file" name="cover_img" id="cover_img" class="form-control @error('cover_img') is-invalid @enderror">
@@ -128,7 +119,6 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Hidden fields -->
                                                 <input type="hidden" name="parent_id" id="hiddenParentId">
                                                 <input type="hidden" name="mark" id="hiddenMark">
 
@@ -145,7 +135,6 @@
                         </div>
                     </div>
 
-                    <!-- Showcase Table -->
                    <div class="table-responsive">
                         <table class="table table-hover table-sm">
                             <thead class="thead-light">
@@ -161,11 +150,10 @@
                             </thead>
                             <tbody>
                                 @foreach ($categories as $key => $category)
-                                    <!-- Category Row -->
                                     <tr class="table-primary">
                                         <td>{{ $category->name }}</td>
-                                        <td></td> <!-- Empty initially for subcategory -->
-                                        <td></td> <!-- Empty initially for tags -->
+                                        <td></td> 
+                                        <td></td> 
                                         <td>
                                         </td>
                                         <td>
@@ -187,12 +175,11 @@
                                         </td>
                                     </tr>
 
-                                    <!-- Display subcategories -->
                                     @foreach ($category->children as $childKey => $child)
                                         <tr class="table-warning">
-                                            <td></td> <!-- Empty for Category -->
-                                            <td>{{ $child->name }}</td> <!-- Subcategory name -->
-                                            <td></td> <!-- Empty for tags -->
+                                            <td></td> 
+                                            <td>{{ $child->name }}</td> 
+                                            <td></td> 
                                             <td>
                                             </td>
                                             <td>
@@ -215,12 +202,11 @@
 
                                         </tr>
 
-                                        <!-- Display tags (grandchildren) -->
                                         @foreach ($child->children as $grandchildKey => $grandchild)
                                             <tr class="table-secondary">
-                                                <td></td> <!-- Empty for Category -->
-                                                <td></td> <!-- Empty for Subcategory -->
-                                                <td>{{ $grandchild->name }}</td> <!-- Tag name -->
+                                                <td></td>
+                                                <td></td> 
+                                                <td>{{ $grandchild->name }}</td> 
                                                 <td>
                                                     <img src="{{ asset($grandchild->profile_img) }}" alt="" class="img-thumbnail" style="width:50px; height:50px;">
                                                 </td>
@@ -262,56 +248,47 @@
 
 <script>
     $(document).ready(function() {
-    // When parent category is selected
     $('#parent_id').change(function() {
         var parentId = $(this).val();
-        // Update hidden parent ID based on parent selection
         if (parentId) {
-            // Fetch child categories based on the selected parent category
             $.ajax({
                 url: '/admin/categories/children/' + parentId,
                 type: 'GET',
                 success: function(data) {
                     var childSelect = $('#child_id');
-                    childSelect.empty(); // Clear current options
+                    childSelect.empty(); 
                     childSelect.append('<option value="">Select Sub Category</option>');
                     data.forEach(function(child) {
                         childSelect.append('<option value="' + child.id + '">' + child.name + '</option>');
                     });
 
-                    $('#childCategoryDiv').show(); // Show child category select
+                    $('#childCategoryDiv').show(); 
                 }
             });
-            // If a parent is selected, set the hiddenParentId with parentId
             $('#hiddenParentId').val(parentId);
         } else {
-            $('#childCategoryDiv').hide(); // Hide child category select if no parent is selected
-            $('#hiddenParentId').val(''); // Clear hiddenParentId if no parent is selected
+            $('#childCategoryDiv').hide(); 
+            $('#hiddenParentId').val(''); 
         }
     });
 
-    // When child category is selected
     $('#child_id').change(function() {
         if ($(this).val()) {
-            // If a child is selected, update hiddenMark to 'T'
             $('#hiddenMark').val('T');
-            // Set the selected child as parent_id in the hidden field
             $('#hiddenParentId').val($(this).val());
-            $('#additionalFields').show(); // Show additional fields when a child is selected
+            $('#additionalFields').show(); 
         } else {
-            // If no child is selected, revert hiddenMark and other fields accordingly
-            $('#hiddenMark').val(''); // Clear hiddenMark
+            $('#hiddenMark').val(''); 
             var parentId = $('#parent_id').val();
             if (parentId) {
-                $('#hiddenParentId').val(parentId); // Apply parent_id when no child is selected
+                $('#hiddenParentId').val(parentId);
             } else {
-                $('#hiddenParentId').val(''); // Clear hiddenParentId if no parent is selected
+                $('#hiddenParentId').val(''); 
             }
-            $('#additionalFields').hide(); // Hide additional fields if no child is selected
+            $('#additionalFields').hide(); 
         }
     });
 
-    // On page load, if a parent is selected, set the hidden field
     if ($('#parent_id').val()) {
         $('#hiddenParentId').val($('#parent_id').val());
     }

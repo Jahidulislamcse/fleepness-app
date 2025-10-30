@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
+use App\Models\ShortsProduct;
 use App\Models\ShortVideo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -26,6 +27,8 @@ class VendorShortVideoController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'video' => 'required|file|mimes:mp4,mov,avi|max:10240',
+            'product_ids' => 'sometimes|array',
+            'product_ids.*' => 'integer|exists:products,id',
         ]);
 
         if ($validator->fails()) {
@@ -36,9 +39,6 @@ class VendorShortVideoController extends Controller
         if ($request->hasFile('video')) {
             $file = $request->file('video');
             $path = $file->store('videos/shorts');
-            // $filename = time() . '.' . $file->getClientOriginalExtension();
-            // $file->move(public_path('videos/shorts'), $filename);
-            // $path = 'videos/shorts/' . $filename;
         }
 
         $video = ShortVideo::create([
@@ -47,11 +47,35 @@ class VendorShortVideoController extends Controller
             'user_id' => auth()->id(),
         ]);
 
+        $products = [];
+        if ($request->has('product_ids')) {
+            foreach ($request->product_ids as $productId) {
+                $sp = ShortsProduct::create([
+                    'short_video_id' => $video->id,
+                    'product_id' => $productId,
+                ]);
+
+                $product = $sp->product()->first(); 
+                if ($product) {
+                $products[] = [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'short_description' => $product->short_description,
+                    'images' => $product->images->map(fn($img) => asset($img->path)),
+                ];
+            }
+            }
+        }
+
         return response()->json([
             'message' => 'Short video uploaded successfully.',
-            'data' => $video,
+            'data' => [
+                'video' => $video,
+                'products' => $products,
+            ],
         ], 201);
     }
+
 
     public function show_api($id)
     {
@@ -59,8 +83,23 @@ class VendorShortVideoController extends Controller
         if (!$video) {
             return response()->json(['message' => 'Video not found.'], 404);
         }
-        return response()->json($video);
+
+        $products = $video->products()->with('product.images')->get()->map(function ($sp) {
+            $product = $sp->product;
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'short_description' => $product->short_description,
+                'images' => $product->images->map(fn($img) => asset($img->path)),
+            ];
+        });
+
+        return response()->json([
+            'video' => $video,
+            'products' => $products,
+        ]);
     }
+
 
     public function update_api(Request $request, $id)
     {
@@ -69,7 +108,6 @@ class VendorShortVideoController extends Controller
             return response()->json(['message' => 'Video not found.'], 404);
         }
 
-        // Authorization check: only owner can update
         if ($video->user_id !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -77,6 +115,8 @@ class VendorShortVideoController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|required|string|max:255',
             'video' => 'sometimes|required|file|mimes:mp4,mov,avi|max:10240',
+            'product_ids' => 'sometimes|array',
+            'product_ids.*' => 'integer|exists:products,id',
         ]);
 
         if ($validator->fails()) {
@@ -88,19 +128,51 @@ class VendorShortVideoController extends Controller
         }
 
         if ($request->hasFile('video')) {
-            // Optionally delete old file here
+            if ($video->video && \Storage::exists($video->video)) {
+                \Storage::delete($video->video);
+            }
 
-            $file = $request->file('video');
-            $filename = time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('videos/shorts'), $filename);
-            $video->video = 'videos/shorts/' . $filename;
+            $path = $request->file('video')->store('videos/shorts');
+            $video->video = $path;
         }
 
         $video->save();
 
+        $products = [];
+        if ($request->has('product_ids')) {
+            foreach ($request->product_ids as $productId) {
+                $sp = ShortsProduct::firstOrCreate([
+                    'short_video_id' => $video->id,
+                    'product_id' => $productId,
+                ]);
+
+                $product = $sp->product()->first();
+                if ($product) {
+                    $products[] = [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'short_description' => $product->short_description,
+                        'images' => $product->images->map(fn($img) => asset($img->path)),
+                    ];
+                }
+            }
+        } else {
+            $products = $video->products()->with('product.images')->get()->map(function ($sp) {
+                $product = $sp->product;
+                return [
+                    'name' => $product->name,
+                    'short_description' => $product->short_description,
+                    'images' => $product->images->map(fn($img) => asset($img->path)),
+                ];
+            });
+        }
+
         return response()->json([
             'message' => 'Short video updated successfully.',
-            'data' => $video,
+            'data' => [
+                'video' => $video,
+                'products' => $products,
+            ],
         ]);
     }
 
@@ -112,21 +184,21 @@ class VendorShortVideoController extends Controller
             return response()->json(['message' => 'Video not found.'], 404);
         }
 
-        // Authorization check: only owner can delete
         if ($video->user_id !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Optionally delete the physical video file here
-        // Example:
-        // if (file_exists(public_path($video->video_path))) {
-        //     unlink(public_path($video->video_path));
-        // }
+        if ($video->video && \Storage::exists($video->video)) {
+            \Storage::delete($video->video);
+        }
+
+        ShortsProduct::where('short_video_id', $video->id)->delete();
 
         $video->delete();
 
         return response()->json(['message' => 'Short video deleted successfully.']);
     }
+
 
 
     // *** Show videos in Web view ***
