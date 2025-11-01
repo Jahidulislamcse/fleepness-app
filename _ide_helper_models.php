@@ -101,11 +101,11 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+ * @property-read string|null $profile_img
+ * @property-read string|null $cover_img
  * @property int $id
  * @property string $name
  * @property string|null $store_title
- * @property string|null $profile_img
- * @property string|null $cover_img
  * @property string $slug
  * @property string|null $description
  * @property string $status
@@ -228,7 +228,10 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * @property-read string $status
+ * @property-read string $room_name
+ * @property-read list<array{filenamePrefix:string,imageCount:int,startedAt:int,endedAt:int}>|null $thumbnails
+ * @property-read list<array{filename:string,startedAt:int,endedAt:int,duration:int,size:int,location:string}>|null $recordings
+ * @property-read list<array{playlistName:string,livePlaylistName:string,duration:int,size:int,playlistLocation:string,livePlaylistLocation:string,segmentCount:int,startedAt:int,endedAt:int}>|null $short_videos
  * @property int $id
  * @property string $title
  * @property int $vendor_id
@@ -239,6 +242,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $egress_id
+ * @property \App\Constants\LivestreamStatuses $status
  * @property string|null $room_id
  * @property int $total_participants
  * @property array<array-key, mixed>|null $egress_data
@@ -257,19 +261,11 @@ namespace App\Models{
  * @property-read \App\Models\LivestreamProduct|null $pivot
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product> $products
  * @property-read int|null $products_count
- * @property-read mixed $recordings
- * @property-read mixed $room_name
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LivestreamSave> $saves
  * @property-read int|null $saves_count
- * @property-read mixed $short_videos
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\ModelStatus\Status> $statuses
- * @property-read int|null $statuses_count
- * @property-read mixed $thumbnails
  * @property-read \App\Models\User|null $vendor
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream currentStatus(...$names)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream otherCurrentStatus(...$names)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereEgressData($value)
@@ -279,6 +275,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereRoomId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereScheduledTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereStartedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereTotalDuration($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereTotalParticipants($value)

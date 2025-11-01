@@ -2,14 +2,21 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\Product;
 use App\Models\Category;
+use Illuminate\Database\Eloquent\Casts\Json;
+use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @property Product $resource
+ *
+ * @mixin Product
+ */
 class ProductResource extends JsonResource
 {
     public function toArray($request)
     {
-        $tags = json_decode($this->tags, true);
+        $tags = Json::decode($this->tags, true);
         $tagName = null;
         $categoryName = null;
 
@@ -35,18 +42,35 @@ class ProductResource extends JsonResource
                 }
             }
 
-            $tagName = Category::where('id', $tag)->pluck('name')->first(); // Fetch the tag name
+            $tagName = Category::where('id', $tag)->first('name')?->name; // Fetch the tag name
         }
 
         return [
-            'id' => $this->id,
+            $this->getKeyName() => $this->getKey(),
+
             'name' => $this->name,
-            'description' => $this->long_description,
-            'short_description' => $this->short_description,
+            'slug' => $this->slug,
+            'code' => $this->code,
+            'quantity' => $this->quantity,
+            'order_count' => $this->order_count,
             'selling_price' => $this->selling_price,
             'discount_price' => $this->discount_price,
+            'short_description' => $this->short_description,
+            'long_description' => $this->long_description,
+            'deleted_at' => $this->deleted_at,
+            'status' => $this->status,
+            'admin_approval' => $this->admin_approval,
+            'description' => $this->long_description,
             'category_name' => $categoryName,
             'tag_name' => $tagName,
+
+            'user' => $this->whenLoaded('user', new UserResource($this->user)),
+            'category' => $this->whenLoaded('category', new CategoryResource($this->category)),
+            'tags' => $this->tags,
+            'size_template' => $this->whenLoaded('sizeTemplate', new SizeTemplateResource($this->sizeTemplate)),
+
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

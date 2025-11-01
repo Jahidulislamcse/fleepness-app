@@ -20,16 +20,30 @@ class LivestreamResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-
         return [
-            ...parent::toArray($request),
+            $this->getKeyName() => $this->getKey(),
+            'title' => $this->title,
+            'room_name' => $this->room_name,
+            'total_duration' => $this->total_duration,
+            'scheduled_time' => $this->scheduled_time,
+            'started_at' => $this->started_at,
+            'ended_at' => $this->ended_at,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'total_participants' => $this->total_participants,
             'status' => $this->status,
-            'products' => $this->products,
+
             $this->mergeWhen(! is_null($this->egress_id), fn () => [
                 'recordings' => $this->recordings,
                 'short_videos' => $this->short_videos,
                 'thumbnails' => $this->thumbnails,
             ]),
+
+            'products' => $this->whenLoaded('products', fn () => ProductResource::collection($this->products)),
+            'vendor' => $this->whenLoaded('vendor', fn () => UserResource::make($this->vendor)),
+            'participants' => $this->whenLoaded('participants', fn () => UserResource::collection($this->participants)),
+            'likes' => $this->whenLoaded('likes', fn () => LivestreamLikeResource::collection($this->likes)),
+            'saves' => $this->whenLoaded('saves', fn () => LivestreamSaveResource::collection($this->saves)),
         ];
     }
 }
