@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\DB;
 use App\Constants\LivestreamStatuses;
 use App\Data\Dto\CreateLivestremData;
 use App\Data\Dto\UpdateLivestremData;
-use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Pipeline;
+use App\Http\Resources\LivestreamResource;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -34,33 +34,11 @@ class LivestreamController extends Controller
 
     public function index()
     {
-        $livestreams = QueryBuilder::for(Livestream::class)
-            ->with(['vendor:id,name,cover_image'])
+        $livestreams = Livestream::with(['vendor:id,name,cover_image'])
             ->latest()
-            ->cursorPaginate(1);
+            ->cursorPaginate();
 
-        $livestreams->getCollection()->transform(function ($livestream) {
-            $coverImage = $livestream->vendor->cover_image ?? null;
-
-            if ($coverImage && ! Str::startsWith($coverImage, ['http://', 'https://'])) {
-                $coverImage = Storage::url($coverImage);
-            }
-
-            return [
-                ...$livestream->toArray(),
-                'status' => $livestream->status,
-
-                'vendor' => [
-                    'id' => $livestream->vendor->id ?? null,
-                    'name' => $livestream->vendor->name ?? null,
-                    'cover_image' => $coverImage,
-                ],
-
-                'recordings' => $livestream->recordings,
-            ];
-        });
-
-        return response()->json($livestreams);
+        return LivestreamResource::collection($livestreams);
     }
 
     public function addedProducts($id)

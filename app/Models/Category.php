@@ -2,27 +2,30 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * @property-read string|null $profile_img
+ * @property-read string|null $cover_img
+ */
 class Category extends Model
 {
     use HasFactory;
 
     protected $guarded = [];
 
-
-    public function getProfileImgAttribute($value)
+    protected function profileImg(): Attribute
     {
-        return $value ? Storage::url($value) : null;
+        return Attribute::get(fn ($value) => $value ? Storage::url($value) : null);
     }
 
-
-    public function getCoverImgAttribute($value)
+    protected function coverImg(): Attribute
     {
-        return $value ? Storage::url($value) : null;
+        return Attribute::get(fn ($value) => $value ? Storage::url($value) : null);
     }
 
     // Parent Category
@@ -48,11 +51,11 @@ class Category extends Model
         parent::boot();
 
         static::creating(function ($category) {
-            $category->slug = Str::slug($category->name . '-' . rand(1000, 99999));
+            $category->slug = Str::slug($category->name.'-'.rand(1000, 99999));
         });
 
         static::updating(function ($category) {
-            $category->slug = Str::slug($category->name . '-' . rand(1000, 99999));
+            $category->slug = Str::slug($category->name.'-'.rand(1000, 99999));
         });
     }
 }
