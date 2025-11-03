@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Closure;
 use Exception;
+use Throwable;
 use Stringable;
 use GuzzleHttp\Utils;
 use Psr\Log\LogLevel;
@@ -33,9 +34,12 @@ use Spatie\Activitylog\Facades\LogBatch;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Http\Client\PendingRequest;
 use App\Support\Broadcaster\FcmBroadcaster;
+use Illuminate\Support\Facades\Concurrency;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Concurrency\ConcurrencyManager;
 use App\Support\Notification\Channels\SmsChannel;
 use App\Support\Notification\Channels\FcmTopicChannel;
 use App\Support\Notification\Channels\FcmDeviceChannel;
@@ -69,6 +73,12 @@ class AppServiceProvider extends ServiceProvider
                 return $app->make(SmsChannel::class);
             });
         });
+
+        Concurrency::resolved(function (ConcurrencyManager $service): void {
+            $service->extend('octane', fn (Application $app, $config) => $app->make(\App\Support\Concurrency\Drivers\OctaneDriver::class, [
+                'config' => $config,
+            ]));
+        });
     }
 
     /**
@@ -76,6 +86,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Json::decodeUsing(function (mixed $value, ?bool $associative = true) {
+            if (extension_loaded('simdjson')) {
+                try {
+                    return simdjson_decode($value, $associative);
+                } catch (Throwable $th) {
+                }
+            }
+
+            return json_decode($value, $associative);
+        });
+
         Str::macro('otp', function (int $length = 4): string {
             $otp = '';
             for ($i = 0; $i < $length; $i++) {
@@ -164,7 +185,7 @@ class AppServiceProvider extends ServiceProvider
                     'uri' => (string) $request->getUri(),
                     'headers' => $request->getHeaders(),
                     'raw_body' => $body,
-                    'parsed_body' => Str::isJson($body) ? json_decode($body, true) : [],
+                    'parsed_body' => Str::isJson($body) ? Json::decode($body, true) : [],
                 ]);
             };
 
@@ -198,7 +219,7 @@ class AppServiceProvider extends ServiceProvider
                     'status' => $response->getStatusCode(),
                     'headers' => $response->getHeaders(),
                     'raw_body' => $body,
-                    'parsed_body' => Str::isJson($body) ? json_decode($body, true) : [],
+                    'parsed_body' => Str::isJson($body) ? Json::decode($body, true) : [],
                 ]);
             };
 

@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Slider extends Model
 {
@@ -16,7 +17,7 @@ class Slider extends Model
 
     public function getPhotoAttribute($value)
     {
-        return $value ? url($value) : null;
+        return $value ? Storage::url($value) : null;
     }
 
     public function tag()

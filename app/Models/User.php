@@ -31,7 +31,6 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
      *
      * @var list<string>
      */
-    protected $guarded = [];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -51,8 +50,8 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'email_verified_at' => 'datetime',
             'status' => SellerStatus::class,
         ];
     }
@@ -105,6 +104,11 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
         });
     }
 
+    /**
+     * Get all device tokens associated with the user.
+     *
+     * @return HasMany<DeviceToken,$this>
+     */
     public function deviceTokens()
     {
         return $this->hasMany(DeviceToken::class);
@@ -131,17 +135,32 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
         return Attribute::get(fn ($value) => $value ? Storage::url($value) : null);
     }
 
+    /**
+     * Get all vendor reviews written for the user.
+     *
+     * @return HasMany<VendorReview,$this>
+     */
     public function reviews()
     {
         return $this->hasMany(VendorReview::class);
     }
 
+    /**
+     * Get the shop category that the user belongs to.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<ShopCategory,$this>
+     */
     public function shopCategory()
     {
         return $this->belongsTo(ShopCategory::class, 'shop_category');
         // 'shop_category' is the foreign key in users table
     }
 
+    /**
+     * Get all payments associated with the user.
+     *
+     * @return HasMany<UserPayment,$this>
+     */
     public function payments()
     {
         return $this->hasMany(UserPayment::class);
@@ -155,11 +174,21 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
         return $this->hasMany(Livestream::class, 'vendor_id');
     }
 
+    /**
+     * Get all livestreams liked by the user.
+     *
+     * @return HasMany<LivestreamLike,$this>
+     */
     public function likedLivestreams()
     {
         return $this->hasMany(LivestreamLike::class);
     }
 
+    /**
+     * Get all livestreams saved by the user.
+     *
+     * @return HasMany<LivestreamSave,$this>
+     */
     public function savedLivestreams()
     {
         return $this->hasMany(LivestreamSave::class);

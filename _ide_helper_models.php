@@ -101,11 +101,11 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+ * @property-read string|null $profile_img
+ * @property-read string|null $cover_img
  * @property int $id
  * @property string $name
  * @property string|null $store_title
- * @property string|null $profile_img
- * @property string|null $cover_img
  * @property string $slug
  * @property string|null $description
  * @property string $status
@@ -117,6 +117,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Category> $children
  * @property-read int|null $children_count
+ * @property-read Category|null $grandParent
  * @property-read Category|null $parent
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Slider> $sliders
  * @property-read int|null $sliders_count
@@ -137,6 +138,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category whereStoreTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Category withGrandParentId()
  */
 	class Category extends \Eloquent {}
 }
@@ -228,7 +230,10 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * @property-read string $status
+ * @property-read string $room_name
+ * @property-read list<array{filenamePrefix:string,imageCount:int,startedAt:int,endedAt:int}>|null $thumbnails
+ * @property-read list<array{filename:string,startedAt:int,endedAt:int,duration:int,size:int,location:string}>|null $recordings
+ * @property-read list<array{playlistName:string,livePlaylistName:string,duration:int,size:int,playlistLocation:string,livePlaylistLocation:string,segmentCount:int,startedAt:int,endedAt:int}>|null $short_videos
  * @property int $id
  * @property string $title
  * @property int $vendor_id
@@ -239,6 +244,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $egress_id
+ * @property \App\Constants\LivestreamStatuses $status
  * @property string|null $room_id
  * @property int $total_participants
  * @property array<array-key, mixed>|null $egress_data
@@ -257,19 +263,11 @@ namespace App\Models{
  * @property-read \App\Models\LivestreamProduct|null $pivot
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product> $products
  * @property-read int|null $products_count
- * @property-read mixed $recordings
- * @property-read mixed $room_name
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LivestreamSave> $saves
  * @property-read int|null $saves_count
- * @property-read mixed $short_videos
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\ModelStatus\Status> $statuses
- * @property-read int|null $statuses_count
- * @property-read mixed $thumbnails
  * @property-read \App\Models\User|null $vendor
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream currentStatus(...$names)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream otherCurrentStatus(...$names)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereEgressData($value)
@@ -279,6 +277,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereRoomId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereScheduledTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereStartedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereTotalDuration($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Livestream whereTotalParticipants($value)
@@ -414,16 +413,18 @@ namespace App\Models{
  * @property string|null $commission
  * @property string|null $vat
  * @property string|null $grand_total
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $balance
  * @property bool $platform_fee_added
  * @property int $completed_order
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\SellerOrder> $sellerOrders
  * @property-read int|null $seller_orders_count
  * @property-read \App\Models\User $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBalance($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCommission($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCompletedOrder($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedAt($value)
@@ -467,10 +468,11 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+ * @property string $image
+ * @property list<int> $tags
  * @property int $id
  * @property int $user_id
  * @property int|null $category_id
- * @property array<array-key, mixed>|null $tags
  * @property int $size_template_id
  * @property string $name
  * @property string $slug
@@ -481,6 +483,9 @@ namespace App\Models{
  * @property float|null $discount_price
  * @property string|null $short_description
  * @property string|null $long_description
+ * @property \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductReview> $reviews
+ * @property string|null $time
+ * @property string|null $discount
  * @property string|null $deleted_at
  * @property string|null $status
  * @property string $admin_approval
@@ -488,19 +493,18 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Category|null $category
  * @property-read \App\Models\ProductImage|null $firstImage
- * @property-read mixed $image_url
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductImage> $images
  * @property-read int|null $images_count
  * @property-read \App\Models\ProductImage|null $imagesProduct
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Livestream> $livestreams
  * @property-read int|null $livestreams_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductReview> $reviews
  * @property-read int|null $reviews_count
  * @property-read \App\Models\SizeTemplate $sizeTemplate
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductSize> $sizes
  * @property-read int|null $sizes_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Stock> $stocks
  * @property-read int|null $stocks_count
+ * @property-read \App\Models\Category|null $tag
  * @property-read \App\Models\User|null $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product newQuery()
@@ -510,20 +514,25 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereDiscount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereDiscountPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereLongDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereOrderCount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereReviews($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereSellingPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereShortDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereSizeTemplateId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereTags($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product withTag()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product withTagId()
  */
 	class Product extends \Eloquent {}
 }
@@ -672,6 +681,7 @@ namespace App\Models{
 /**
  * @property-read User $seller
  * @property int $id
+ * @property string $seller_order_code
  * @property int $order_id
  * @property int $seller_id
  * @property int|null $customer_id
@@ -706,6 +716,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereProductCost($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereRiderAssigned($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereSellerId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereSellerOrderCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereStatusMessage($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereUpdatedAt($value)

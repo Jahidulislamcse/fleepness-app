@@ -14,8 +14,6 @@ class SellerOrder extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
-
     protected $casts = [
         'delivery_start_time' => 'datetime',
         'delivery_end_time' => 'datetime',

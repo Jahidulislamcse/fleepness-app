@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\DB;
 use App\Constants\LivestreamStatuses;
 use App\Data\Dto\CreateLivestremData;
 use App\Data\Dto\UpdateLivestremData;
-use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Pipeline;
+use App\Http\Resources\LivestreamResource;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -34,75 +34,62 @@ class LivestreamController extends Controller
 
     public function index()
     {
-        $livestreams = QueryBuilder::for(Livestream::class)
-            ->with(['vendor:id,name,cover_image'])
+        $livestreams = Livestream::with(['vendor'])
             ->latest()
-            ->cursorPaginate(1);
+            ->cursorPaginate();
 
-        $livestreams->getCollection()->transform(function ($livestream) {
-            $coverImage = $livestream->vendor->cover_image ?? null;
-
-            if ($coverImage && ! Str::startsWith($coverImage, ['http://', 'https://'])) {
-                $coverImage = Storage::url($coverImage);
-            }
-
-            return [
-                ...$livestream->toArray(),
-                'status' => $livestream->status,
-
-                'vendor' => [
-                    'id' => $livestream->vendor->id ?? null,
-                    'name' => $livestream->vendor->name ?? null,
-                    'cover_image' => $coverImage,
-                ],
-
-                'recordings' => $livestream->recordings,
-            ];
-        });
-
-        return response()->json($livestreams);
+        return LivestreamResource::collection($livestreams);
     }
 
-    public function addedProducts($id)
+    public function addedProducts(Livestream $livestream)
     {
-        $livestream = Livestream::with('vendor', 'products.images')->findOrFail($id);
-
-        // Prepare vendor info
-        $vendor = $livestream->vendor;
-        $vendorData = null;
-        if ($vendor) {
-            $vendorData = [
-                'id' => $vendor->id,
-                'name' => $vendor->name,
-                'cover_image' => $vendor->cover_image
-                    ? (Str::startsWith($vendor->cover_image, ['http://', 'https://'])
-                        ? $vendor->cover_image
-                        : Storage::url($vendor->cover_image))
-                    : null,
-            ];
-        }
-
-        // Prepare products
-        $products = $livestream->products->map(function ($product) {
-            return [
-                'id' => $product->id,
-                'name' => $product->name,
-                'price' => $product->selling_price,
-                'discount_price' => $product->discount_price,
-                'first_image' => $product->firstImage
-                    ? (Str::startsWith($product->firstImage->path, ['http://', 'https://'])
-                        ? $product->firstImage->path
-                        : Storage::url($product->firstImage->path))
-                    : null,
-            ];
-        });
-
-        return response()->json([
-            'livestream_id' => $livestream->id,
-            'title' => $livestream->title,
-            'vendor' => $vendorData,
-            'products' => $products,
+        $livestream->load([
+            'vendor',
+            'products' => [
+                'images', 'tag.grandParent',
+            ],
         ]);
+
+        return LivestreamResource::make($livestream);
+
+        // $livestream = Livestream::with('vendor', 'products.images')->findOrFail($id);
+
+        // // Prepare vendor info
+        // $vendor = $livestream->vendor;
+        // $vendorData = null;
+        // if ($vendor) {
+        //     $vendorData = [
+        //         'id' => $vendor->id,
+        //         'name' => $vendor->name,
+        //         'cover_image' => $vendor->cover_image
+        //             ? (Str::startsWith($vendor->cover_image, ['http://', 'https://'])
+        //                 ? $vendor->cover_image
+        //                 : Storage::url($vendor->cover_image))
+        //             : null,
+        //     ];
+        // }
+
+        // // Prepare products
+        // $products = $livestream->products->map(function ($product) {
+        //     return [
+        //         'id' => $product->id,
+        //         'name' => $product->name,
+        //         'price' => $product->selling_price,
+        //         'discount_price' => $product->discount_price,
+        //         'first_image' => $product->firstImage
+        //             ? (Str::startsWith($product->firstImage->path, ['http://', 'https://'])
+        //                 ? $product->firstImage->path
+        //                 : Storage::url($product->firstImage->path))
+        //             : null,
+        //     ];
+        // });
+
+        // return response()->json([
+        //     'livestream_id' => $livestream->id,
+        //     'title' => $livestream->title,
+        //     'vendor' => $vendorData,
+        //     'products' => $products,
+        // ]);
     }
 
     public function store(CreateLivestremData $createLivestremData, #[CurrentUser] User $user, GetLivestreamPublisherTokenController $controller)

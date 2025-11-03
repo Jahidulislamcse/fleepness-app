@@ -5,6 +5,7 @@ namespace App\Enums;
 enum SellerStatus: string
 {
     case Approved = 'approved';
+    case Pending = 'pending';
     case Rejected = 'rejected';
 
     public function messageBody()
