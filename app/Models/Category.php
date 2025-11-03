@@ -68,9 +68,13 @@ class Category extends Model
     #[Scope]
     protected function withGrandParentId(Builder $query)
     {
+        /** @var Builder<static> $query */
+        if (empty($query->getQuery()->columns)) {
+            $query->select('categories.*');
+        }
+
         /** @var Builder<Category> $query */
         $query->addSelect([
-            'categories.*',
             'grand_parent_id' => Category::from('categories as c2')
                 ->select('c2.parent_id as grand_parent_id')
                 ->whereColumn('c2.id', 'categories.parent_id')
