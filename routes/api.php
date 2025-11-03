@@ -162,7 +162,7 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
 
     Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
 
-    Route::delete('broadcasting/auth', fn(Illuminate\Http\Request $request) => \Illuminate\Support\Facades\Broadcast::driver('fcm')->unauth($request));
+    Route::delete('broadcasting/auth', fn (Illuminate\Http\Request $request) => \Illuminate\Support\Facades\Broadcast::driver('fcm')->unauth($request));
 
     Route::get('/shop-categories', [ShopCategoryController::class, 'index']);          // List all categories
     Route::get('/shop-categories/{id}', [ShopCategoryController::class, 'show']);      // View single category
@@ -233,7 +233,7 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
             Route::delete('{commentId}', [LivestreamCommentController::class, 'destroy']);
         });
     });
-    Route::get('livestream/{id}/products', [LivestreamController::class, 'addedProducts']);
+    Route::get('livestream/{livestream}/products', [LivestreamController::class, 'addedProducts']);
 
     Route::get('livestreams/{livestream}/subscriber-token', GetLivestreamSubscriberTokenController::class)->name('livestreams.get-subscriber-token');
 });

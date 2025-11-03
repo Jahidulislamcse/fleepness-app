@@ -3,21 +3,41 @@
 namespace App\Models;
 
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * @property string $image
+ */
 class Product extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
-
-    public function user()
+    /**
+     * Get the user that owns the product.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<User,$this>
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function category()
+    /**
+     * Get the category that owns the product.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Category,$this>
+     */
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
@@ -30,67 +50,112 @@ class Product extends Model
 
     public function tagCategories()
     {
-        $raw = $this->tags;
-
-        if (is_string($raw)) {
-            $decoded = json_decode($raw, true);
-            $ids = is_array($decoded) ? $decoded : [];
-        } elseif (is_array($raw)) {
-            $ids = $raw;
-        } else {
-            $ids = [];
-        }
-
-        if (0 === count($ids)) {
+        if (0 === count($this->tags)) {
             return collect(); // empty Collection
         }
 
-        return Category::whereIn('id', $ids)->get();
+        return Category::whereIn('id', $this->tags)->get();
     }
 
-    public function images()
+    /**
+     * @return BelongsTo<Category,$this>
+     */
+    public function tag(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'tag_id');
+    }
+
+    #[Scope]
+    protected function withTagId(Builder $query)
+    {
+        $query->addSelect([
+            'tag_id' => DB::raw("CAST(JSON_UNQUOTE(JSON_EXTRACT(products.tags, '$[0]')) AS UNSIGNED)"),
+        ]);
+    }
+
+    /**
+     * Get the images for the product.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<ProductImage,$this>
+     */
+    public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class);
     }
 
-    public function stocks()
+    /**
+     * Get the stocks for the product.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Stock,$this>
+     */
+    public function stocks(): HasMany
     {
         return $this->hasMany(Stock::class);
     }
 
-    public function sizes()
+    /**
+     * Get the sizes for the product.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<ProductSize,$this>
+     */
+    public function sizes(): HasMany
     {
         return $this->hasMany(ProductSize::class, 'product_id');
     }
 
-    public function sizeTemplate()
+    /**
+     * Get the size template that owns the product.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<SizeTemplate,$this>
+     */
+    public function sizeTemplate(): BelongsTo
     {
         return $this->belongsTo(SizeTemplate::class, 'size_template_id');
     }
 
-    public function imagesProduct()
+    /**
+     * Get the single image product for the product.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<ProductImage,$this>
+     */
+    public function imagesProduct(): HasOne
     {
         return $this->hasOne(ProductImage::class);
     }
 
-    public function reviews()
+    /**
+     * Get the reviews for the product.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<ProductReview,$this>
+     */
+    public function reviews(): HasMany
     {
         return $this->hasMany(ProductReview::class);
     }
 
-    public function livestreams()
+    /**
+     * The livestreams that belong to the product.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Livestream,$this>
+     */
+    public function livestreams(): BelongsToMany
     {
         return $this->belongsToMany(Livestream::class)->withTimestamps();
     }
 
-    public function firstImage()
+    /**
+     * Get the first image for the product.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<ProductImage,$this>
+     */
+    public function firstImage(): HasOne
     {
         return $this->hasOne(ProductImage::class)->oldestOfMany();
     }
 
-    public function getImageUrlAttribute()
+    protected function image(): Attribute
     {
-        return $this->firstImage ? asset($this->firstImage->path) : null;
+        return Attribute::get(fn () => $this->firstImage ? Storage::url($this->firstImage->path) : null);
     }
 
     // Automatically set the slug attribute
@@ -104,6 +169,14 @@ class Product extends Model
 
         static::updating(function ($product) {
             $product->slug = Str::slug($product->name.'-'.rand(1000, 99999));
+        });
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope('with_tag_id', function (Builder $query) {
+            /** @var Builder<static> $query */
+            $query->withTagId();
         });
     }
 }

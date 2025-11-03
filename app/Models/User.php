@@ -31,7 +31,6 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
      *
      * @var list<string>
      */
-    protected $guarded = [];
 
     /**
      * The attributes that should be hidden for serialization.

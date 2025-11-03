@@ -41,46 +41,55 @@ class LivestreamController extends Controller
         return LivestreamResource::collection($livestreams);
     }
 
-    public function addedProducts($id)
+    public function addedProducts(Livestream $livestream)
     {
-        $livestream = Livestream::with('vendor', 'products.images')->findOrFail($id);
-
-        // Prepare vendor info
-        $vendor = $livestream->vendor;
-        $vendorData = null;
-        if ($vendor) {
-            $vendorData = [
-                'id' => $vendor->id,
-                'name' => $vendor->name,
-                'cover_image' => $vendor->cover_image
-                    ? (Str::startsWith($vendor->cover_image, ['http://', 'https://'])
-                        ? $vendor->cover_image
-                        : Storage::url($vendor->cover_image))
-                    : null,
-            ];
-        }
-
-        // Prepare products
-        $products = $livestream->products->map(function ($product) {
-            return [
-                'id' => $product->id,
-                'name' => $product->name,
-                'price' => $product->selling_price,
-                'discount_price' => $product->discount_price,
-                'first_image' => $product->firstImage
-                    ? (Str::startsWith($product->firstImage->path, ['http://', 'https://'])
-                        ? $product->firstImage->path
-                        : Storage::url($product->firstImage->path))
-                    : null,
-            ];
-        });
-
-        return response()->json([
-            'livestream_id' => $livestream->id,
-            'title' => $livestream->title,
-            'vendor' => $vendorData,
-            'products' => $products,
+        $livestream->load([
+            'vendor',
+            'products' => [
+                'images', 'tag.grandParent',
+            ],
         ]);
+
+        return LivestreamResource::make($livestream);
+
+        // $livestream = Livestream::with('vendor', 'products.images')->findOrFail($id);
+
+        // // Prepare vendor info
+        // $vendor = $livestream->vendor;
+        // $vendorData = null;
+        // if ($vendor) {
+        //     $vendorData = [
+        //         'id' => $vendor->id,
+        //         'name' => $vendor->name,
+        //         'cover_image' => $vendor->cover_image
+        //             ? (Str::startsWith($vendor->cover_image, ['http://', 'https://'])
+        //                 ? $vendor->cover_image
+        //                 : Storage::url($vendor->cover_image))
+        //             : null,
+        //     ];
+        // }
+
+        // // Prepare products
+        // $products = $livestream->products->map(function ($product) {
+        //     return [
+        //         'id' => $product->id,
+        //         'name' => $product->name,
+        //         'price' => $product->selling_price,
+        //         'discount_price' => $product->discount_price,
+        //         'first_image' => $product->firstImage
+        //             ? (Str::startsWith($product->firstImage->path, ['http://', 'https://'])
+        //                 ? $product->firstImage->path
+        //                 : Storage::url($product->firstImage->path))
+        //             : null,
+        //     ];
+        // });
+
+        // return response()->json([
+        //     'livestream_id' => $livestream->id,
+        //     'title' => $livestream->title,
+        //     'vendor' => $vendorData,
+        //     'products' => $products,
+        // ]);
     }
 
     public function store(CreateLivestremData $createLivestremData, #[CurrentUser] User $user, GetLivestreamPublisherTokenController $controller)

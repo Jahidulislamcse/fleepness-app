@@ -117,6 +117,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Category> $children
  * @property-read int|null $children_count
+ * @property-read Category|null $grandParent
  * @property-read Category|null $parent
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Slider> $sliders
  * @property-read int|null $sliders_count
@@ -137,6 +138,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category whereStoreTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Category withGrandParentId()
  */
 	class Category extends \Eloquent {}
 }
@@ -464,6 +466,7 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+ * @property string $image
  * @property int $id
  * @property int $user_id
  * @property int|null $category_id
@@ -485,7 +488,6 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Category|null $category
  * @property-read \App\Models\ProductImage|null $firstImage
- * @property-read mixed $image_url
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductImage> $images
  * @property-read int|null $images_count
  * @property-read \App\Models\ProductImage|null $imagesProduct
@@ -498,6 +500,7 @@ namespace App\Models{
  * @property-read int|null $sizes_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Stock> $stocks
  * @property-read int|null $stocks_count
+ * @property-read \App\Models\Category|null $tag
  * @property-read \App\Models\User|null $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product newQuery()
@@ -521,6 +524,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereTags($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product withTagId()
  */
 	class Product extends \Eloquent {}
 }
