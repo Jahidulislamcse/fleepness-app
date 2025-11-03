@@ -34,10 +34,10 @@ class ProductResource extends JsonResource
             $this->mergeWhen($this->relationLoaded('tag'), fn () => [
                 'tag' => CategoryResource::make($this->tag),
                 'tag_name' => $this->tag->name,
-                $this->mergeWhen($this->tag->relationLoaded('grandParent'), fn () => [
-                    'category_name' => $this->tag->grandParent->name,
-                    'category' => CategoryResource::make($this->tag->grandParent),
-                ]),
+                // $this->mergeWhen($this->tag->relationLoaded('grandParent'), fn () => [
+                //     'category_name' => $this->tag->grandParent->name,
+                //     'category' => CategoryResource::make($this->tag->grandParent),
+                // ]),
             ]),
 
             'user' => $this->whenLoaded('user', UserResource::make($this->user)),
