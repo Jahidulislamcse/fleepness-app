@@ -70,6 +70,7 @@ class Category extends Model
     {
         /** @var Builder<Category> $query */
         $query->addSelect([
+            'categories.*',
             'grand_parent_id' => Category::from('categories as c2')
                 ->select('c2.parent_id as grand_parent_id')
                 ->whereColumn('c2.id', 'categories.parent_id')

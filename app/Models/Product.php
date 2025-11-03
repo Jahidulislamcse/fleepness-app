@@ -68,9 +68,11 @@ class Product extends Model
     #[Scope]
     protected function withTagId(Builder $query)
     {
-        $query->addSelect([
-            'tag_id' => DB::raw("CAST(JSON_UNQUOTE(JSON_EXTRACT(products.tags, '$[0]')) AS UNSIGNED)"),
-        ]);
+        $query
+            ->addSelect([
+                'products.*',
+                'tag_id' => DB::raw("CAST(JSON_UNQUOTE(JSON_EXTRACT(products.tags, '$[0]')) AS UNSIGNED)"),
+            ]);
     }
 
     /**
