@@ -34,10 +34,12 @@ use Spatie\Activitylog\Facades\LogBatch;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Http\Client\PendingRequest;
 use App\Support\Broadcaster\FcmBroadcaster;
+use Illuminate\Support\Facades\Concurrency;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Concurrency\ConcurrencyManager;
 use App\Support\Notification\Channels\SmsChannel;
 use App\Support\Notification\Channels\FcmTopicChannel;
 use App\Support\Notification\Channels\FcmDeviceChannel;
@@ -70,6 +72,12 @@ class AppServiceProvider extends ServiceProvider
             $service->extend('sms', function (Application $app) {
                 return $app->make(SmsChannel::class);
             });
+        });
+
+        Concurrency::resolved(function (ConcurrencyManager $service): void {
+            $service->extend('octane', fn (Application $app, $config) => $app->make(\App\Support\Concurrency\Drivers\OctaneDriver::class, [
+                'config' => $config,
+            ]));
         });
     }
 

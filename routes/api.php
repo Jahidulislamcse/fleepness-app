@@ -119,7 +119,7 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
     Route::get('/get-tag-info/{id}', [TagController::class, 'getTagInfo'])->name('get.tag.info');
     Route::get('/get-product-by-tag/{id}', [TagController::class, 'getProductByTag'])->name('get.product.by.tag');
     Route::get('/get-own-product-by-tag/{id}', [TagController::class, 'getOwnProductByTag'])->name('get.own.product.by.tag');
-    Route::get('/product/{id}', [UserProductController::class, 'show']);  // show a single product by id
+    Route::get('/product/{product}', [UserProductController::class, 'show']);  // show a single product by id
 
     Route::get('/product/{id}/similar', [UserProductController::class, 'getSimilarProducts']);
     Route::get('/seller/{id}/products', [UserProductController::class, 'getProductsByType']);

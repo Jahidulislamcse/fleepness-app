@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property string $image
+ * @property list<int> $tags
  */
 class Product extends Model
 {
@@ -43,10 +45,24 @@ class Product extends Model
     }
 
     protected $casts = [
-        'tags' => 'array',
         'selling_price' => 'float',
         'discount_price' => 'float',
     ];
+
+    protected function tags(): Attribute
+    {
+        return Attribute::get(function ($value) {
+            if (empty($value)) {
+                return [];
+            }
+
+            while (Str::isJson($value)) {
+                $value = Json::decode($value);
+            }
+
+            return array_unique($value);
+        });
+    }
 
     public function tagCategories()
     {
@@ -66,6 +82,13 @@ class Product extends Model
     }
 
     #[Scope]
+    protected function withTag(Builder $query)
+    {
+        /** @var Builder<static> $query */
+        $query->withTagId()->with('tag');
+    }
+
+    #[Scope]
     protected function withTagId(Builder $query)
     {
         /** @var Builder<static> $query */
@@ -75,7 +98,7 @@ class Product extends Model
 
         $query
             ->addSelect([
-                'tag_id' => DB::raw("CAST(JSON_UNQUOTE(JSON_EXTRACT(products.tags, '$[0]')) AS UNSIGNED)"),
+                'tag_id' => DB::raw("JSON_UNQUOTE(JSON_EXTRACT(JSON_UNQUOTE(products.tags), '$[0]')) as tag_id"),
             ]);
     }
 

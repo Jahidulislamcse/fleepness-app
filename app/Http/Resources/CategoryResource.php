@@ -11,6 +11,15 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 class CategoryResource extends JsonResource
 {
+    private bool $asTag = false;
+
+    public function asTag(bool $enabled = true)
+    {
+        $this->asTag = $enabled;
+
+        return $this;
+    }
+
     /**
      * Transform the resource into an array.
      *
@@ -33,11 +42,10 @@ class CategoryResource extends JsonResource
 
             'sliders' => $this->whenLoaded('sliders', fn () => SliderResource::collection($this->sliders)),
             'children' => $this->whenLoaded('children', fn () => CategoryResource::collection($this->children)),
-            'parent' => $this->whenLoaded('parent', fn () => CategoryResource::make($this->parent)),
-            'grand_parent' => $this->whenLoaded('grandParent', fn () => CategoryResource::make($this->grandParent)),
+            'parent' => $this->when($this->relationLoaded('parent') && ! $this->asTag, fn () => CategoryResource::make($this->parent)),
+            'grand_parent' => $this->when($this->relationLoaded('grandParent') && ! $this->asTag, fn () => CategoryResource::make($this->grandParent)),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-
         ];
     }
 }

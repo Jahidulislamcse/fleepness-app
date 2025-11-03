@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Builder;
@@ -75,7 +76,7 @@ class Category extends Model
 
         /** @var Builder<Category> $query */
         $query->addSelect([
-            'grand_parent_id' => Category::from('categories as c2')
+            'grand_parent_id' => DB::table('categories', 'c2')
                 ->select('c2.parent_id as grand_parent_id')
                 ->whereColumn('c2.id', 'categories.parent_id')
                 ->take(1),

@@ -1,5 +1,8 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Foundation\Application;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -29,5 +32,15 @@ return Application::configure(basePath: dirname(__DIR__))
         __DIR__.'/../routes/channels.php',
         ['prefix' => 'api', 'middleware' => ['api']],
     )
-    ->withExceptions(function (Exceptions $exceptions) {})
-    ->create();
+    ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->respond(function (Response $response, Throwable $e, Request $request) {
+            if ($response instanceof JsonResponse) {
+                $data = $response->getData(true);
+                data_set($data, 'success', false);
+                $response->setData($data);
+            }
+
+            return $response;
+        });
+
+    })->create();

@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\user;
 
-use App\Http\Controllers\Controller;
-use App\Models\Category;
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\ProductResource;
+use Illuminate\Support\Facades\Concurrency;
+use Illuminate\Database\Eloquent\Casts\Json;
+use App\Http\Resources\ProductAndCategorySearchResultResource;
 
 class UserProductController extends Controller
 {
@@ -13,49 +17,47 @@ class UserProductController extends Controller
     {
         $query = $request->input('query');
 
-        if (!$query) {
+        if (! $query) {
             return response()->json(['message' => 'Query parameter is required'], 400);
         }
 
-        $products = Product::where('name', 'LIKE', "%{$query}%")
-            ->orWhere('short_description', 'LIKE', "%{$query}%")
-            ->orWhere('long_description', 'LIKE', "%{$query}%")
-            ->orWhere('slug', 'LIKE', "%{$query}%")
-            ->limit(10)
-            ->get();
-
-        $categories = Category::where('name', 'LIKE', "%{$query}%")
-            ->select('id', 'name')
-            ->limit(10)
-            ->get();
-
-        return response()->json([
-            'products' => $products,
-            'categories' => $categories,
+        [$products, $categories] = Concurrency::run([
+            fn () => Product::whereLike('name', "%{$query}%")
+                ->orWhereLike('short_description', "%{$query}%")
+                ->orWhereLike('long_description', "%{$query}%")
+                ->orWhereLike('slug', "%{$query}%")
+                ->limit(10)
+                ->get(),
+            fn () => Category::whereLike('name', "%{$query}%")
+                ->limit(10)
+                ->get(),
         ]);
+
+        return ProductAndCategorySearchResultResource::make($products)
+            ->withCategories($categories);
     }
 
     public function getProductByTag($tag)
     {
-        $products = Product::where('tags', 'LIKE', '%"' . $tag . '"%')->get();
+        $products = Product::whereLike('tags', '%"'.$tag.'"%')->get();
 
         return response()->json([
             'success' => true,
             'tag' => $tag,
-            'products' => $products,
+            'products' => $products->toResourceCollection(),
         ]);
     }
 
     public function getProductsByType(Request $request, $vendor)
     {
+        $recentLimit = 5;
         $type = $request->query('type');
-        $perPage = $request->query('per_page', 10); 
-        $recentLimit = 5; 
+        $perPage = $request->query('per_page', 10);
 
-        if (!$type || !in_array($type, ['recent', 'low_price'])) {
+        if (! $type || ! in_array($type, ['recent', 'low_price'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid type. Allowed values: recent, low_price'
+                'message' => 'Invalid type. Allowed values: recent, low_price',
             ], 400);
         }
 
@@ -63,16 +65,18 @@ class UserProductController extends Controller
             ->where('user_id', $vendor)
             ->whereNull('deleted_at');
 
-        if ($type === 'recent') {
-            $products = $query->orderBy('created_at', 'desc')
-                            ->take($recentLimit)
-                            ->get();
-        } else { 
-            $products = $query->orderByRaw('COALESCE(discount_price, selling_price) ASC')
-                            ->paginate($perPage);
+        if ('recent' === $type) {
+            $products = $query
+                ->latest()
+                ->take($recentLimit)
+                ->get();
+        } else {
+            $products = $query
+                ->orderByRaw('COALESCE(discount_price, selling_price) ASC')
+                ->paginate($perPage);
         }
 
-        $productsData = $type === 'recent' ?
+        $productsData = 'recent' === $type ?
             $products->map(function ($product) {
                 return $this->transformProduct($product);
             }) :
@@ -86,8 +90,7 @@ class UserProductController extends Controller
             'products' => $productsData,
         ];
 
-
-        if ($type === 'low_price') {
+        if ('low_price' === $type) {
             $response['pagination'] = [
                 'current_page' => $products->currentPage(),
                 'per_page' => $products->perPage(),
@@ -100,7 +103,6 @@ class UserProductController extends Controller
 
         return response()->json($response);
     }
-
 
     private function transformProduct($product)
     {
@@ -117,7 +119,7 @@ class UserProductController extends Controller
             'discount_price' => $product->discount_price,
             'short_description' => $product->short_description,
             'long_description' => $product->long_description,
-            'images' => $product->images->map(fn($image) => $image->path),
+            'images' => $product->images->map(fn ($image) => $image->path),
             'tags_data' => $product->tagCategories()->map(function ($tag) {
                 return [
                     'id' => $tag->id,
@@ -134,33 +136,32 @@ class UserProductController extends Controller
 
     public function getProductsByPriceRange(Request $request, $vendor)
     {
-        $minPrice = $request->query('minPrice', 0); 
-        $maxPrice = $request->query('maxPrice', 999999); 
+        $minPrice = $request->query('minPrice', 0);
+        $maxPrice = $request->query('maxPrice', 999999);
 
-        if (!is_numeric($minPrice) || !is_numeric($maxPrice) || $minPrice > $maxPrice) {
+        if (! is_numeric($minPrice) || ! is_numeric($maxPrice) || $minPrice > $maxPrice) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid price range'
+                'message' => 'Invalid price range',
             ], 400);
         }
 
         $products = Product::where('user_id', $vendor)
             ->where(function ($query) use ($minPrice, $maxPrice) {
                 $query->whereBetween('discount_price', [$minPrice, $maxPrice])
-                    ->orWhere(function($q) use ($minPrice, $maxPrice) {
-                        $q->where(function($q2) {
+                    ->orWhere(function ($q) use ($minPrice, $maxPrice) {
+                        $q->where(function ($q2) {
                             $q2->whereNull('discount_price')
                                 ->orWhere('discount_price', 0);
                         })
-                        ->whereBetween('selling_price', [$minPrice, $maxPrice]);
+                            ->whereBetween('selling_price', [$minPrice, $maxPrice]);
                     });
             })
             ->get();
 
-
         return response()->json([
             'success' => true,
-            'data' => $products
+            'data' => $products->toResourceCollection(),
         ], 200);
     }
 
@@ -168,23 +169,23 @@ class UserProductController extends Controller
     {
         $category = $request->query('category');
 
-        if ($category === 'low') {
+        if ('low' === $category) {
             $minPrice = 1;
             $maxPrice = 500;
-        } elseif ($category === 'medium') {
+        } elseif ('medium' === $category) {
             $minPrice = 501;
             $maxPrice = 1000;
-        } elseif ($category === 'premium') {
+        } elseif ('premium' === $category) {
             $minPrice = 1001;
-            $maxPrice = PHP_INT_MAX; 
+            $maxPrice = PHP_INT_MAX;
         } else {
             return response()->json(['message' => 'Invalid category'], 400);
         }
 
-        if (!is_numeric($minPrice) || !is_numeric($maxPrice) || $minPrice > $maxPrice) {
+        if ($minPrice > $maxPrice) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid price range'
+                'message' => 'Invalid price range',
             ], 400);
         }
 
@@ -199,59 +200,29 @@ class UserProductController extends Controller
             })
             ->get();
 
-        return response()->json([
+        return $products->toResourceCollection()->additional([
             'success' => true,
-            'data' => $products
-        ], 200);
-    }
-   public function show($id)
-    {
-        $product = Product::with([
-                'user',
-                'reviews',
-                'sizes',
-                'images',
-                'category',
-            ])
-            ->whereNull('deleted_at')
-            ->find($id);
-
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
-        }
-
-        $user = $product->user;
-        $transformedUser = [
-            'id' => $user->id,
-            'shop_name' => $user->shop_name,
-            'banner_image' => $user->banner_image ? asset($user->banner_image) : null,
-            'cover_image' => $user->cover_image ? asset($user->cover_image) : null,
-        ];
-
-        $category = $product->category;
-        $transformedCategory = [
-            'name' => $category->name,
-        ];
-
-        $productData = $product->toArray();
-        $productData['user'] = $transformedUser;
-        $productData['category'] = $transformedCategory;
-
-
-        $productData['images'] = $product->images->map(function($image) {
-            return asset($image->path); 
-        });
-
-        $productData['tags_data'] = $product->tagCategories();
-
-
-        return response()->json([
-            'success' => true,
-            'product' => $productData,
         ]);
     }
 
+    public function show(Product $product)
+    {
+        $product->load([
+            'user',
+            'reviews',
+            'sizes',
+            'images',
+            'category',
+            'tag' => [
+                'parent',
+                'grandParent',
+            ],
+        ]);
 
+        return ProductResource::make($product)->additional([
+            'success' => true,
+        ]);
+    }
 
     public function getAllProducts($vendor, Request $request)
     {
@@ -261,74 +232,32 @@ class UserProductController extends Controller
             ->where('user_id', $vendor)
             ->paginate($perPage);
 
-        return response()->json([
-            'products' => $products->map(function ($product) {
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'category_id' => $product->category_id,
-                    'size_template_id ' => $product->size_template_id ,
-                    'tags' => $product->tags,
-                    'slug ' => $product->slug ,
-                    'code ' => $product->code ,
-                    'quantity' => $product->quantity,
-                    'selling_price' => $product->selling_price,
-                    'discount_price' => $product->discount_price,
-                    'short_description' => $product->short_description,
-                    'long_description' => $product->long_description,
-                    'images' => $product->images->map(fn($image) => $image->path), // only image path
-                    'tags_data' => $product->tagCategories()->map(function ($tag) {
-                        return [
-                            'id' => $tag->id,
-                            'name' => $tag->name,
-                            'store_title' => $tag->store_title,
-                            'slug' => $tag->slug,
-                            'profile_img' => $tag->profile_img ? asset($tag->profile_img) : null,
-                            'cover_img' => $tag->cover_img ? asset($tag->cover_img) : null,
-                            'description' => $tag->description,
-                        ];
-                    }),
-                ];
-            }),
-            'pagination' => [
-                'current_page' => $products->currentPage(),
-                'per_page' => $products->perPage(),
-                'total' => $products->total(),
-                'last_page' => $products->lastPage(),
-                'next_page_url' => $products->nextPageUrl(),
-                'prev_page_url' => $products->previousPageUrl(),
-            ],
-        ]);
+        return $products->toResourceCollection();
     }
 
-
-public function getSimilarProducts($id)
-{
-    try {
+    public function getSimilarProducts($id)
+    {
         $product = Product::with('category', 'images')
             ->whereNull('deleted_at')
             ->find($id);
 
-        if (!$product) {
+        if (! $product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        $tags = json_decode($product->tags, true) ?: [];
-        $tagId = $tags ? $tags[0] : null; 
+        $tags = $product->tags;
+        $tagId = $tags ? $tags[0] : null;
 
-        if (!$tagId) {
+        if (! $tagId) {
             return response()->json(['message' => 'No tag found for this product'], 404);
         }
 
-        $similarProducts = Product::with(['category', 'images'])
+        $filteredProducts = Product::with(['category', 'images'])
             ->whereNull('deleted_at')
             ->where('id', '!=', $id)
-            ->get(); 
-
-        $filteredProducts = $similarProducts->filter(function ($product) use ($tagId) {
-            $tags = json_decode($product->tags, true) ?: [];
-            return in_array($tagId, $tags); 
-        })->values(); 
+            ->whereNotNull('tags')
+            ->whereRaw('JSON_CONTAINS(tags, ?)', [Json::encode((string) $tagId)])
+            ->get();
 
         if ($filteredProducts->isEmpty()) {
             return response()->json(['message' => 'No similar products found'], 404);
@@ -338,7 +267,7 @@ public function getSimilarProducts($id)
             $productData = $product->only(['name', 'selling_price', 'discount_price', 'long_description']);
 
             $productData['images'] = $product->images->map(function ($image) {
-                return $image->path;  
+                return $image->path;
             });
 
             $productData['category_name'] = $product->category ? $product->category->name : null;
@@ -351,19 +280,5 @@ public function getSimilarProducts($id)
             'similar_products' => $similarProductsData,
         ]);
 
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => $e->getMessage(),
-        ], 500);
     }
-}
-
-
-
-
-
-
-
-
 }

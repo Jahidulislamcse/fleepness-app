@@ -413,16 +413,18 @@ namespace App\Models{
  * @property string|null $commission
  * @property string|null $vat
  * @property string|null $grand_total
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $balance
  * @property bool $platform_fee_added
  * @property int $completed_order
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\SellerOrder> $sellerOrders
  * @property-read int|null $seller_orders_count
  * @property-read \App\Models\User $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBalance($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCommission($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCompletedOrder($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedAt($value)
@@ -467,10 +469,10 @@ namespace App\Models{
 namespace App\Models{
 /**
  * @property string $image
+ * @property list<int> $tags
  * @property int $id
  * @property int $user_id
  * @property int|null $category_id
- * @property array<array-key, mixed>|null $tags
  * @property int $size_template_id
  * @property string $name
  * @property string $slug
@@ -481,6 +483,9 @@ namespace App\Models{
  * @property float|null $discount_price
  * @property string|null $short_description
  * @property string|null $long_description
+ * @property \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductReview> $reviews
+ * @property string|null $time
+ * @property string|null $discount
  * @property string|null $deleted_at
  * @property string|null $status
  * @property string $admin_approval
@@ -493,7 +498,6 @@ namespace App\Models{
  * @property-read \App\Models\ProductImage|null $imagesProduct
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Livestream> $livestreams
  * @property-read int|null $livestreams_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductReview> $reviews
  * @property-read int|null $reviews_count
  * @property-read \App\Models\SizeTemplate $sizeTemplate
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductSize> $sizes
@@ -510,20 +514,24 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereDiscount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereDiscountPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereLongDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereOrderCount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereReviews($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereSellingPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereShortDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereSizeTemplateId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereTags($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Product withTag()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Product withTagId()
  */
 	class Product extends \Eloquent {}
@@ -673,6 +681,7 @@ namespace App\Models{
 /**
  * @property-read User $seller
  * @property int $id
+ * @property string $seller_order_code
  * @property int $order_id
  * @property int $seller_id
  * @property int|null $customer_id
@@ -707,6 +716,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereProductCost($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereRiderAssigned($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereSellerId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereSellerOrderCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereStatusMessage($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereUpdatedAt($value)
