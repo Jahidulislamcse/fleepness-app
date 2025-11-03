@@ -34,7 +34,7 @@ class LivestreamController extends Controller
 
     public function index()
     {
-        $livestreams = Livestream::with(['vendor:id,name,cover_image'])
+        $livestreams = Livestream::with(['vendor'])
             ->latest()
             ->cursorPaginate();
 
