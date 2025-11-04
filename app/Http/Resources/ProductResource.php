@@ -2,51 +2,50 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Product;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\Category;
 
+/**
+ * @property Product $resource
+ *
+ * @mixin Product
+ */
 class ProductResource extends JsonResource
 {
     public function toArray($request)
     {
-        $tags = json_decode($this->tags, true);
-        $tagName = null;
-        $categoryName = null;
-
-        if ($tags) {
-            $tag = $tags[0]; // Get the first tag (if available)
-
-            // Fetch the category name based on the tag ID
-            $tagCategory = Category::where('id', $tag)->first();
-            if ($tagCategory) {
-                $category = $tagCategory;
-
-                // Find the parent category of the tag's category
-                $parentCategory = Category::where('id', $category->parent_id)->first();
-
-                if ($parentCategory) {
-                    // Find the parent category of the parent category
-                    $grandParentCategory = Category::where('id', $parentCategory->parent_id)->first();
-
-                    if ($grandParentCategory) {
-                        // Set the final grandparent category as the product's category
-                        $categoryName = $grandParentCategory->name;
-                    }
-                }
-            }
-
-            $tagName = Category::where('id', $tag)->pluck('name')->first(); // Fetch the tag name
-        }
-
         return [
-            'id' => $this->id,
+            $this->getKeyName() => $this->getKey(),
+
             'name' => $this->name,
-            'description' => $this->long_description,
-            'short_description' => $this->short_description,
+            'slug' => $this->slug,
+            'code' => $this->code,
+            'quantity' => $this->quantity,
+            'order_count' => $this->order_count,
             'selling_price' => $this->selling_price,
             'discount_price' => $this->discount_price,
-            'category_name' => $categoryName,
-            'tag_name' => $tagName,
+            'short_description' => $this->short_description,
+            'long_description' => $this->long_description,
+            'deleted_at' => $this->deleted_at,
+            'status' => $this->status,
+            'admin_approval' => $this->admin_approval,
+            'description' => $this->long_description,
+
+            $this->mergeWhen($this->relationLoaded('tag'), fn () => [
+                'tag' => CategoryResource::make($this->tag)->asTag(),
+                $this->mergeWhen($this->tag->relationLoaded('grandParent'), fn () => [
+                    'category' => CategoryResource::make($this->tag->grandParent),
+                ]),
+                $this->mergeWhen($this->tag->relationLoaded('parent'), fn () => [
+                    'sub_category' => CategoryResource::make($this->tag->parent),
+                ]),
+            ]),
+
+            'user' => $this->whenLoaded('user', UserResource::make($this->user)),
+            'size_template' => $this->whenLoaded('sizeTemplate', SizeTemplateResource::make($this->sizeTemplate)),
+
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

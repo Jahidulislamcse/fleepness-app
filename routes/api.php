@@ -9,6 +9,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\user\CartController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Auth\OTPAuthController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SizeTemplateController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\user\UserProductController;
 use App\Http\Controllers\user\UserProfileController;
 use App\Http\Controllers\Admin\AdminSliderController;
+use App\Http\Controllers\ShortsInteractionController;
 use App\Http\Controllers\Admin\ShopCategoryController;
 use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\user\UserVendorFollowController;
@@ -31,10 +33,8 @@ use App\Http\Controllers\LiveStreaming\LivestreamCommentController;
 use App\Http\Controllers\LiveStreaming\LivestreamProductController;
 use App\Http\Controllers\LiveStreaming\GetLivestreamPublisherTokenController;
 use App\Http\Controllers\LiveStreaming\GetLivestreamSubscriberTokenController;
-use App\Http\Controllers\ShortsInteractionController;
-use App\Http\Controllers\TransactionController;
 
-Route::middleware(['api', 'throttle:api'])->group(function () {
+Route::middleware(['api', 'throttle:api'])->group(function (): void {
 
     Route::get('/auth/{provider}', [SocialLoginController::class, 'redirectToProvider']); // Facebook and google authentication
 
@@ -50,7 +50,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
 
     Route::get('/payment_methods', [UserProfileController::class, 'getPaymenMethods']);
 
-    Route::middleware(['auth:sanctum'])->group(function () {
+    Route::middleware(['auth:sanctum'])->group(function (): void {
         Route::post('/seller/application', [UserController::class, 'applyForSeller']); // Regular user to seller application
 
         // Logout from the system
@@ -73,7 +73,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead']);  // Marking a notification as read
 
         // Only admins can access these routes
-        Route::middleware(['role:admin'])->group(function () {
+        Route::middleware(['role:admin'])->group(function (): void {
             Route::post('/admin/seller-approve', [UserController::class, 'approveSeller']);  // Approving a seller request
             Route::post('/admin/seller-reject', [UserController::class, 'rejectSeller']);    // Rejecting a seller request
             Route::get('/admin/seller-requests', [UserController::class, 'sellerRequest']);  // Getting all seller requests
@@ -98,7 +98,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     // Show short videos of a particular seller
     Route::get('/vendorlist/{vendor}/shortvideo ', [UserVendorController::class, 'getShortVideos']);
 
-    Route::middleware(['auth:sanctum'])->group(function () {
+    Route::middleware(['auth:sanctum'])->group(function (): void {
         // Giving a review to a seller
         Route::post('/vendor/{vendor_id}/review', [UserVendorReviewController::class, 'store']);
         // Removing review from a seller
@@ -106,7 +106,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     });
     // See all reviews of a seller
     Route::get('/vendor/{vendor_id}/reviews', [UserVendorReviewController::class, 'index']);
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/vendor/{vendor_id}/follow', [UserVendorFollowController::class, 'follow']);        // Follow a Seller
         Route::get('/vendor/{vendor_id}/unfollow ', [UserVendorFollowController::class, 'unfollow']);   // Unfollow a seller
         Route::get('/following ', [UserVendorFollowController::class, 'following']);   // Get all following sellers
@@ -121,12 +121,12 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('/get-tag-info/{id}', [TagController::class, 'getTagInfo'])->name('get.tag.info');
     Route::get('/get-product-by-tag/{id}', [TagController::class, 'getProductByTag'])->name('get.product.by.tag');
     Route::get('/get-own-product-by-tag/{id}', [TagController::class, 'getOwnProductByTag'])->name('get.own.product.by.tag');
-    Route::get('/product/{id}', [UserProductController::class, 'show']);  // show a single product by id
+    Route::get('/product/{product}', [UserProductController::class, 'show']);  // show a single product by id
 
     Route::get('/product/{id}/similar', [UserProductController::class, 'getSimilarProducts']);
     Route::get('/seller/{id}/products', [UserProductController::class, 'getProductsByType']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('/size-template/create', [SizeTemplateController::class, 'store']);              // Create a size template
         Route::post('/size-templates/{templateId}/sizes', [SizeTemplateController::class, 'addSizeToTemplate']); // Add a size to a template
         Route::get('/size-templates', [SizeTemplateController::class, 'getTemplates']);         // Get all size templates for the authenticated seller
@@ -134,7 +134,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::put('/size-template/{templateId}/size-item/{sizeItemId}', [SizeTemplateController::class, 'updateSize'])->name('size-template.update-size');
         Route::delete('/size-template/{templateId}/size-item/{sizeItemId}', [SizeTemplateController::class, 'destroySizeItem']);
 
-        Route::middleware(['role:vendor'])->group(function () {
+        Route::middleware(['role:vendor'])->group(function (): void {
             Route::post('/product/create', [VendorProductController::class, 'store']);              // store product
             Route::get('/my-products', [VendorProductController::class, 'getAllMyProducts']);
             Route::get('/my-product/{id}', [VendorProductController::class, 'getSingleProduct']);  // show a single product by id
@@ -145,7 +145,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
             Route::post('/products/active/{id}', [VendorProductController::class, 'active']);
             Route::get('/search/my-product', [VendorProductController::class, 'search']); // Searching a product
 
-            Route::prefix('short-videos')->group(function () {
+            Route::prefix('short-videos')->group(function (): void {
                 Route::get('/', [VendorShortVideoController::class, 'index_api']);
                 Route::post('/', [VendorShortVideoController::class, 'store_api']);
                 Route::post('/{id}', [VendorShortVideoController::class, 'update_api']);
@@ -167,14 +167,13 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
 
     Route::get('/get-tags', [TagController::class, 'getTags'])->name('get.tags');
 
-    Route::delete('broadcasting/auth', function (Illuminate\Http\Request $request) {
-        return Broadcast::driver('fcm')->unauth($request);
-    });
+    Route::delete('broadcasting/auth', fn (Illuminate\Http\Request $request) => \Illuminate\Support\Facades\Broadcast::driver('fcm')->unauth($request));
 
     Route::get('/shop-categories', [ShopCategoryController::class, 'index']);          // List all categories
     Route::get('/shop-categories/{id}', [ShopCategoryController::class, 'show']);      // View single category
 
-    Route::middleware('auth:sanctum')->group(function () {
+    // Cart Routes (Auth Required)
+    Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('/cart', [CartController::class, 'addOrUpdate']);
         Route::get('/cart', [CartController::class, 'index']);
         Route::delete('/cart/{item}', [CartController::class, 'destroy']);
@@ -189,11 +188,10 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::get('/my-order/{id}', [OrderController::class, 'myOrderDetail']);
         Route::get('/my-store-orders', [OrderController::class, 'MyStoreOrders']);
 
-
         Route::get('/seller/orders', [OrderController::class, 'sellerOrders']);
-        Route::get('/seller/orders/{id}', [OrderController::class, 'sellerOrderDetail']);
-        Route::patch('/seller/orders/{id}/accept', [OrderController::class, 'acceptSellerOrder']);
-        Route::patch('/seller/orders/{id}/reject', [OrderController::class, 'rejectSellerOrder']);
+        Route::get('/seller/orders/{order}', [OrderController::class, 'sellerOrderDetail']);
+        Route::patch('/seller/orders/{order}/accept', [OrderController::class, 'acceptSellerOrder']);
+        Route::patch('/seller/orders/{order}/reject', [OrderController::class, 'rejectSellerOrder']);
 
         // Addresses
         Route::post('/addresses', [AddressController::class, 'store']);
@@ -207,15 +205,15 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
     Route::get('/sections', [SectionController::class, 'sections']);
     Route::get('/search-section', [SectionController::class, 'searchSection']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('livestreams', [LivestreamController::class, 'store'])->name('livestreams.store');
         Route::match(['put', 'patch'], 'livestreams/{livestream}', [LivestreamController::class, 'update'])->name('livestreams.update');
-     });
+    });
 
     Route::get('livestreams', [LivestreamController::class, 'index'])->name('livestreams.index');
     Route::get('livestreams/{ls}', [LivestreamController::class, 'show'])->name('livestreams.show');
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('livestreams/{livestream}/publisher-token', GetLivestreamPublisherTokenController::class)
             ->name('livestreams.get-publisher-token');
         Route::post('livestreams/{ls}/products', [LivestreamProductController::class, 'store'])
@@ -223,18 +221,18 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::delete('livestreams/{ls}/products', [LivestreamProductController::class, 'destroy'])
             ->name('livestream-products.destroy');
 
-        Route::prefix('livestreams/{id}')->group(function () {
+        Route::prefix('livestreams/{id}')->group(function (): void {
             Route::post('like', [LivestreamController::class, 'like']);
             Route::post('save', [LivestreamController::class, 'save']);
         });
 
-        Route::prefix('lives')->group(function () {
+        Route::prefix('lives')->group(function (): void {
             Route::get('liked', [LivestreamController::class, 'getLikedLivestreams']);
             Route::get('saved', [LivestreamController::class, 'getSavedLivestreams']);
             Route::get('{livestream}/likes-count', [LivestreamController::class, 'getLikesCount'])->name('livestreams.likes-count');
         });
 
-        Route::prefix('livestreams/{livestreamId}/comments')->group(function () {
+        Route::prefix('livestreams/{livestreamId}/comments')->group(function (): void {
             Route::get('/', [LivestreamCommentController::class, 'index']);
             Route::post('/', [LivestreamCommentController::class, 'store']);
             Route::put('{commentId}', [LivestreamCommentController::class, 'update']);
@@ -250,8 +248,7 @@ Route::middleware(['api', 'throttle:api'])->group(function () {
         Route::get('/shorts/{id}/comments', [ShortsInteractionController::class, 'getComments']);
     });
 
-    Route::get('livestream/{id}/products', [LivestreamController::class, 'addedProducts']);
-
+    Route::get('livestream/{livestream}/products', [LivestreamController::class, 'addedProducts']);
 
     Route::get('livestreams/{livestream}/subscriber-token', GetLivestreamSubscriberTokenController::class)->name('livestreams.get-subscriber-token');
 });

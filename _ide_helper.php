@@ -5,7 +5,7 @@
 
 /**
  * A helper file for Laravel, to provide autocomplete information to your IDE
- * Generated for Laravel 12.28.0.
+ * Generated for Laravel 12.34.0.
  *
  * This file should not be included in your code, only analyzed by your IDE!
  *
@@ -3869,7 +3869,6 @@ namespace Illuminate\Support\Facades {
         /**
          * Attempt to find the batch with the given ID.
          *
-         * @param string $batchId
          * @return \Illuminate\Bus\Batch|null
          * @static
          */
@@ -3962,7 +3961,6 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the pipes through which commands should be piped before dispatching.
          *
-         * @param array $pipes
          * @return \Illuminate\Bus\Dispatcher
          * @static
          */
@@ -3975,7 +3973,6 @@ namespace Illuminate\Support\Facades {
         /**
          * Map a command to a handler.
          *
-         * @param array $map
          * @return \Illuminate\Bus\Dispatcher
          * @static
          */
@@ -7598,7 +7595,7 @@ namespace Illuminate\Support\Facades {
          * Register a callback to be invoked when the connection queries for longer than a given amount of time.
          *
          * @param \DateTimeInterface|\Carbon\CarbonInterval|float|int $threshold
-         * @param (callable(\Illuminate\Database\Connection, class-string<\Illuminate\Database\Events\QueryExecuted>): mixed) $handler
+         * @param (callable(\Illuminate\Database\Connection, \Illuminate\Database\Events\QueryExecuted): mixed) $handler
          * @return void
          * @static
          */
@@ -8367,6 +8364,21 @@ namespace Illuminate\Support\Facades {
             //Method inherited from \Illuminate\Database\Connection 
             /** @var \Illuminate\Database\MySqlConnection $instance */
             $instance->afterCommit($callback);
+        }
+
+        /**
+         * Execute the callback after a transaction rolls back.
+         *
+         * @param callable $callback
+         * @return void
+         * @throws \RuntimeException
+         * @static
+         */
+        public static function afterRollBack($callback)
+        {
+            //Method inherited from \Illuminate\Database\Connection 
+            /** @var \Illuminate\Database\MySqlConnection $instance */
+            $instance->afterRollBack($callback);
         }
 
             }
@@ -10041,6 +10053,7 @@ namespace Illuminate\Support\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
+         * @param \Closure $callback
          * @return \Illuminate\Hashing\HashManager
          * @static
          */
@@ -10080,6 +10093,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the container instance used by the manager.
          *
+         * @param \Illuminate\Contracts\Container\Container $container
          * @return \Illuminate\Hashing\HashManager
          * @static
          */
@@ -10150,6 +10164,7 @@ namespace Illuminate\Support\Facades {
      * @method static \Illuminate\Http\Client\Response put(string $url, array|\JsonSerializable|\Illuminate\Contracts\Support\Arrayable $data = [])
      * @method static \Illuminate\Http\Client\Response delete(string $url, array|\JsonSerializable|\Illuminate\Contracts\Support\Arrayable $data = [])
      * @method static array pool(callable $callback)
+     * @method static \Illuminate\Http\Client\Batch batch(callable $callback)
      * @method static \Illuminate\Http\Client\Response send(string $method, string $url, array $options = [])
      * @method static \GuzzleHttp\Client buildClient()
      * @method static \GuzzleHttp\Client createClient(\GuzzleHttp\HandlerStack $handlerStack)
@@ -10179,7 +10194,7 @@ namespace Illuminate\Support\Facades {
          */
         public static function createPendingRequest()
         {
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->createPendingRequest();
         }
 
@@ -10187,13 +10202,13 @@ namespace Illuminate\Support\Facades {
          * Add middleware to apply to every request.
          *
          * @param callable $middleware
-         * @return \App\Support\HttpClientFactory
+         * @return \App\Support\Http\HttpClientFactory
          * @static
          */
         public static function globalMiddleware($middleware)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->globalMiddleware($middleware);
         }
 
@@ -10201,13 +10216,13 @@ namespace Illuminate\Support\Facades {
          * Add request middleware to apply to every request.
          *
          * @param callable $middleware
-         * @return \App\Support\HttpClientFactory
+         * @return \App\Support\Http\HttpClientFactory
          * @static
          */
         public static function globalRequestMiddleware($middleware)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->globalRequestMiddleware($middleware);
         }
 
@@ -10215,13 +10230,13 @@ namespace Illuminate\Support\Facades {
          * Add response middleware to apply to every request.
          *
          * @param callable $middleware
-         * @return \App\Support\HttpClientFactory
+         * @return \App\Support\Http\HttpClientFactory
          * @static
          */
         public static function globalResponseMiddleware($middleware)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->globalResponseMiddleware($middleware);
         }
 
@@ -10229,13 +10244,13 @@ namespace Illuminate\Support\Facades {
          * Set the options to apply to every request.
          *
          * @param \Closure|array $options
-         * @return \App\Support\HttpClientFactory
+         * @return \App\Support\Http\HttpClientFactory
          * @static
          */
         public static function globalOptions($options)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->globalOptions($options);
         }
 
@@ -10251,7 +10266,7 @@ namespace Illuminate\Support\Facades {
         public static function response($body = null, $status = 200, $headers = [])
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            return \App\Support\HttpClientFactory::response($body, $status, $headers);
+            return \App\Support\Http\HttpClientFactory::response($body, $status, $headers);
         }
 
         /**
@@ -10266,7 +10281,7 @@ namespace Illuminate\Support\Facades {
         public static function psr7Response($body = null, $status = 200, $headers = [])
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            return \App\Support\HttpClientFactory::psr7Response($body, $status, $headers);
+            return \App\Support\Http\HttpClientFactory::psr7Response($body, $status, $headers);
         }
 
         /**
@@ -10281,7 +10296,7 @@ namespace Illuminate\Support\Facades {
         public static function failedRequest($body = null, $status = 200, $headers = [])
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            return \App\Support\HttpClientFactory::failedRequest($body, $status, $headers);
+            return \App\Support\Http\HttpClientFactory::failedRequest($body, $status, $headers);
         }
 
         /**
@@ -10294,7 +10309,7 @@ namespace Illuminate\Support\Facades {
         public static function failedConnection($message = null)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            return \App\Support\HttpClientFactory::failedConnection($message);
+            return \App\Support\Http\HttpClientFactory::failedConnection($message);
         }
 
         /**
@@ -10307,7 +10322,7 @@ namespace Illuminate\Support\Facades {
         public static function sequence($responses = [])
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->sequence($responses);
         }
 
@@ -10315,13 +10330,13 @@ namespace Illuminate\Support\Facades {
          * Register a stub callable that will intercept requests and be able to return stub responses.
          *
          * @param callable|array<string, mixed>|null $callback
-         * @return \App\Support\HttpClientFactory
+         * @return \App\Support\Http\HttpClientFactory
          * @static
          */
         public static function fake($callback = null)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->fake($callback);
         }
 
@@ -10335,7 +10350,7 @@ namespace Illuminate\Support\Facades {
         public static function fakeSequence($url = '*')
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->fakeSequence($url);
         }
 
@@ -10344,13 +10359,13 @@ namespace Illuminate\Support\Facades {
          *
          * @param string $url
          * @param \Illuminate\Http\Client\Response|\GuzzleHttp\Promise\PromiseInterface|callable|int|string|array|\Illuminate\Http\Client\ResponseSequence $callback
-         * @return \App\Support\HttpClientFactory
+         * @return \App\Support\Http\HttpClientFactory
          * @static
          */
         public static function stubUrl($url, $callback)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->stubUrl($url, $callback);
         }
 
@@ -10358,13 +10373,13 @@ namespace Illuminate\Support\Facades {
          * Indicate that an exception should be thrown if any request is not faked.
          *
          * @param bool $prevent
-         * @return \App\Support\HttpClientFactory
+         * @return \App\Support\Http\HttpClientFactory
          * @static
          */
         public static function preventStrayRequests($prevent = true)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->preventStrayRequests($prevent);
         }
 
@@ -10377,7 +10392,7 @@ namespace Illuminate\Support\Facades {
         public static function preventingStrayRequests()
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->preventingStrayRequests();
         }
 
@@ -10385,26 +10400,26 @@ namespace Illuminate\Support\Facades {
          * Allow stray, unfaked requests entirely, or optionally allow only specific URLs.
          *
          * @param array<int, string>|null $only
-         * @return \App\Support\HttpClientFactory
+         * @return \App\Support\Http\HttpClientFactory
          * @static
          */
         public static function allowStrayRequests($only = null)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->allowStrayRequests($only);
         }
 
         /**
          * Begin recording request / response pairs.
          *
-         * @return \App\Support\HttpClientFactory
+         * @return \App\Support\Http\HttpClientFactory
          * @static
          */
         public static function record()
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->record();
         }
 
@@ -10419,7 +10434,7 @@ namespace Illuminate\Support\Facades {
         public static function recordRequestResponsePair($request, $response)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             $instance->recordRequestResponsePair($request, $response);
         }
 
@@ -10433,7 +10448,7 @@ namespace Illuminate\Support\Facades {
         public static function assertSent($callback)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             $instance->assertSent($callback);
         }
 
@@ -10447,7 +10462,7 @@ namespace Illuminate\Support\Facades {
         public static function assertSentInOrder($callbacks)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             $instance->assertSentInOrder($callbacks);
         }
 
@@ -10461,7 +10476,7 @@ namespace Illuminate\Support\Facades {
         public static function assertNotSent($callback)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             $instance->assertNotSent($callback);
         }
 
@@ -10474,7 +10489,7 @@ namespace Illuminate\Support\Facades {
         public static function assertNothingSent()
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             $instance->assertNothingSent();
         }
 
@@ -10488,7 +10503,7 @@ namespace Illuminate\Support\Facades {
         public static function assertSentCount($count)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             $instance->assertSentCount($count);
         }
 
@@ -10501,7 +10516,7 @@ namespace Illuminate\Support\Facades {
         public static function assertSequencesAreEmpty()
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             $instance->assertSequencesAreEmpty();
         }
 
@@ -10515,7 +10530,7 @@ namespace Illuminate\Support\Facades {
         public static function recorded($callback = null)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->recorded($callback);
         }
 
@@ -10528,7 +10543,7 @@ namespace Illuminate\Support\Facades {
         public static function getDispatcher()
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->getDispatcher();
         }
 
@@ -10541,7 +10556,7 @@ namespace Illuminate\Support\Facades {
         public static function getGlobalMiddleware()
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->getGlobalMiddleware();
         }
 
@@ -10557,7 +10572,7 @@ namespace Illuminate\Support\Facades {
         public static function macro($name, $macro)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            \App\Support\HttpClientFactory::macro($name, $macro);
+            \App\Support\Http\HttpClientFactory::macro($name, $macro);
         }
 
         /**
@@ -10572,7 +10587,7 @@ namespace Illuminate\Support\Facades {
         public static function mixin($mixin, $replace = true)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            \App\Support\HttpClientFactory::mixin($mixin, $replace);
+            \App\Support\Http\HttpClientFactory::mixin($mixin, $replace);
         }
 
         /**
@@ -10585,7 +10600,7 @@ namespace Illuminate\Support\Facades {
         public static function hasMacro($name)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            return \App\Support\HttpClientFactory::hasMacro($name);
+            return \App\Support\Http\HttpClientFactory::hasMacro($name);
         }
 
         /**
@@ -10597,7 +10612,7 @@ namespace Illuminate\Support\Facades {
         public static function flushMacros()
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            \App\Support\HttpClientFactory::flushMacros();
+            \App\Support\Http\HttpClientFactory::flushMacros();
         }
 
         /**
@@ -10612,7 +10627,7 @@ namespace Illuminate\Support\Facades {
         public static function macroCall($method, $parameters)
         {
             //Method inherited from \Illuminate\Http\Client\Factory 
-            /** @var \App\Support\HttpClientFactory $instance */
+            /** @var \App\Support\Http\HttpClientFactory $instance */
             return $instance->macroCall($method, $parameters);
         }
 
@@ -11831,6 +11846,7 @@ namespace Illuminate\Support\Facades {
          *
          * @param \Illuminate\Support\Collection|mixed $notifiables
          * @param mixed $notification
+         * @param array|null $channels
          * @return void
          * @static
          */
@@ -11922,6 +11938,7 @@ namespace Illuminate\Support\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
+         * @param \Closure $callback
          * @return \Illuminate\Notifications\ChannelManager
          * @static
          */
@@ -11961,6 +11978,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the container instance used by the manager.
          *
+         * @param \Illuminate\Contracts\Container\Container $container
          * @return \Illuminate\Notifications\ChannelManager
          * @static
          */
@@ -13379,6 +13397,33 @@ namespace Illuminate\Support\Facades {
         {
             //Method inherited from \Illuminate\Queue\Queue 
             \Illuminate\Queue\DatabaseQueue::createPayloadUsing($callback);
+        }
+
+        /**
+         * Get the queue configuration array.
+         *
+         * @return array
+         * @static
+         */
+        public static function getConfig()
+        {
+            //Method inherited from \Illuminate\Queue\Queue 
+            /** @var \Illuminate\Queue\DatabaseQueue $instance */
+            return $instance->getConfig();
+        }
+
+        /**
+         * Set the queue configuration array.
+         *
+         * @param array $config
+         * @return \Illuminate\Queue\DatabaseQueue
+         * @static
+         */
+        public static function setConfig($config)
+        {
+            //Method inherited from \Illuminate\Queue\Queue 
+            /** @var \Illuminate\Queue\DatabaseQueue $instance */
+            return $instance->setConfig($config);
         }
 
         /**
@@ -18065,7 +18110,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Specify the cache store that should be used to store mutexes.
          *
-         * @param string $store
+         * @param \UnitEnum|string $store
          * @return \Illuminate\Console\Scheduling\Schedule
          * @static
          */
@@ -18854,7 +18899,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Get the default session driver name.
          *
-         * @return string
+         * @return string|null
          * @static
          */
         public static function getDefaultDriver()
@@ -18895,6 +18940,7 @@ namespace Illuminate\Support\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
+         * @param \Closure $callback
          * @return \Illuminate\Session\SessionManager
          * @static
          */
@@ -18934,6 +18980,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Set the container instance used by the manager.
          *
+         * @param \Illuminate\Contracts\Container\Container $container
          * @return \Illuminate\Session\SessionManager
          * @static
          */
@@ -19285,6 +19332,18 @@ namespace Illuminate\Support\Facades {
         {
             /** @var \Illuminate\Session\Store $instance */
             $instance->flashInput($value);
+        }
+
+        /**
+         * Get the session cache instance.
+         *
+         * @return \Illuminate\Contracts\Cache\Repository
+         * @static
+         */
+        public static function cache()
+        {
+            /** @var \Illuminate\Session\Store $instance */
+            return $instance->cache();
         }
 
         /**
@@ -19666,7 +19725,7 @@ namespace Illuminate\Support\Facades {
          * Get a filesystem instance.
          *
          * @param string|null $name
-         * @return \Illuminate\Filesystem\AwsS3V3Adapter
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
         public static function drive($name = null)
@@ -19679,7 +19738,7 @@ namespace Illuminate\Support\Facades {
          * Get a filesystem instance.
          *
          * @param \UnitEnum|string|null $name
-         * @return \Illuminate\Filesystem\AwsS3V3Adapter
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
         public static function disk($name = null)
@@ -19704,7 +19763,7 @@ namespace Illuminate\Support\Facades {
          * Build an on-demand disk.
          *
          * @param string|array $config
-         * @return \Illuminate\Filesystem\AwsS3V3Adapter
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
         public static function build($config)
@@ -19718,7 +19777,7 @@ namespace Illuminate\Support\Facades {
          *
          * @param array $config
          * @param string $name
-         * @return \Illuminate\Filesystem\AwsS3V3Adapter
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
         public static function createLocalDriver($config, $name = 'local')
@@ -19731,7 +19790,7 @@ namespace Illuminate\Support\Facades {
          * Create an instance of the ftp driver.
          *
          * @param array $config
-         * @return \Illuminate\Filesystem\AwsS3V3Adapter
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
         public static function createFtpDriver($config)
@@ -19744,7 +19803,7 @@ namespace Illuminate\Support\Facades {
          * Create an instance of the sftp driver.
          *
          * @param array $config
-         * @return \Illuminate\Filesystem\AwsS3V3Adapter
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
         public static function createSftpDriver($config)
@@ -19770,7 +19829,7 @@ namespace Illuminate\Support\Facades {
          * Create a scoped driver.
          *
          * @param array $config
-         * @return \Illuminate\Filesystem\AwsS3V3Adapter
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
         public static function createScopedDriver($config)
@@ -19871,20 +19930,6 @@ namespace Illuminate\Support\Facades {
         }
 
         /**
-         * Get the URL for the file at the given path.
-         *
-         * @param string $path
-         * @return string
-         * @throws \RuntimeException
-         * @static
-         */
-        public static function url($path)
-        {
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
-            return $instance->url($path);
-        }
-
-        /**
          * Determine if temporary URLs can be generated.
          *
          * @return bool
@@ -19892,7 +19937,7 @@ namespace Illuminate\Support\Facades {
          */
         public static function providesTemporaryUrls()
         {
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->providesTemporaryUrls();
         }
 
@@ -19907,35 +19952,35 @@ namespace Illuminate\Support\Facades {
          */
         public static function temporaryUrl($path, $expiration, $options = [])
         {
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->temporaryUrl($path, $expiration, $options);
         }
 
         /**
-         * Get a temporary upload URL for the file at the given path.
+         * Specify the name of the disk the adapter is managing.
          *
-         * @param string $path
-         * @param \DateTimeInterface $expiration
-         * @param array $options
-         * @return array
+         * @param string $disk
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
-        public static function temporaryUploadUrl($path, $expiration, $options = [])
+        public static function diskName($disk)
         {
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
-            return $instance->temporaryUploadUrl($path, $expiration, $options);
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
+            return $instance->diskName($disk);
         }
 
         /**
-         * Get the underlying S3 client.
+         * Indicate that signed URLs should serve the corresponding files.
          *
-         * @return \Aws\S3\S3Client
+         * @param bool $serve
+         * @param \Closure|null $urlGeneratorResolver
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
-        public static function getClient()
+        public static function shouldServeSignedUrls($serve = true, $urlGeneratorResolver = null)
         {
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
-            return $instance->getClient();
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
+            return $instance->shouldServeSignedUrls($serve, $urlGeneratorResolver);
         }
 
         /**
@@ -19943,13 +19988,13 @@ namespace Illuminate\Support\Facades {
          *
          * @param string|array $path
          * @param string|null $content
-         * @return \Illuminate\Filesystem\AwsS3V3Adapter
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
         public static function assertExists($path, $content = null)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->assertExists($path, $content);
         }
 
@@ -19959,13 +20004,13 @@ namespace Illuminate\Support\Facades {
          * @param string $path
          * @param int $count
          * @param bool $recursive
-         * @return \Illuminate\Filesystem\AwsS3V3Adapter
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
         public static function assertCount($path, $count, $recursive = false)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->assertCount($path, $count, $recursive);
         }
 
@@ -19973,13 +20018,13 @@ namespace Illuminate\Support\Facades {
          * Assert that the given file or directory does not exist.
          *
          * @param string|array $path
-         * @return \Illuminate\Filesystem\AwsS3V3Adapter
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
         public static function assertMissing($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->assertMissing($path);
         }
 
@@ -19987,13 +20032,13 @@ namespace Illuminate\Support\Facades {
          * Assert that the given directory is empty.
          *
          * @param string $path
-         * @return \Illuminate\Filesystem\AwsS3V3Adapter
+         * @return \Illuminate\Filesystem\LocalFilesystemAdapter
          * @static
          */
         public static function assertDirectoryEmpty($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->assertDirectoryEmpty($path);
         }
 
@@ -20007,7 +20052,7 @@ namespace Illuminate\Support\Facades {
         public static function exists($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->exists($path);
         }
 
@@ -20021,7 +20066,7 @@ namespace Illuminate\Support\Facades {
         public static function missing($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->missing($path);
         }
 
@@ -20035,7 +20080,7 @@ namespace Illuminate\Support\Facades {
         public static function fileExists($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->fileExists($path);
         }
 
@@ -20049,7 +20094,7 @@ namespace Illuminate\Support\Facades {
         public static function fileMissing($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->fileMissing($path);
         }
 
@@ -20063,7 +20108,7 @@ namespace Illuminate\Support\Facades {
         public static function directoryExists($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->directoryExists($path);
         }
 
@@ -20077,7 +20122,7 @@ namespace Illuminate\Support\Facades {
         public static function directoryMissing($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->directoryMissing($path);
         }
 
@@ -20091,7 +20136,7 @@ namespace Illuminate\Support\Facades {
         public static function path($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->path($path);
         }
 
@@ -20105,7 +20150,7 @@ namespace Illuminate\Support\Facades {
         public static function get($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->get($path);
         }
 
@@ -20120,7 +20165,7 @@ namespace Illuminate\Support\Facades {
         public static function json($path, $flags = 0)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->json($path, $flags);
         }
 
@@ -20137,7 +20182,7 @@ namespace Illuminate\Support\Facades {
         public static function response($path, $name = null, $headers = [], $disposition = 'inline')
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->response($path, $name, $headers, $disposition);
         }
 
@@ -20154,7 +20199,7 @@ namespace Illuminate\Support\Facades {
         public static function serve($request, $path, $name = null, $headers = [])
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->serve($request, $path, $name, $headers);
         }
 
@@ -20170,7 +20215,7 @@ namespace Illuminate\Support\Facades {
         public static function download($path, $name = null, $headers = [])
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->download($path, $name, $headers);
         }
 
@@ -20186,7 +20231,7 @@ namespace Illuminate\Support\Facades {
         public static function put($path, $contents, $options = [])
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->put($path, $contents, $options);
         }
 
@@ -20202,7 +20247,7 @@ namespace Illuminate\Support\Facades {
         public static function putFile($path, $file = null, $options = [])
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->putFile($path, $file, $options);
         }
 
@@ -20219,7 +20264,7 @@ namespace Illuminate\Support\Facades {
         public static function putFileAs($path, $file, $name = null, $options = [])
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->putFileAs($path, $file, $name, $options);
         }
 
@@ -20233,7 +20278,7 @@ namespace Illuminate\Support\Facades {
         public static function getVisibility($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->getVisibility($path);
         }
 
@@ -20248,7 +20293,7 @@ namespace Illuminate\Support\Facades {
         public static function setVisibility($path, $visibility)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->setVisibility($path, $visibility);
         }
 
@@ -20265,7 +20310,7 @@ namespace Illuminate\Support\Facades {
 ')
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->prepend($path, $data, $separator);
         }
 
@@ -20282,7 +20327,7 @@ namespace Illuminate\Support\Facades {
 ')
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->append($path, $data, $separator);
         }
 
@@ -20296,7 +20341,7 @@ namespace Illuminate\Support\Facades {
         public static function delete($paths)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->delete($paths);
         }
 
@@ -20311,7 +20356,7 @@ namespace Illuminate\Support\Facades {
         public static function copy($from, $to)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->copy($from, $to);
         }
 
@@ -20326,7 +20371,7 @@ namespace Illuminate\Support\Facades {
         public static function move($from, $to)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->move($from, $to);
         }
 
@@ -20340,7 +20385,7 @@ namespace Illuminate\Support\Facades {
         public static function size($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->size($path);
         }
 
@@ -20354,7 +20399,7 @@ namespace Illuminate\Support\Facades {
         public static function checksum($path, $options = [])
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->checksum($path, $options);
         }
 
@@ -20368,7 +20413,7 @@ namespace Illuminate\Support\Facades {
         public static function mimeType($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->mimeType($path);
         }
 
@@ -20382,7 +20427,7 @@ namespace Illuminate\Support\Facades {
         public static function lastModified($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->lastModified($path);
         }
 
@@ -20396,7 +20441,7 @@ namespace Illuminate\Support\Facades {
         public static function readStream($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->readStream($path);
         }
 
@@ -20412,8 +20457,40 @@ namespace Illuminate\Support\Facades {
         public static function writeStream($path, $resource, $options = [])
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->writeStream($path, $resource, $options);
+        }
+
+        /**
+         * Get the URL for the file at the given path.
+         *
+         * @param string $path
+         * @return string
+         * @throws \RuntimeException
+         * @static
+         */
+        public static function url($path)
+        {
+            //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
+            return $instance->url($path);
+        }
+
+        /**
+         * Get a temporary upload URL for the file at the given path.
+         *
+         * @param string $path
+         * @param \DateTimeInterface $expiration
+         * @param array $options
+         * @return array
+         * @throws \RuntimeException
+         * @static
+         */
+        public static function temporaryUploadUrl($path, $expiration, $options = [])
+        {
+            //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
+            return $instance->temporaryUploadUrl($path, $expiration, $options);
         }
 
         /**
@@ -20427,7 +20504,7 @@ namespace Illuminate\Support\Facades {
         public static function files($directory = null, $recursive = false)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->files($directory, $recursive);
         }
 
@@ -20441,7 +20518,7 @@ namespace Illuminate\Support\Facades {
         public static function allFiles($directory = null)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->allFiles($directory);
         }
 
@@ -20456,7 +20533,7 @@ namespace Illuminate\Support\Facades {
         public static function directories($directory = null, $recursive = false)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->directories($directory, $recursive);
         }
 
@@ -20470,7 +20547,7 @@ namespace Illuminate\Support\Facades {
         public static function allDirectories($directory = null)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->allDirectories($directory);
         }
 
@@ -20484,7 +20561,7 @@ namespace Illuminate\Support\Facades {
         public static function makeDirectory($path)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->makeDirectory($path);
         }
 
@@ -20498,7 +20575,7 @@ namespace Illuminate\Support\Facades {
         public static function deleteDirectory($directory)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->deleteDirectory($directory);
         }
 
@@ -20511,7 +20588,7 @@ namespace Illuminate\Support\Facades {
         public static function getDriver()
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->getDriver();
         }
 
@@ -20524,7 +20601,7 @@ namespace Illuminate\Support\Facades {
         public static function getAdapter()
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->getAdapter();
         }
 
@@ -20537,7 +20614,7 @@ namespace Illuminate\Support\Facades {
         public static function getConfig()
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->getConfig();
         }
 
@@ -20551,7 +20628,7 @@ namespace Illuminate\Support\Facades {
         public static function serveUsing($callback)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             $instance->serveUsing($callback);
         }
 
@@ -20565,7 +20642,7 @@ namespace Illuminate\Support\Facades {
         public static function buildTemporaryUrlsUsing($callback)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             $instance->buildTemporaryUrlsUsing($callback);
         }
 
@@ -20582,7 +20659,7 @@ namespace Illuminate\Support\Facades {
          */
         public static function when($value = null, $callback = null, $default = null)
         {
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->when($value, $callback, $default);
         }
 
@@ -20599,7 +20676,7 @@ namespace Illuminate\Support\Facades {
          */
         public static function unless($value = null, $callback = null, $default = null)
         {
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->unless($value, $callback, $default);
         }
 
@@ -20615,7 +20692,7 @@ namespace Illuminate\Support\Facades {
         public static function macro($name, $macro)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            \Illuminate\Filesystem\AwsS3V3Adapter::macro($name, $macro);
+            \Illuminate\Filesystem\LocalFilesystemAdapter::macro($name, $macro);
         }
 
         /**
@@ -20630,7 +20707,7 @@ namespace Illuminate\Support\Facades {
         public static function mixin($mixin, $replace = true)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            \Illuminate\Filesystem\AwsS3V3Adapter::mixin($mixin, $replace);
+            \Illuminate\Filesystem\LocalFilesystemAdapter::mixin($mixin, $replace);
         }
 
         /**
@@ -20643,7 +20720,7 @@ namespace Illuminate\Support\Facades {
         public static function hasMacro($name)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            return \Illuminate\Filesystem\AwsS3V3Adapter::hasMacro($name);
+            return \Illuminate\Filesystem\LocalFilesystemAdapter::hasMacro($name);
         }
 
         /**
@@ -20655,7 +20732,7 @@ namespace Illuminate\Support\Facades {
         public static function flushMacros()
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            \Illuminate\Filesystem\AwsS3V3Adapter::flushMacros();
+            \Illuminate\Filesystem\LocalFilesystemAdapter::flushMacros();
         }
 
         /**
@@ -20670,7 +20747,7 @@ namespace Illuminate\Support\Facades {
         public static function macroCall($method, $parameters)
         {
             //Method inherited from \Illuminate\Filesystem\FilesystemAdapter 
-            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $instance */
+            /** @var \Illuminate\Filesystem\LocalFilesystemAdapter $instance */
             return $instance->macroCall($method, $parameters);
         }
 
@@ -23228,6 +23305,7 @@ namespace Laravel\Socialite\Facades {
          * Register a custom driver creator Closure.
          *
          * @param string $driver
+         * @param \Closure $callback
          * @return \Laravel\Socialite\SocialiteManager
          * @static
          */
@@ -23262,6 +23340,50 @@ namespace Laravel\Socialite\Facades {
             //Method inherited from \Illuminate\Support\Manager 
             /** @var \Laravel\Socialite\SocialiteManager $instance */
             return $instance->getContainer();
+        }
+
+            }
+    }
+
+namespace Illuminate\Support {
+    /**
+     */
+    class Str {
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param int $length
+         * @return string
+         * @static
+         */
+        public static function otp($length = 4)
+        {
+            return \Illuminate\Support\Str::otp($length);
+        }
+
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param string $prefix
+         * @static
+         */
+        public static function orderId($prefix = '#ORD')
+        {
+            return \Illuminate\Support\Str::orderId($prefix);
+        }
+
+            }
+    /**
+     */
+    class Uri {
+        /**
+         * @see \App\Providers\AppServiceProvider::boot()
+         * @param \Stringable|\League\Uri\UriTemplate|string $template
+         * @param iterable $variables
+         * @return \Illuminate\Support\Uri
+         * @static
+         */
+        public static function fromTemplate($template, $variables = [])
+        {
+            return \Illuminate\Support\Uri::fromTemplate($template, $variables);
         }
 
             }
@@ -23337,25 +23459,6 @@ namespace Illuminate\Http {
             }
     }
 
-namespace Illuminate\Support {
-    /**
-     */
-    class Uri {
-        /**
-         * @see \App\Providers\AppServiceProvider::boot()
-         * @param \Stringable|\League\Uri\UriTemplate|string $template
-         * @param iterable $variables
-         * @return \Illuminate\Support\Uri
-         * @static
-         */
-        public static function fromTemplate($template, $variables = [])
-        {
-            return \Illuminate\Support\Uri::fromTemplate($template, $variables);
-        }
-
-            }
-    }
-
 namespace Illuminate\Routing {
     /**
      * @mixin \Illuminate\Routing\RouteRegistrar
@@ -23402,10 +23505,41 @@ namespace Illuminate\Routing {
 
 namespace Illuminate\Http\Client {
     /**
+     * @mixin \Illuminate\Http\Client\PendingRequest
+     */
+    class Factory {
+        /**
+         * @param callable(\App\Support\Http\LazyHttpClientPool):(Generator<array-key,(callable():\GuzzleHttp\Promise\PromiseInterface)|\GuzzleHttp\Promise\PromiseInterface>|iterable<(callable():\GuzzleHttp\Promise\PromiseInterface)|\GuzzleHttp\Promise\PromiseInterface>|list<(callable():\GuzzleHttp\Promise\PromiseInterface)|\GuzzleHttp\Promise\PromiseInterface>|void) $callback
+         * @return array<array-key,\Illuminate\Http\Client\Response>
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @static
+         */
+        public static function ofLimit($callback, $concurrency = 25)
+        {
+            return \Illuminate\Http\Client\Factory::ofLimit($callback, $concurrency);
+        }
+
+            }
+    /**
+     * @mixin \Psr\Http\Message\ResponseInterface
+     */
+    class Response {
+        /**
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @return \Cerbero\JsonParser\JsonParser
+         * @static
+         */
+        public static function lazyJson()
+        {
+            return \Illuminate\Http\Client\Response::lazyJson();
+        }
+
+            }
+    /**
      */
     class PendingRequest {
         /**
-         * @see \App\Providers\AppServiceProvider::boot()
+         * @see \App\Providers\HttpClientServiceProvider::boot()
          * @return \App\Support\Sms\SmsApiConnector
          * @static
          */
@@ -23415,7 +23549,7 @@ namespace Illuminate\Http\Client {
         }
 
         /**
-         * @see \App\Providers\AppServiceProvider::boot()
+         * @see \App\Providers\HttpClientServiceProvider::boot()
          * @param callable|null $onRequest
          * @param bool $die
          * @return \Illuminate\Http\Client\PendingRequest
@@ -23427,7 +23561,7 @@ namespace Illuminate\Http\Client {
         }
 
         /**
-         * @see \App\Providers\AppServiceProvider::boot()
+         * @see \App\Providers\HttpClientServiceProvider::boot()
          * @param callable|null $onResponse
          * @param bool $die
          * @return \Illuminate\Http\Client\PendingRequest
@@ -23439,7 +23573,7 @@ namespace Illuminate\Http\Client {
         }
 
         /**
-         * @see \App\Providers\AppServiceProvider::boot()
+         * @see \App\Providers\HttpClientServiceProvider::boot()
          * @param bool $die
          * @return \Illuminate\Http\Client\PendingRequest
          * @static
@@ -23450,8 +23584,8 @@ namespace Illuminate\Http\Client {
         }
 
         /**
-         * @see \App\Providers\AppServiceProvider::boot()
-         * @param \Stringable|\League\Uri\UriTemplate|string $template
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @param \Illuminate\Support\Stringable|\League\Uri\UriTemplate|string $template
          * @param iterable $variables
          * @return \Illuminate\Http\Client\PendingRequest
          * @static
@@ -23467,15 +23601,163 @@ namespace Illuminate\Http\Client {
          * @param array<int,int>|int $times
          * @param (\Closure(int $attempts,\Illuminate\Http\Client\Request $request,?\Illuminate\Http\Client\Response $response):int)|int|null $sleepMilliseconds
          * @param (\Closure(int $attempts,\Illuminate\Http\Client\Request $request,?\Illuminate\Http\Client\Response $response,?Exception $exception):bool)|null $when
-         * @see \App\Providers\AppServiceProvider::boot()
+         * @see \App\Providers\HttpClientServiceProvider::boot()
          * @return \Illuminate\Http\Client\PendingRequest
          * @static
          */
-        public static function withRetryMiddleware($times, $sleepMilliseconds = null, $when = null, $throw = true)
+        public static function withRetryMiddleware($times, $sleepMilliseconds = null, $when = null, $throw = true, $name = null, $unique = false, $scoped = false, $before = null, $after = null)
         {
-            return \Illuminate\Http\Client\PendingRequest::withRetryMiddleware($times, $sleepMilliseconds, $when, $throw);
+            return \Illuminate\Http\Client\PendingRequest::withRetryMiddleware($times, $sleepMilliseconds, $when, $throw, $name, $unique, $scoped, $before, $after);
         }
 
+        /**
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function withRequestNormalizationMiddleware()
+        {
+            return \Illuminate\Http\Client\PendingRequest::withRequestNormalizationMiddleware();
+        }
+
+        /**
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function withoutRequestNormalizationMiddleware()
+        {
+            return \Illuminate\Http\Client\PendingRequest::withoutRequestNormalizationMiddleware();
+        }
+
+        /**
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @return \Illuminate\Http\Client\Request|null
+         * @static
+         */
+        public static function getRequest()
+        {
+            return \Illuminate\Http\Client\PendingRequest::getRequest();
+        }
+
+        /**
+         * @param \Closure((callable(RequestInterface, array):PromiseInterface)):(\Closure(RequestInterface, array):PromiseInterface) $fn
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function withScopedMiddleware($fn)
+        {
+            return \Illuminate\Http\Client\PendingRequest::withScopedMiddleware($fn);
+        }
+
+        /**
+         * @param callable((callable(RequestInterface, array):PromiseInterface)):(callable(RequestInterface, array):PromiseInterface) $fn
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function withMiddlewareBefore($before, $fn)
+        {
+            return \Illuminate\Http\Client\PendingRequest::withMiddlewareBefore($before, $fn);
+        }
+
+        /**
+         * @param callable((callable(RequestInterface, array):PromiseInterface)):(callable(RequestInterface, array):PromiseInterface) $fn
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function withMiddlewareAfter($after, $fn)
+        {
+            return \Illuminate\Http\Client\PendingRequest::withMiddlewareAfter($after, $fn);
+        }
+
+        /**
+         * Register a named middleware, optionally positioning it before or after another one.
+         *
+         * @param string $name Middleware name to add or replace
+         * @param \Closure((callable(RequestInterface, array):PromiseInterface),PendingRequest):(\Closure(RequestInterface, array):PromiseInterface) $fn
+         * @param bool $unique If true, skip adding if it already exists
+         * @param string|null $before Insert before this named middleware
+         * @param string|null $after Insert after this named middleware
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function withNamedMiddleware($name, $fn, $unique = false, $scoped = false, $before = null, $after = null)
+        {
+            return \Illuminate\Http\Client\PendingRequest::withNamedMiddleware($name, $fn, $unique, $scoped, $before, $after);
+        }
+
+        /**
+         * @param \Closure(RequestInterface,array):PromiseInterface $fn
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function withNamedRequestMiddleware($name, $fn, $unique = false)
+        {
+            return \Illuminate\Http\Client\PendingRequest::withNamedRequestMiddleware($name, $fn, $unique);
+        }
+
+        /**
+         * @param \Closure(ResponseInterface):PromiseInterface $fn
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function withNamedResponseMiddleware($name, $fn, $unique = false)
+        {
+            return \Illuminate\Http\Client\PendingRequest::withNamedResponseMiddleware($name, $fn, $unique);
+        }
+
+        /**
+         * Register a named before-sending callback, optionally positioning it before or after another one.
+         *
+         * @param string $name Callback name to add or replace
+         * @param \Closure(\Illuminate\Http\Client\Request,array,PendingRequest):(\Illuminate\Http\Client\Request|RequestInterface) $fn
+         * @param bool $unique If true, skip adding if it already exists
+         * @param string|null $before Insert before this named callback
+         * @param string|null $after Insert after this named callback
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function beforeSendingWithName($name, $fn, $unique = false, $before = null, $after = null)
+        {
+            return \Illuminate\Http\Client\PendingRequest::beforeSendingWithName($name, $fn, $unique, $before, $after);
+        }
+
+        /**
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @param string $name
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function withoutBeforeSending($name)
+        {
+            return \Illuminate\Http\Client\PendingRequest::withoutBeforeSending($name);
+        }
+
+        /**
+         * @see \App\Providers\HttpClientServiceProvider::boot()
+         * @param string $name
+         * @return \Illuminate\Http\Client\PendingRequest
+         * @static
+         */
+        public static function withoutMiddleware($name)
+        {
+            return \Illuminate\Http\Client\PendingRequest::withoutMiddleware($name);
+        }
+
+            }
+    }
+
+namespace App\Support\Http {
+    /**
+     */
+    class HttpClientFactory extends \Illuminate\Http\Client\Factory {
             }
     }
 
@@ -23555,6 +23837,19 @@ namespace  {
         {
             /** @var \Illuminate\Database\Eloquent\Builder $instance */
             return $instance->withoutGlobalScopes($scopes);
+        }
+
+        /**
+         * Remove all global scopes except the given scopes.
+         *
+         * @param array $scopes
+         * @return \Illuminate\Database\Eloquent\Builder<static>
+         * @static
+         */
+        public static function withoutGlobalScopesExcept($scopes = [])
+        {
+            /** @var \Illuminate\Database\Eloquent\Builder $instance */
+            return $instance->withoutGlobalScopesExcept($scopes);
         }
 
         /**
@@ -25373,7 +25668,7 @@ namespace  {
          *
          * @param mixed $relations
          * @param \Illuminate\Contracts\Database\Query\Expression|string $column
-         * @param string $function
+         * @param string|null $function
          * @return \Illuminate\Database\Eloquent\Builder<static>
          * @static
          */

@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Enums\SellerStatus;
+use App\Models\SellerOrder;
 use App\Models\UserPayment;
+use Illuminate\Support\Str;
 use App\Services\SMSService;
 use Illuminate\Http\Request;
-use App\Events\SellerStatusUpdated;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Auth;
+use App\Notifications\SmsNotification;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Container\Attributes\CurrentUser;
-use App\Models\SellerOrder;
+use App\Notifications\SellerStatusUpdatedNotification;
 
 class UserController extends Controller
 {
@@ -50,7 +52,7 @@ class UserController extends Controller
             'address' => $request->address,
             'password' => bcrypt($request->password),
             'role' => $request->role,
-            'status' => 'approved',
+            'status' => SellerStatus::Approved,
         ]);
 
         return to_route('admin.user.list')->with('success', 'User created successfully!');
@@ -198,7 +200,8 @@ class UserController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
         $validatedData = $validator->validated();
-        $otp = rand(1000, 9999);
+        // Generate OTP and expiry
+        $otp = Str::otp();
 
         $user = User::create([
             'name' => $validatedData['name'],
@@ -211,7 +214,7 @@ class UserController extends Controller
             'status' => 'pending',
         ]);
 
-        Cache::put('otp_'.$user->phone_number, $otp, now()->addMinutes(10));
+        $user->cacheOtpFor10Minutes($otp);
 
         if (! empty($validatedData['payments'])) {
             foreach ($validatedData['payments'] as $payment_method_id => $account_number) {
@@ -296,7 +299,7 @@ class UserController extends Controller
         }
 
         $user->update([
-            'status' => 'approved',
+            'status' => SellerStatus::Approved,
             'role' => 'vendor', // If you want to update role as well
         ]);
 
@@ -316,7 +319,7 @@ class UserController extends Controller
         }
 
         $user->update([
-            'status' => 'rejected',
+            'status' => SellerStatus::Rejected,
         ]);
 
         return response()->json(['message' => 'Seller rejected successfully', 'user' => $user]);
@@ -356,14 +359,8 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
-        // dd($request->all());
         $user = User::findOrFail($id);
         $user->update($request->all());
-
-        // $message = "Dear {$user->name}, your seller account has been approved!\n";
-        // $message .= "Email: {$user->email}\n";
-
-        // $smsSent = $this->smsService->sendSMS($user->phone, $message);
 
         return to_route('admin.user.list')->with('success', 'User updated successfully');
     }
@@ -372,7 +369,7 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         $user->update([
-            'status' => 'approved',
+            'status' => SellerStatus::Approved,
             'activation_date' => now(),
         ]);
 
@@ -381,7 +378,7 @@ class UserController extends Controller
         $message .= "Email: {$user->email}\n";
         $message .= "Password: {$password}\n";
 
-        $this->smsService->sendSMS($user->phone_number, $message);
+        $user->notify(new SmsNotification($message));
 
         return to_route('super-admin.user.manage', ['tab' => 'pending_admins'])
             ->withSuccess('User status updated and SMS sent successfully');
@@ -400,18 +397,11 @@ class UserController extends Controller
         }
 
         $seller->role = 'vendor';
-        $seller->status = 'approved';
+        $seller->status = SellerStatus::Approved;
         $seller->save();
 
-        // Send SMS using SMSController
-        $smsController = new SMSController;
-        $smsController->sendSMS(new Request([
-            'Message' => 'Your seller request has been approved by Fleepness!',
-            'MobileNumbers' => $seller->phone_number,
-        ]));
-
         // 🔔 Send real-time notification
-        event(new SellerStatusUpdated($seller->id, 'Your seller request has been approved! 🎉'));
+        $seller->notify(SellerStatusUpdatedNotification::approved());
 
         return response()->json(['message' => 'Seller approved successfully']);
     }
@@ -428,18 +418,10 @@ class UserController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        $seller->status = 'rejected';
+        $seller->status = SellerStatus::Rejected;
         $seller->save();
 
-        // Send SMS using SMSController
-        $smsController = new SMSController;
-        $smsController->sendSMS(new Request([
-            'Message' => 'Your seller request has been Rejected by Fleepness!',
-            'MobileNumbers' => $seller->phone_number,
-        ]));
-
-        // Send notification
-        event(new SellerStatusUpdated($seller->user_id, 'Your seller request has been rejected. ❌'));
+        $seller->notify(SellerStatusUpdatedNotification::rejected());
 
         return response()->json(['message' => 'Seller rejected successfully']);
     }

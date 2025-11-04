@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -13,8 +14,6 @@ class SellerOrder extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
-
     protected $casts = [
         'delivery_start_time' => 'datetime',
         'delivery_end_time' => 'datetime',
@@ -23,12 +22,18 @@ class SellerOrder extends Model
         'status' => \App\Enums\SellerOrderStatus::class,
     ];
 
-    public function order()
+    /**
+     * @return BelongsTo<Order,$this>
+     */
+    public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
 
-    public function items()
+    /**
+     * @return HasMany<SellerOrderItem,$this>
+     */
+    public function items(): HasMany
     {
         return $this->hasMany(SellerOrderItem::class);
     }
@@ -41,7 +46,10 @@ class SellerOrder extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function customer()
+    /**
+     * @return BelongsTo<User,$this>
+     */
+    public function customer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'customer_id');
     }
@@ -49,5 +57,10 @@ class SellerOrder extends Model
     public function notifySellerAboutNewOrderFromBuyer()
     {
         $this->seller->notify(new \App\Notifications\OrderReceivedFromBuyer($this));
+    }
+
+    public function notifyBuyerAboutOrderStatus()
+    {
+        $this->customer->notify(new \App\Notifications\OrderStatusChanged($this));
     }
 }

@@ -3,16 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ShortVideo extends Model
 {
     use HasFactory;
-    protected $guarded = [];
 
-    protected function video(): Attribute {
-        return Attribute::get(fn(string $value) => \Illuminate\Support\Facades\Storage::url($value));
+    protected function video(): Attribute
+    {
+        return Attribute::get(fn (string $value) => \Illuminate\Support\Facades\Storage::url($value));
     }
 
     public function comments()
@@ -29,10 +29,9 @@ class ShortVideo extends Model
     {
         return $this->hasMany(ShortsSave::class, 'short_video_id');
     }
-    
-    function products()
+
+    public function products()
     {
         return $this->belongsToMany(Product::class, 'shorts_products', 'short_video_id', 'product_id');
     }
-
 }

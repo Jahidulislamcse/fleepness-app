@@ -5,8 +5,10 @@ namespace App\Support\Sms;
 use SensitiveParameter;
 use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\Utils;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Date;
 use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Container\Attributes\Config;
@@ -28,12 +30,33 @@ class SmsApiConnector
         $this->setupClientDefaults();
     }
 
+    /**
+     * Create a new class instance.
+     */
+    public function __construct(
+        PendingRequest $client,
+
+        #[Config('services.smsq.api_key')]
+        #[SensitiveParameter]
+        private readonly string $apiKey,
+        #[Config('services.smsq.client_id')]
+        #[SensitiveParameter]
+        private readonly string $clientId,
+        #[Config('services.smsq.sender_id')]
+        #[SensitiveParameter]
+        private readonly string $senderId,
+        #[Config('services.smsq.api_url')]
+        private readonly string $apiUrl,
+    ) {
+        $this->pendingClient = $client;
+    }
+
     protected function setupClientDefaults()
     {
         return $this
             ->acceptJson()
             ->baseUrl($this->apiUrl)
-            ->beforeSending(function (Request $request, array $options, PendingRequest $client) {
+            ->beforeSendingWithName('api-creds-setup', function (Request $request, array $options, PendingRequest $client) {
                 $payload = $request->data();
 
                 if ('GET' === $request->method()) {
@@ -69,28 +92,6 @@ class SmsApiConnector
     }
 
     /**
-     * Create a new class instance.
-     */
-    public function __construct(
-        PendingRequest $client,
-
-        #[Config('services.smsq.api_key')]
-        #[SensitiveParameter]
-        private readonly string $apiKey,
-        #[Config('services.smsq.client_id')]
-        #[SensitiveParameter]
-        private readonly string $clientId,
-        #[Config('services.smsq.sender_id')]
-        #[SensitiveParameter]
-        private readonly string $senderId,
-        #[Config('services.smsq.api_url')]
-        private readonly string $apiUrl,
-    ) {
-        $this->pendingClient = $client;
-
-    }
-
-    /**
      * SMS payload data.
      *
      * @param array{
@@ -99,7 +100,7 @@ class SmsApiConnector
      *     Is_Unicode?:bool,
      *     Is_Flash?:bool,
      *     DataCoding?:string,
-     *     ScheduleTime?:string|null,
+     *     ScheduleTime?:string|Carbon|null,
      *     GroupId?:string
      * } $data
      */
@@ -109,14 +110,36 @@ class SmsApiConnector
             ? implode(',', $data['MobileNumbers'])
             : $data['MobileNumbers'];
 
+        if (is_string($data['ScheduleTime'])) {
+            $data['ScheduleTime'] = Date::parse($data['ScheduleTime']);
+        }
+
+        if (! empty($data['ScheduleTime'])) {
+            $data['ScheduleTime'] = $data['ScheduleTime']->format('Y-m-d H:i');
+        }
+
         return $this->post('SendSMS', $data);
     }
 
     /**
-     * @param  array{MessageParameters:list<string>}  $data
+     * @param  array{
+     *     Is_Unicode?:bool,
+     *     Is_Flash?:bool,
+     *     DataCoding?:string,
+     *     ScheduleTime?:string|Carbon|null,
+     *     MessageParameters:list<array{Number:string,Text:string}>
+     * }  $data
      */
     public function sendBulkSMS(array $data): PromiseInterface|Response
     {
+        if (is_string($data['ScheduleTime'])) {
+            $data['ScheduleTime'] = Date::parse($data['ScheduleTime']);
+        }
+
+        if (! empty($data['ScheduleTime'])) {
+            $data['ScheduleTime'] = $data['ScheduleTime']->format('Y-m-d H:i');
+        }
+
         return $this->post('SendBulkSMS', $data);
     }
 

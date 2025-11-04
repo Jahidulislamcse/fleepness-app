@@ -10,4 +10,20 @@ enum SellerOrderStatus: string
     case Delivered = 'delivered';
     case Delayed = 'delayed';
     case Rejected = 'rejected';
+    case Active = 'active';
+
+    public function isDelivered(): bool
+    {
+        return self::Delivered === $this;
+    }
+
+    public function isActive(): bool
+    {
+        return self::Active === $this;
+    }
+
+    public function isRejected(): bool
+    {
+        return self::Rejected === $this;
+    }
 }
