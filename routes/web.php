@@ -19,6 +19,7 @@ use App\Http\Controllers\Vendor\VendorOrderController;
 use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\Vendor\VendorProfileController;
 use App\Http\Controllers\Vendor\VendorDashboardController;
@@ -134,15 +135,16 @@ Route::middleware('role:admin')->group(function () {
         Route::post('user/store', [UserController::class, 'store'])->name('user.store');
         Route::get('user/{id}/edit', [UserController::class, 'edit'])->name('user.edit');
         Route::put('user/{id}', [UserController::class, 'update'])->name('user.update');
+         Route::put('/payment/{id}/reject', [TransactionController::class, 'reject'])->name('admin.payment.reject');
         Route::delete('user/{id}', [UserController::class, 'destroy'])->name('user.destroy');
 
         Route::prefix('settings')->name('settings.')->group(function () {
             Route::get('/', [AdminSettingController::class, 'Index'])->name('index');
             Route::post('/', [AdminSettingController::class, 'Update'])->name('update');
         });
-        Route::get('/payment/requests', [PaymentController::class, 'PaymentRequests'])->name('payment.requests');
-        Route::get('/payment/history', [PaymentController::class, 'AdminPaymentHistory'])->name('payment.history');
-        Route::put('/payment/update/{bill}', [PaymentController::class, 'update'])->name('payment.update');
+        Route::get('/payment/requests', [TransactionController::class, 'PaymentRequests'])->name('payment.requests');
+        Route::get('/payment/history', [TransactionController::class, 'AdminPaymentHistory'])->name('payment.history');
+        Route::put('/payment/update/{bill}', [TransactionController::class, 'update'])->name('payment.update');
 
         Route::get('payment-methods', [PaymentMethodController::class, 'index'])->name('payment-methods.index');
         Route::get('payment-methods/create', [PaymentMethodController::class, 'create'])->name('payment-methods.create');

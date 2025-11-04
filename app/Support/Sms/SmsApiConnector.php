@@ -22,12 +22,12 @@ class SmsApiConnector
 {
     use ForwardsCalls;
 
-    protected PendingRequest $pendingClient {
-        set(PendingRequest $newPendingClient) {
-            $this->pendingClient = $newPendingClient;
+    protected PendingRequest $pendingClient;
 
-            $this->setupClientDefaults();
-        }
+    public function setPendingClient(PendingRequest $newPendingClient): void
+    {
+        $this->pendingClient = $newPendingClient;
+        $this->setupClientDefaults();
     }
 
     /**

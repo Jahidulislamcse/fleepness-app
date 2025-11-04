@@ -19,17 +19,11 @@ use Illuminate\Container\Attributes\CurrentUser;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
     public function create(): View
     {
         return view('auth.login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
@@ -80,11 +74,9 @@ class AuthenticatedSessionController extends Controller
 
         $phone = $request->input('phone');
 
-        // Check if the phone number exists in the database
         $user = User::where('phone_number', $phone)->first();
 
         if (! $user) {
-            // If the phone number does not exist in the database
             return response()->json([
                 'status' => false,
                 'is_exist' => false,
@@ -100,7 +92,6 @@ class AuthenticatedSessionController extends Controller
 
         $user->sendOtpNotification($otp);
 
-        // If OTP sent successfully, return success response
         return response()->json([
             'status' => true,
             'message' => 'OTP sent to your phone.',
@@ -110,21 +101,17 @@ class AuthenticatedSessionController extends Controller
 
     public function verifyCacheOtp(Request $request)
     {
-        // Validate incoming request data
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|string|exists:users,phone_number',
             'otp' => 'required|digits:4',
         ]);
 
-        // If validation fails, return errors
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        // Find the user by phone number
         $user = User::where('phone_number', $request->phone_number)->first();
 
-        // If user doesn't exist, return an error
         if (! $user) {
             return response()->json(['message' => 'User not found'], HttpResponse::HTTP_NOT_FOUND);
         }
@@ -132,12 +119,10 @@ class AuthenticatedSessionController extends Controller
         // Retrieve the OTP from the cache
         $cacheOtp = $user->getCachedOtp();  // Cache key using phone_number
 
-        // Check if OTP exists in cache
         if (! $cacheOtp) {
             return response()->json(['message' => 'OTP has expired or is not set'], 400);
         }
 
-        // Check if OTP matches with the cached value
         if ((string) $cacheOtp !== (string) $request->otp) {
             return response()->json(['message' => 'Invalid OTP'], 400);
         }
@@ -145,7 +130,6 @@ class AuthenticatedSessionController extends Controller
         // OTP is valid, clear it from cache to prevent reuse
         $user->forgetCachedOtp();
 
-        // Generate and return an access token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -154,9 +138,6 @@ class AuthenticatedSessionController extends Controller
         ]);
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
@@ -178,7 +159,6 @@ class AuthenticatedSessionController extends Controller
             ], 401);
         }
 
-        // Revoke all tokens for the user
         $user->tokens()->delete();
 
         return response()->json([

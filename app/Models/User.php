@@ -122,7 +122,7 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('thumbnail_pictures')
-            ->useDisk('public'); // You can use a different disk if needed
+            ->useDisk('public'); 
     }
 
     protected function coverImage(): Attribute
@@ -153,7 +153,6 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
     public function shopCategory()
     {
         return $this->belongsTo(ShopCategory::class, 'shop_category');
-        // 'shop_category' is the foreign key in users table
     }
 
     /**

@@ -217,7 +217,6 @@ class VendorProductController extends Controller
     public function store(Request $request)
     {
         try {
-            // Validate the request
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'long_description' => 'nullable|string',
@@ -228,20 +227,20 @@ class VendorProductController extends Controller
                 'discount_price' => 'nullable|numeric|min:0',
             ]);
 
-            // Start DB transaction after validation passes
             DB::beginTransaction();
 
-            // Set additional fields
             $validated['code'] = $this->generateUniqueCode();
             $validated['status'] = 'active';
             $validated['admin_approval'] = 'approved';
             $validated['user_id'] = auth()->id();
             $validated['tags'] = json_encode($request->tags);
 
-            // Create the product
+            $validated['reviews'] = $this->generateRandomReviews();
+            $validated['time'] = $this->generateRandomTime();
+            $validated['discount'] = $this->generateRandomDiscount();
+
             $product = Product::create($validated);
 
-            // Copy sizes from the template
             $sizes = SizeTemplateItem::where('template_id', $request->size_template_id)->get();
             foreach ($sizes as $size) {
                 ProductSize::create([
@@ -251,27 +250,18 @@ class VendorProductController extends Controller
                 ]);
             }
 
-            // Save images
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $photo) {
-                    $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-                    $path = public_path('upload/product');
-
-                    if (!file_exists($path)) {
-                        mkdir($path, 0777, true);
-                    }
-
-                    $photo->move($path, $name_gen);
+                    $path = $photo->store('products/images'); 
 
                     ProductImage::create([
                         'product_id' => $product->id,
-                        'path' => 'upload/product/' . $name_gen,
+                        'path' => $path, 
                         'alt_text' => $request->input('alt_text', ''),
                     ]);
                 }
             }
 
-            // Save seller tags
             if (!empty($request->tags)) {
                 $sellerTag = SellerTags::firstOrNew([
                     'vendor_id' => auth()->id(),
@@ -281,7 +271,6 @@ class VendorProductController extends Controller
                 $sellerTag->save();
             }
 
-            // Determine category from tag
             $tags = json_decode($product->tags, true);
             $tag = $tags[0] ?? null;
 
@@ -306,10 +295,8 @@ class VendorProductController extends Controller
                 $product->update(['category_id' => $categoryId]);
             }
 
-            // Commit DB transaction
             DB::commit();
 
-            // Return the response
             return response()->json([
                 'success' => true,
                 'message' => 'Product created successfully',
@@ -336,6 +323,30 @@ class VendorProductController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    private function generateRandomReviews(): string
+    {
+        $random = rand(100, 1000); 
+        $value = $random / 1000; 
+        return $value . 'k'; 
+    }
+
+
+    private function generateRandomTime(): string
+    {
+        $minutes = rand(30, 90);
+        if ($minutes >= 60) {
+            $hours = intdiv($minutes, 60);
+            $remaining = $minutes % 60;
+            return $remaining > 0 ? "{$hours}h {$remaining}m" : "{$hours}h";
+        }
+        return "{$minutes}m";
+    }
+
+    private function generateRandomDiscount(): float
+    {
+        return rand(1, 20); 
     }
 
 
@@ -412,27 +423,18 @@ class VendorProductController extends Controller
                 }
             }
 
-            // Add new images if any
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $photo) {
-                    $name_gen = hexdec(uniqid()) . '.' . $photo->getClientOriginalExtension();
-                    $path = public_path('upload/product');
-
-                    if (!file_exists($path)) {
-                        mkdir($path, 0777, true);
-                    }
-
-                    $photo->move($path, $name_gen);
+                    $path = $photo->store('products/images'); 
 
                     ProductImage::create([
                         'product_id' => $product->id,
-                        'path' => 'upload/product/' . $name_gen,
+                        'path' => $path, 
                         'alt_text' => $request->input('alt_text', ''),
                     ]);
                 }
             }
 
-            // 🆕 Save tags to seller_tags table (add new tags only)
             if (!empty($request->tags)) {
                 $sellerTag = SellerTags::firstOrNew([
                     'vendor_id' => auth()->id(),
@@ -443,25 +445,21 @@ class VendorProductController extends Controller
             }
 
             $tags = json_decode($product->tags, true);
-            $tag = $tags ? $tags[0] : null; // Get the first tag (if available)
+            $tag = $tags ? $tags[0] : null; 
 
-            // Fetch the category name based on the tag ID
             $tagName = null;
             $category = null;
             if ($tag) {
-                $tagName = Category::where('id', $tag)->pluck('name')->first(); // Fetch single category name
+                $tagName = Category::where('id', $tag)->pluck('name')->first(); 
                 $tagCategory = Category::where('id', $tag)->first();
 
                 if ($tagCategory) {
-                    // Find the parent category of the tag's category
                     $parentCategory = Category::where('id', $tagCategory->parent_id)->first();
 
                     if ($parentCategory) {
-                        // Find the parent category of the parent category
                         $grandParentCategory = Category::where('id', $parentCategory->parent_id)->first();
 
                         if ($grandParentCategory) {
-                            // Set the final grandparent category as the product's category
                             $category = $grandParentCategory->id;
                         }
                     }
@@ -480,6 +478,7 @@ class VendorProductController extends Controller
             'message' => 'Product updated successfully',
             'product' => $product,
             'sizes' => $productSizes,
+            'images' => ProductImage::where('product_id', $product->id)->get(),
             'tag' => $tagName,
             'category_name' => $categoryName,
             ]);
@@ -492,10 +491,8 @@ class VendorProductController extends Controller
     public function deleteImage($id, $img)
     {
         try {
-            // Find the product
             $product = Product::findOrFail($id);
 
-            // Check if the authenticated user owns the product
             if ($product->user_id !== auth()->id()) {
                 return response()->json([
                     'success' => false,
@@ -503,18 +500,14 @@ class VendorProductController extends Controller
                 ], 403);
             }
 
-            // Find the image by ID and ensure it belongs to the product
             $image = ProductImage::where('id', $img)
                                 ->where('product_id', $product->id)
                                 ->firstOrFail();
 
-            // Delete the image file from the filesystem
-            $imagePath = public_path($image->path);
-            if (file_exists($imagePath)) {
-                unlink($imagePath);
+            if (\Storage::exists($image->path)) {
+                \Storage::delete($image->path);
             }
 
-            // Delete the image record from the database
             $image->delete();
 
             return response()->json([

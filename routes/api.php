@@ -9,6 +9,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\user\CartController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Auth\OTPAuthController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SizeTemplateController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\user\UserProductController;
 use App\Http\Controllers\user\UserProfileController;
 use App\Http\Controllers\Admin\AdminSliderController;
+use App\Http\Controllers\ShortsInteractionController;
 use App\Http\Controllers\Admin\ShopCategoryController;
 use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\user\UserVendorFollowController;
@@ -149,6 +151,9 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
                 Route::post('/{id}', [VendorShortVideoController::class, 'update_api']);
                 Route::delete('/{id}', [VendorShortVideoController::class, 'destroy_api']);
             });
+
+            Route::post('/withdraw', [TransactionController::class, 'withdraw']);
+
         });
 
         Route::post('/shop-categories', [ShopCategoryController::class, 'store']);         // Create new category
@@ -180,6 +185,7 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
 
         Route::get('/my-orders', [OrderController::class, 'MyOrders']);
         Route::get('/my-orders/search', [OrderController::class, 'searchOrderById']);
+        Route::get('/my-order/{id}', [OrderController::class, 'myOrderDetail']);
         Route::get('/my-store-orders', [OrderController::class, 'MyStoreOrders']);
 
         Route::get('/seller/orders', [OrderController::class, 'sellerOrders']);
@@ -233,6 +239,15 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
             Route::delete('{commentId}', [LivestreamCommentController::class, 'destroy']);
         });
     });
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/shorts/{id}/comment', [ShortsInteractionController::class, 'comment']);
+        Route::delete('/shorts/comment/{id}', [ShortsInteractionController::class, 'deleteComment']);
+        Route::post('/shorts/{id}/like', [ShortsInteractionController::class, 'toggleLike']);
+        Route::post('/shorts/{id}/save', [ShortsInteractionController::class, 'toggleSave']);
+        Route::get('/shorts/{id}/comments', [ShortsInteractionController::class, 'getComments']);
+    });
+
     Route::get('livestream/{livestream}/products', [LivestreamController::class, 'addedProducts']);
 
     Route::get('livestreams/{livestream}/subscriber-token', GetLivestreamSubscriberTokenController::class)->name('livestreams.get-subscriber-token');

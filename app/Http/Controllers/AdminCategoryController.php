@@ -14,7 +14,6 @@ class AdminCategoryController extends Controller
 {
     public function index()
         {
-            // Get categories and their children (with nested relationships)
             $categories = Category::with(['children' => function ($query) {
                 $query->orderBy('order', 'asc');
             }])
@@ -60,18 +59,14 @@ class AdminCategoryController extends Controller
 
         $data = $request->only(['name', 'description', 'parent_id', 'store_title','mark',]);
 
-        // Determine the next `order` value
         if ($request->parent_id) {
-            // If it's a child category, find the max order for its siblings
             $maxOrder = Category::where('parent_id', $request->parent_id)->max('order');
         } else {
-            // If it's a parent category, find the max order among all parent categories
             $maxOrder = Category::whereNull('parent_id')->max('order');
         }
 
-        $data['order'] = $maxOrder ? $maxOrder + 1 : 1; // If no categories exist, start from 1
+        $data['order'] = $maxOrder ? $maxOrder + 1 : 1; 
 
-        // Handling image uploads
         if ($request->hasFile('profile_img')) {
             $data['profile_img'] = $this->uploadImage($request->file('profile_img'), 'category_images/');
         }
@@ -97,7 +92,7 @@ class AdminCategoryController extends Controller
     public function edit(Category $category)
     {
         $categories = Category::whereNull('parent_id')
-            ->where('id', '!=', $category->id) // Exclude the current category
+            ->where('id', '!=', $category->id) 
             ->get();
 
         $parentCategory = $category->parent;

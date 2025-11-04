@@ -203,7 +203,6 @@ class UserController extends Controller
         // Generate OTP and expiry
         $otp = Str::otp();
 
-        // Create user with pending status and unverified
         $user = User::create([
             'name' => $validatedData['name'],
             'shop_name' => $validatedData['shop_name'],
@@ -212,13 +211,11 @@ class UserController extends Controller
             'description' => $validatedData['description'] ?? null,
             'email' => $validatedData['email'],
             'phone_number' => $validatedData['phone'],
-            // 'role' => $validatedData['role'] ?? 'vendor',  // default vendor if role not passed
             'status' => 'pending',
         ]);
 
         $user->cacheOtpFor10Minutes($otp);
 
-        // Store user payment methods
         if (! empty($validatedData['payments'])) {
             foreach ($validatedData['payments'] as $payment_method_id => $account_number) {
                 if ($account_number) {
@@ -231,42 +228,24 @@ class UserController extends Controller
             }
         }
 
-        // Save single image after user is created
         if ($request->hasFile('banner_image')) {
-            $banner_image = $request->file('banner_image');
-            $name_gen = hexdec(uniqid()).'.'.$banner_image->getClientOriginalExtension();
-            $path = public_path('upload/user');
-
-            if (! file_exists($path)) {
-                mkdir($path, 0777, true);
-            }
-
-            $banner_image->move($path, $name_gen);
-
-            // Update user's banner_image field
-            $user->banner_image = 'upload/user/'.$name_gen;
-            $user->save();
+            $bannerPath = $request->file('banner_image')->store('users/banners');
+            $user->banner_image = $bannerPath;
         }
 
         if ($request->hasFile('cover_image')) {
-            $cover_image = $request->file('cover_image');
-            $name_gen = hexdec(uniqid()).'.'.$cover_image->getClientOriginalExtension();
-            $path = public_path('upload/user');
-
-            if (! file_exists($path)) {
-                mkdir($path, 0777, true);
-            }
-
-            $cover_image->move($path, $name_gen);
-
-            // Update user's cover_image field
-            $user->cover_image = 'upload/user/'.$name_gen;
-            $user->save();
+            $coverPath = $request->file('cover_image')->store('users/covers');
+            $user->cover_image = $coverPath;
         }
 
-        $user->sendOtpNotification($otp);
+        $user->save();
 
-        // Respond with JSON if API request
+        $smsController = new SMSController;
+        $smsController->sendSMS(new Request([
+            'Message' => "Your OTP is: $otp",
+            'MobileNumbers' => $user->phone_number,
+        ]));
+
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => 'OTP sent to your phone. Please verify to complete registration.',
@@ -275,14 +254,12 @@ class UserController extends Controller
             ], 201);
         }
 
-        // Otherwise redirect with success
         return to_route('create.vendor.account')
             ->with('success', 'OTP sent to your phone. Please verify to complete registration.');
     }
 
     public function sellerRequest()
     {
-        // Fetch users with role 'vendor' and status 'pending'
         $pendingSellers = User::where('status', 'pending')
             ->get();
 
@@ -304,7 +281,6 @@ class UserController extends Controller
 
     public function checkStatus(#[CurrentUser] User $user)
     {
-        // Retrieve only the 'status' column for the authenticated user
         return response()->json([
             'status' => $user->status,
         ]);
