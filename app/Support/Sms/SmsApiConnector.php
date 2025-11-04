@@ -56,7 +56,7 @@ class SmsApiConnector
         return $this
             ->acceptJson()
             ->baseUrl($this->apiUrl)
-            ->beforeSending(function (Request $request, array $options, PendingRequest $client) {
+            ->beforeSendingWithName('api-creds-setup', function (Request $request, array $options, PendingRequest $client) {
                 $payload = $request->data();
 
                 if ('GET' === $request->method()) {

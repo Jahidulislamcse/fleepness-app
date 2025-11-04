@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Support;
+namespace App\Support\Http;
 
 use Override;
 use GuzzleHttp\HandlerStack;
 use Illuminate\Http\Client\Factory;
-use Illuminate\Container\Attributes\Singleton;
 
-#[Singleton]
 class HttpClientFactory extends Factory
 {
     #[Override]

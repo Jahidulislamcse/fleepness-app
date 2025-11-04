@@ -1,10 +1,10 @@
 <?php
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Foundation\Application;
 use App\Http\Middleware\RoleMiddleware;
+use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
