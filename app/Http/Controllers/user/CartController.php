@@ -99,7 +99,7 @@ class CartController extends Controller
                         'name' => $item->product->name,
                         'store' => $item->product->user->name,
                         'price' => $item->product->discount_price ?? $item->product->selling_price,
-                        'image_url' => $item->product->image_url,
+                        'image_url' => $item->product->images,
                         'description' => $item->product->short_description,
                     ],
                     'size' => $item->size_id ? [
