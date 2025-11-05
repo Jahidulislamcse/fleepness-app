@@ -23,7 +23,7 @@ class SectionItemResource extends JsonResource
                 ->take(12)
                 ->get()
                 ->filter(function ($product) use ($tagId) {
-                    $tags = json_decode($product->tags, true) ?: [];
+                    $tags =$product->tags;
                     return in_array($tagId, $tags);
                 })
                 ->values();
