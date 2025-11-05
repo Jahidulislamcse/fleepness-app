@@ -52,12 +52,13 @@ class Product extends Model
     protected function tags(): Attribute
     {
         return Attribute::get(function ($value) {
-            if (empty($value)) {
-                return [];
-            }
 
             while (Str::isJson($value)) {
                 $value = Json::decode($value);
+            }
+
+            if (empty($value)) {
+                return [];
             }
 
             return array_unique($value);
