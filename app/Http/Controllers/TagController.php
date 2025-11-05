@@ -104,7 +104,7 @@ class TagController extends Controller
             ->whereRaw('JSON_CONTAINS(products.tags, ?)', [Json::encode((string) $id)])
             ->paginate();
 
-        $products->toResourceCollection()->additional([
+        return $products->toResourceCollection()->additional([
             'success' => true,
             'tag_name' => $tagName,
             'tag_id' => (int) $id,
