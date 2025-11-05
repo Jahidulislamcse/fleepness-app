@@ -36,24 +36,35 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
+    #[\Override]
     public function register(): void
     {
         Notification::resolved(function (ChannelManager $service): void {
-            $service->extend('fcm-device', fn (Application $app) => $app->make(FcmDeviceChannel::class));
+            $service->extend('fcm-device', function (Application $app) {
+                return $app->make(FcmDeviceChannel::class);
+            });
 
-            $service->extend('fcm-topic', fn (Application $app) => $app->make(FcmTopicChannel::class));
+            $service->extend('fcm-topic', function (Application $app) {
+                return $app->make(FcmTopicChannel::class);
+            });
 
-            $service->extend('sms', fn (Application $app) => $app->make(SmsChannel::class));
+            $service->extend('sms', function (Application $app) {
+                return $app->make(SmsChannel::class);
+            });
         });
 
         Concurrency::resolved(function (ConcurrencyManager $service): void {
-            $service->extend('octane', fn (Application $app, $config) => $app->make(\App\Support\Concurrency\Drivers\OctaneDriver::class, [
-                'config' => $config,
-            ]));
+            $service->extend('octane', function (Application $app, $config) {
+                return $app->make(\App\Support\Concurrency\Drivers\OctaneDriver::class, [
+                    'config' => $config,
+                ]);
+            });
         });
 
         Broadcast::resolved(function (\Illuminate\Broadcasting\BroadcastManager $service): void {
-            $service->extend('fcm', fn (Application $app, array $config) => $app->make(FcmBroadcaster::class));
+            $service->extend('fcm', function (Application $app, array $config) {
+                return $app->make(FcmBroadcaster::class);
+            });
         });
 
     }
@@ -109,7 +120,9 @@ class AppServiceProvider extends ServiceProvider
         Str::macro('orderId', function (string $prefix = '#ORD') {
             $prefix = str($prefix)
                 ->trim()
-                ->whenDoesntEndWith('-', fn (SupportStringable $str) => $str->append('-'))
+                ->whenDoesntEndWith('-', function (SupportStringable $str) {
+                    return $str->append('-');
+                })
                 ->value();
 
             return str(Str::random(6))->prepend($prefix);
@@ -121,11 +134,14 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
 
-        Uri::macro('fromTemplate', fn (string|Stringable|UriTemplate $template, iterable $variables = []): Uri => Uri::of(LeagueUri::fromTemplate($template, $variables)));
+        Uri::macro('fromTemplate', function (string|Stringable|UriTemplate $template, iterable $variables = []): Uri {
+            return Uri::of(LeagueUri::fromTemplate($template, $variables));
+        });
 
-        $this->app->singleton(fn (Application $app): \App\Services\SMSService => new SMSService);
-
+        $this->app->singleton(SMSService::class);
     }
 }

@@ -39,6 +39,7 @@ class HttpClientServiceProvider extends ServiceProvider
     /**
      * Register services.
      */
+    #[\Override]
     public function register(): void
     {
         $this->app->singleton(Factory::class, HttpClientFactory::class);
@@ -74,21 +75,33 @@ class HttpClientServiceProvider extends ServiceProvider
             );
         }
 
-        Http::globalRequestMiddleware(static fn (RequestInterface $request) => LogBatch::withinBatch(static fn ($reqTraceId): \Psr\Http\Message\MessageInterface => $request->withHeader(
-            'x-trace-id',
-            $reqTraceId
-        )));
+        Http::globalRequestMiddleware(static function (RequestInterface $request) {
+            return LogBatch::withinBatch(static function ($reqTraceId) use ($request): \Psr\Http\Message\MessageInterface {
+                return $request->withHeader(
+                    'x-trace-id',
+                    $reqTraceId
+                );
+            });
+        });
 
-        Http::globalResponseMiddleware(static fn (ResponseInterface $response) => LogBatch::withinBatch(static fn ($reqTraceId): \Psr\Http\Message\MessageInterface => $response->withHeader(
-            'x-trace-id',
-            $reqTraceId
-        )));
+        Http::globalResponseMiddleware(static function (ResponseInterface $response) {
+            return LogBatch::withinBatch(static function ($reqTraceId) use ($response): \Psr\Http\Message\MessageInterface {
+                return $response->withHeader(
+                    'x-trace-id',
+                    $reqTraceId
+                );
+            });
+        });
 
-        Response::macro('lazyJson', fn (): JsonParser => JsonParser::parse($this));
+        Response::macro('lazyJson', function (): JsonParser {
+            return JsonParser::parse($this);
+        });
 
-        PendingRequest::macro('sms', fn (): SmsApiConnector => resolve(SmsApiConnector::class, [
-            'client' => $this,
-        ]));
+        PendingRequest::macro('sms', function (): SmsApiConnector {
+            return resolve(SmsApiConnector::class, [
+                'client' => $this,
+            ]);
+        });
 
         PendingRequest::macro('debugRequest', function (?callable $onRequest = null, bool $die = false): PendingRequest {
             /** @var PendingRequest $this */
@@ -119,7 +132,11 @@ class HttpClientServiceProvider extends ServiceProvider
                 return $request;
             };
 
-            $handlerStack->push(fn (callable $handler): \Closure => fn (RequestInterface $request, array $options): PromiseInterface => $handler($middlewareImpl($request, $options), $options), 'debugRequestMiddleware');
+            $handlerStack->push(function (callable $handler) use ($middlewareImpl): \Closure {
+                return function (RequestInterface $request, array $options) use ($handler, $middlewareImpl): PromiseInterface {
+                    return $handler($middlewareImpl($request, $options), $options);
+                };
+            }, 'debugRequestMiddleware');
 
             return tap($this)->setHandler($handlerStack);
         });
@@ -224,22 +241,26 @@ class HttpClientServiceProvider extends ServiceProvider
             };
             /** @var (callable(callable):(callable(RequestInterface,array):PromiseInterface)) */
             $middleware = Middleware::retry($decider, $delay);
-            $middlewareImpl = (fn (callable $handler): \Closure => function (RequestInterface $request, array $options) use ($handler, $throw, $middleware) {
-                /** @var PromiseInterface */
-                $promise = $middleware($handler)($request, $options);
-                if (! $throw) {
-                    return $promise;
-                }
-
-                return $promise->then(
-                    fn ($response) => $response,
-                    function ($reason) {
-                        // Only throw after retries exhausted
-                        throw_if($reason instanceof Exception, $reason);
-
-                        return $reason;
+            $middlewareImpl = (function (callable $handler) use ($middleware, $throw): \Closure {
+                return function (RequestInterface $request, array $options) use ($handler, $throw, $middleware) {
+                    /** @var PromiseInterface */
+                    $promise = $middleware($handler)($request, $options);
+                    if (! $throw) {
+                        return $promise;
                     }
-                );
+
+                    return $promise->then(
+                        function ($response) {
+                            return $response;
+                        },
+                        function ($reason) {
+                            // Only throw after retries exhausted
+                            throw_if($reason instanceof Exception, $reason);
+
+                            return $reason;
+                        }
+                    );
+                };
             });
             if ($name) {
                 return $this->withNamedMiddleware($name, $middlewareImpl, $unique, $scoped, $before, $after);
@@ -266,8 +287,10 @@ class HttpClientServiceProvider extends ServiceProvider
             $middlewares = $this->middleware;
             // Find if this middleware already exists
             $existingIndex = $middlewares->search(
-                fn (callable $middlewareFn): bool => $middlewareFn instanceof HttpClientNamedMiddleware
-                    && 'request_normalizer' === $middlewareFn->name
+                function (callable $middlewareFn): bool {
+                    return $middlewareFn instanceof HttpClientNamedMiddleware
+                        && 'request_normalizer' === $middlewareFn->name;
+                }
             );
             if (false === $existingIndex) {
                 /**
@@ -275,17 +298,19 @@ class HttpClientServiceProvider extends ServiceProvider
                  *
                  * @phpstan-ignore-next-line property.protected
                  */
-                $this->middleware = $middlewares->push(new HttpClientNamedMiddleware('request_normalizer', $this, fn (callable $handler): \Closure => function (RequestInterface $request, array $options) use ($handler) {
-                    /**
-                     * @disregard P1056
-                     *
-                     * @var PendingRequest $this
-                     *
-                     * @phpstan-ignore-next-line property.protected
-                     */
-                    $options = $this->normalizeRequestOptions($this->mergeOptions($options));
+                $this->middleware = $middlewares->push(new HttpClientNamedMiddleware('request_normalizer', $this, function (callable $handler): \Closure {
+                    return function (RequestInterface $request, array $options) use ($handler) {
+                        /**
+                         * @disregard P1056
+                         *
+                         * @var PendingRequest $this
+                         *
+                         * @phpstan-ignore-next-line property.protected
+                         */
+                        $options = $this->normalizeRequestOptions($this->mergeOptions($options));
 
-                    return $handler($request, $options);
+                        return $handler($request, $options);
+                    };
                 }));
             }
 
@@ -307,8 +332,10 @@ class HttpClientServiceProvider extends ServiceProvider
                 $middlewares = $this->middleware;
                 // Find if this middleware already exists
                 $existingIndex = $middlewares->search(
-                    fn (callable $middlewareFn): bool => $middlewareFn instanceof HttpClientNamedMiddleware
-                        && 'request_normalizer' === $middlewareFn->name
+                    function (callable $middlewareFn): bool {
+                        return $middlewareFn instanceof HttpClientNamedMiddleware
+                            && 'request_normalizer' === $middlewareFn->name;
+                    }
                 );
                 $middleware = null;
                 if (false !== $existingIndex) {
@@ -509,8 +536,10 @@ class HttpClientServiceProvider extends ServiceProvider
             // Helper to get index by name
             $findIndex = function (string $middlewareName) use ($middlewares): ?int {
                 $index = $middlewares->search(
-                    fn (callable $middlewareFn): bool => $middlewareFn instanceof HttpClientNamedMiddleware
-                        && $middlewareFn->name === $middlewareName
+                    function (callable $middlewareFn) use ($middlewareName): bool {
+                        return $middlewareFn instanceof HttpClientNamedMiddleware
+                            && $middlewareFn->name === $middlewareName;
+                    }
                 );
 
                 return false === $index ? null : $index;
@@ -585,8 +614,10 @@ class HttpClientServiceProvider extends ServiceProvider
             $callbacks = $this->beforeSendingCallbacks;
             // Find if this callback already exists
             $existingIndex = $callbacks->search(
-                fn (callable $callback): bool => $callback instanceof HttpClientNamedBeforeSending
-                    && $callback->name === $name
+                function (callable $callback) use ($name): bool {
+                    return $callback instanceof HttpClientNamedBeforeSending
+                        && $callback->name === $name;
+                }
             );
             if ($unique && false !== $existingIndex) {
                 return $this;
@@ -603,8 +634,10 @@ class HttpClientServiceProvider extends ServiceProvider
             if (null !== $before || null !== $after) {
                 $targetName = $before ?? $after;
                 $targetIndex = $callbacks->search(
-                    fn (callable $callback): bool => $callback instanceof HttpClientNamedBeforeSending
-                        && $callback->name === $targetName
+                    function (callable $callback) use ($targetName): bool {
+                        return $callback instanceof HttpClientNamedBeforeSending
+                            && $callback->name === $targetName;
+                    }
                 );
                 if (false === $targetIndex) {
                     return $this->beforeSending($new);
@@ -632,7 +665,9 @@ class HttpClientServiceProvider extends ServiceProvider
             /** @var PendingRequest $this */
             // @phpstan-ignore-next-line property.protected
             $filtered = $this->beforeSendingCallbacks
-                ->reject(fn (callable $middlewareFn): bool => $middlewareFn instanceof HttpClientNamedBeforeSending && $middlewareFn->name === $name);
+                ->reject(function (callable $middlewareFn) use ($name): bool {
+                    return $middlewareFn instanceof HttpClientNamedBeforeSending && $middlewareFn->name === $name;
+                });
             /**
              * @disregard P1056
              *
@@ -646,7 +681,9 @@ class HttpClientServiceProvider extends ServiceProvider
             /** @var PendingRequest $this */
             // @phpstan-ignore-next-line property.protected
             $filtered = $this->middleware
-                ->reject(fn (callable $middlewareFn): bool => $middlewareFn instanceof HttpClientNamedMiddleware && $middlewareFn->name === $name);
+                ->reject(function (callable $middlewareFn) use ($name): bool {
+                    return $middlewareFn instanceof HttpClientNamedMiddleware && $middlewareFn->name === $name;
+                });
             /**
              * @disregard P1056
              *
