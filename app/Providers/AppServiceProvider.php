@@ -9,7 +9,9 @@ use Illuminate\Support\Uri;
 use League\Uri\UriTemplate;
 use App\Services\SMSService;
 use Illuminate\Http\Request;
+use Sentry\Laravel\Integration;
 use League\Uri\Uri as LeagueUri;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Application;
 use Illuminate\Log\Context\Repository;
 use Illuminate\Database\Eloquent\Model;
@@ -61,6 +63,25 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Model::unguard();
+        Model::shouldBeStrict();
+        Model::automaticallyEagerLoadRelationships();
+        DB::prohibitDestructiveCommands($this->app->isProduction());
+
+        if ($this->app->isProduction()) {
+            Model::handleLazyLoadingViolationUsing(
+                Integration::lazyLoadingViolationReporter()
+            );
+
+            Model::handleDiscardedAttributeViolationUsing(
+                Integration::discardedAttributeViolationReporter()
+            );
+
+            Model::handleMissingAttributeViolationUsing(
+                Integration::missingAttributeViolationReporter()
+            );
+        }
+
         Json::decodeUsing(function (mixed $value, ?bool $associative = true) {
             if (extension_loaded('simdjson')) {
                 try {
@@ -93,10 +114,6 @@ class AppServiceProvider extends ServiceProvider
 
             return str(Str::random(6))->prepend($prefix);
         });
-
-        Model::unguard();
-        Model::automaticallyEagerLoadRelationships();
-        Model::shouldBeStrict(! app()->isProduction());
 
         context()->hydrated(static function (Repository $context): void {
             if ($context->has('traceId') && $traceId = $context->get('traceId')) {

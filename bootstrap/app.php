@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Sentry\Laravel\Integration;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Foundation\Application;
 use App\Http\Middleware\RoleMiddleware;
@@ -33,6 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ['prefix' => 'api', 'middleware' => ['api']],
     )
     ->withExceptions(function (Exceptions $exceptions): void {
+        Integration::handles($exceptions);
+
         $exceptions->respond(function (Response $response, Throwable $e, Request $request) {
             if ($response instanceof JsonResponse) {
                 $data = $response->getData(true);

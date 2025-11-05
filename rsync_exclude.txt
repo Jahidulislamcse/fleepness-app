@@ -18,3 +18,7 @@ rsync_exclude.txt
 .gitignore*
 .gitattributes
 .phpstorm.meta.php
+*.md
+.secrets.*.hash
+lint-staged.config.js
+.husky
