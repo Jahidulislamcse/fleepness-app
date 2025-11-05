@@ -41,8 +41,9 @@ class ProductResource extends JsonResource
                 ]),
             ]),
 
-            'user' => $this->whenLoaded('user', UserResource::make($this->user)),
-            'size_template' => $this->whenLoaded('sizeTemplate', SizeTemplateResource::make($this->sizeTemplate)),
+            'user' => $this->whenLoaded('user', fn () => UserResource::make($this->user)),
+            'images' => $this->whenLoaded('images', fn () => ProductImageResource::collection($this->images)),
+            'size_template' => $this->whenLoaded('sizeTemplate', fn () => SizeTemplateResource::make($this->sizeTemplate)),
 
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
