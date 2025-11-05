@@ -5,7 +5,6 @@ namespace App\Http\Controllers\LiveStreaming;
 use Closure;
 use App\Models\User;
 use App\Models\Livestream;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\LivestreamLike;
 use App\Models\LivestreamSave;
@@ -13,10 +12,10 @@ use Spatie\LaravelData\Optional;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Constants\LivestreamStatuses;
 use App\Data\Dto\CreateLivestremData;
 use App\Data\Dto\UpdateLivestremData;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Pipeline;
 use App\Http\Resources\LivestreamResource;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -52,44 +51,6 @@ class LivestreamController extends Controller
 
         return LivestreamResource::make($livestream);
 
-        // $livestream = Livestream::with('vendor', 'products.images')->findOrFail($id);
-
-        // // Prepare vendor info
-        // $vendor = $livestream->vendor;
-        // $vendorData = null;
-        // if ($vendor) {
-        //     $vendorData = [
-        //         'id' => $vendor->id,
-        //         'name' => $vendor->name,
-        //         'cover_image' => $vendor->cover_image
-        //             ? (Str::startsWith($vendor->cover_image, ['http://', 'https://'])
-        //                 ? $vendor->cover_image
-        //                 : Storage::url($vendor->cover_image))
-        //             : null,
-        //     ];
-        // }
-
-        // // Prepare products
-        // $products = $livestream->products->map(function ($product) {
-        //     return [
-        //         'id' => $product->id,
-        //         'name' => $product->name,
-        //         'price' => $product->selling_price,
-        //         'discount_price' => $product->discount_price,
-        //         'first_image' => $product->firstImage
-        //             ? (Str::startsWith($product->firstImage->path, ['http://', 'https://'])
-        //                 ? $product->firstImage->path
-        //                 : Storage::url($product->firstImage->path))
-        //             : null,
-        //     ];
-        // });
-
-        // return response()->json([
-        //     'livestream_id' => $livestream->id,
-        //     'title' => $livestream->title,
-        //     'vendor' => $vendorData,
-        //     'products' => $products,
-        // ]);
     }
 
     public function store(CreateLivestremData $createLivestremData, #[CurrentUser] User $user, GetLivestreamPublisherTokenController $controller)
@@ -159,7 +120,7 @@ class LivestreamController extends Controller
                 },
                 function (UpdateLivestremData $updateLivestremData, Closure $next) use (&$livestream) {
                     if (! ($updateLivestremData->status instanceof Optional)) {
-                        $livestream->setStatus($updateLivestremData->status->value);
+                        $livestream->status = $updateLivestremData->status;
                     }
 
                     return $next($updateLivestremData);
@@ -174,8 +135,7 @@ class LivestreamController extends Controller
 
     public function like($id)
     {
-        // dd($request->all());
-        $userId = auth()->id();
+        $userId = Auth::id();
 
         $livestream = Livestream::findOrFail($id);
 
@@ -199,7 +159,7 @@ class LivestreamController extends Controller
 
     public function save(Request $request, $id)
     {
-        $userId = auth()->id();
+        $userId = Auth::id();
 
         $livestream = Livestream::findOrFail($id);
 
@@ -223,7 +183,7 @@ class LivestreamController extends Controller
 
     public function getLikedLivestreams()
     {
-        $userId = auth()->id();
+        $userId = Auth::id();
 
         $likedLivestreamIds = LivestreamLike::where('user_id', $userId)
             ->pluck('livestream_id');
@@ -255,7 +215,7 @@ class LivestreamController extends Controller
 
     public function getSavedLivestreams()
     {
-        $userId = auth()->id();
+        $userId = Auth::id();
 
         $savedLivestreamIds = LivestreamSave::where('user_id', $userId)
             ->pluck('livestream_id');

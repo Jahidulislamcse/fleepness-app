@@ -39,8 +39,8 @@ class GetLivestreamPublisherTokenController extends Controller
 
         $roomToken = LivestreamService::generatePublisherToken($data);
         $livestream->startRecording();
+        $livestream->status = LivestreamStatuses::STARTED;
         $livestream->save();
-        $livestream->setStatus(LivestreamStatuses::STARTED->value);
 
         return response()->json([
             'token' => $roomToken,

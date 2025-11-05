@@ -9,8 +9,6 @@ use Agence104\LiveKit\WebhookReceiver;
 use Illuminate\Database\Eloquent\Casts\Json;
 use Spatie\WebhookClient\Jobs\ProcessWebhookJob;
 
-use function Illuminate\Support\enum_value;
-
 class LivekitProcessWebhookJob extends ProcessWebhookJob
 {
     public function handle()
@@ -35,7 +33,7 @@ class LivekitProcessWebhookJob extends ProcessWebhookJob
                     $livestream = Livestream::find($livestreamId);
                     if ($livestream) {
                         $livestream->ended_at = now();
-                        $livestream->setStatus(enum_value(LivestreamStatuses::FINISHED));
+                        $livestream->status = LivestreamStatuses::FINISHED;
                         $livestream->save();
                     }
                 }
