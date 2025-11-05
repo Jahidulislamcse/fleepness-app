@@ -97,7 +97,7 @@ class TagController extends Controller
         $tagName = $tag ? $tag->name : null;
 
         // Fetch all products with images
-        $products = Product::with(['images', 'sizeTemplate' => ['items']])
+        $products = Product::with(['images', 'sizes', 'sizeTemplate' => ['items']])
             ->whereNull('deleted_at')
             ->where('status', 'active')
             ->whereNotNull('tags')
