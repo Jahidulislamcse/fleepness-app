@@ -30,6 +30,9 @@ class ProductResource extends JsonResource
             'status' => $this->status,
             'admin_approval' => $this->admin_approval,
             'description' => $this->long_description,
+            'reviews' => $this->reviews,
+            'time' => $this->time,
+            'discount' => $this->discount,
 
             $this->mergeWhen($this->relationLoaded('tag'), fn () => [
                 'tag' => CategoryResource::make($this->tag)->asTag(),
