@@ -9,6 +9,6 @@ Broadcast::channel('user_{id}', function (User $user, $id) { // selller or buyer
     return (int) $user->getKey() === (int) $id;
 }, ['guards' => ['sanctum']]);
 
-Broadcast::channel('livestream_{livestream}', function (User $user, Livestream $livestream) { // can join the livestream notifications only when livestream is started
-    return $livestream->status === LivestreamStatuses::STARTED->value;
+Broadcast::channel('livestream_{livestream}', function (?User $user, Livestream $livestream) { // can join the livestream notifications only when livestream is started
+    return LivestreamStatuses::STARTED === $livestream->status;
 }, ['guards' => ['sanctum']]);

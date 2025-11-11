@@ -7,13 +7,10 @@ use App\Models\LivestreamComment;
 use App\Constants\LivestreamStatuses;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Illuminate\Database\Eloquent\Casts\Json;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use App\Support\Notification\Contracts\SupportsFcmTopicChannel;
 
-class NewLivestreamCommentNotification extends Notification implements ShouldBroadcast, ShouldQueue, SupportsFcmTopicChannel
+class NewLivestreamCommentNotification extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use InteractsWithSockets, Queueable;
 
@@ -25,31 +22,6 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
         //
     }
 
-    public function toFcmTopics(object $notifiable)
-    {
-        return $notifiable->routeNotificationForFcmTopics($this);
-    }
-
-    public function toFcm(object $notifiable): CloudMessage
-    {
-        $commenter = $this->comment->user;
-
-        return CloudMessage::new()
-            ->withData([
-                'commenter' => Json::encode([
-                    'id' => $commenter->getKey(),
-                    'name' => $commenter->name,
-                    'email' => $commenter->email,
-                    'avatar' => $commenter->cover_image,
-                    'phone_number' => $commenter->phone_number,
-                ]),
-                'comment' => Json::encode([
-                    'id' => $this->comment->getKey(),
-                    'title' => $this->comment->comment,
-                ]),
-            ]);
-    }
-
     /**
      * Get the notification's delivery channels.
      *
@@ -59,6 +31,13 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
     {
         return [
             'broadcast',
+        ];
+    }
+
+    public function broadcastOn()
+    {
+        return [
+            $this->comment->livestream->room_name,
         ];
     }
 

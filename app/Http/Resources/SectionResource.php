@@ -2,23 +2,29 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Section;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Section
+ */
 class SectionResource extends JsonResource
 {
+    #[\Override]
     public function toArray($request)
     {
         $allowedSectionTypes = ['scrollable_product', 'spotlight_deals', 'lighting_deals', 'search'];
 
         $showProducts = in_array($this->section_type, $allowedSectionTypes) ? 1 : 0;
 
-        $response = [
-            'id' => $this->id,
+        return [
+            $this->getKeyName() => $this->getKey(),
             'section_name' => $this->section_name,
             'section_type' => $this->section_type,
             'section_title' => $this->section_title,
             'bio' => $this->bio,
-            'category_name' => $this->category ? $this->category->name : null,
+            'category_name' => $this->category ? $this->category->name : null, // TODO: remove this later for category resource
+            'category' => $this->whenLoaded('category', fn () => CategoryResource::make($this->category)),
             'tag_id' => (in_array($this->section_type, $allowedSectionTypes) && $this->items->isNotEmpty())
                 ? $this->items->first()->tag->id
                 : null,
@@ -32,12 +38,11 @@ class SectionResource extends JsonResource
             'background_image' => $this->background_image ? asset($this->background_image) : null,
             'banner_image' => $this->banner_image ? asset($this->banner_image) : null,
             'show_products' => $showProducts,
-            'items' => SectionItemResource::collection($this->items->map(function($item) use ($showProducts) {
+            'items' => SectionItemResource::collection($this->items->map(function ($item) use ($showProducts) {
                 $item->show_products = $showProducts;
+
                 return $item;
             })),
         ];
-
-        return $response;
     }
 }

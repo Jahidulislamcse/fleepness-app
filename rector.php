@@ -3,6 +3,7 @@
 use Rector\Config\RectorConfig;
 use RectorLaravel\Set\LaravelSetList;
 use RectorLaravel\Set\LaravelSetProvider;
+use Rector\Php74\Rector\Closure\ClosureToArrowFunctionRector;
 
 return RectorConfig::configure()
     ->withPaths([
@@ -21,7 +22,7 @@ return RectorConfig::configure()
         codeQuality: true,
         typeDeclarations: true,
         privatization: true,
-        earlyReturn: true,
+        // earlyReturn: true,
     )
     ->withSkip([
         __DIR__.\DIRECTORY_SEPARATOR.'ide-helper.php',
@@ -30,6 +31,7 @@ return RectorConfig::configure()
         __DIR__.\DIRECTORY_SEPARATOR.'_ide_helper_intelephense.php',
         __DIR__.\DIRECTORY_SEPARATOR.'.phpstorm.meta.php',
         __DIR__.\DIRECTORY_SEPARATOR.'rector.php',
+        ClosureToArrowFunctionRector::class,
 
     ])
     ->withPhpSets()
