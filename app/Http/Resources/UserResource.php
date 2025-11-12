@@ -26,6 +26,7 @@ class UserResource extends JsonResource
             'shop_name' => $this->shop_name,
             'email' => $this->email,
             'phone_number' => $this->phone_number,
+            'notification_channel' => $this->receivesBroadcastNotificationsOn(),
             'banner_image' => $this->banner_image,
             'cover_image' => $this->cover_image,
             'pickup_location' => $this->pickup_location,
