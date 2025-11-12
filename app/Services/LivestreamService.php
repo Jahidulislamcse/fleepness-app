@@ -15,6 +15,7 @@ use Livekit\SegmentedFileOutput;
 use Agence104\LiveKit\VideoGrant;
 use Agence104\LiveKit\AccessToken;
 use Illuminate\Support\Collection;
+use Livekit\EncodingOptionsPreset;
 use Agence104\LiveKit\EncodedOutputs;
 use Agence104\LiveKit\RoomCreateOptions;
 use Illuminate\Support\Facades\Pipeline;
@@ -133,7 +134,13 @@ class LivestreamService
             ->setSegments($segmentedFileOutput)
             ->setImage($imageOutput);
 
-        return $this->egressService->startRoomCompositeEgress($roomName, 'single-speaker', $output);
+        /** @disregard intelephense(P1006) */
+        return $this->egressService->startRoomCompositeEgress(
+            $roomName,
+            'single-speaker',
+            $output,
+            EncodingOptionsPreset::PORTRAIT_H264_720P_30
+        );
     }
 
     public function stopRecording(string $egressId)
