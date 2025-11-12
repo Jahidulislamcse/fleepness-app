@@ -88,7 +88,7 @@ class SmsApiConnector
                 }
 
                 return Utils::modifyRequest($request->toPsrRequest(), $changes);
-            });
+            }, unique: true);
     }
 
     /**

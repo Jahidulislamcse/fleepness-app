@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Storage;
@@ -11,13 +13,18 @@ class Section extends Model
 {
     use HasFactory;
 
-    public function items()
+    /**
+     * @return HasMany<SectionItem,$this>
+     */
+    public function items(): HasMany
     {
         return $this->hasMany(SectionItem::class);
     }
 
-    // Section.php (Model)
-    public function category()
+    /**
+     * @return BelongsTo<Category,$this>
+     */
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }

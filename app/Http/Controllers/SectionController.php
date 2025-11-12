@@ -4,18 +4,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\SectionResource;
-use App\Models\Category;
 use App\Models\Section;
+use App\Models\Category;
 use App\Models\SectionItem;
-use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\UploadedFile;
+use App\Http\Resources\SectionResource;
 
 class SectionController extends Controller
 {
-    public function index()
+    public function index(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
         // Non-search sections
         $sections = Section::with('items')
@@ -29,7 +27,7 @@ class SectionController extends Controller
             ->orderBy('index', 'asc')
             ->get();
 
-        return view('admin.sections.index', compact('sections', 'searchSections'));
+        return view('admin.sections.index', ['sections' => $sections, 'searchSections' => $searchSections]);
     }
 
     public function sections(Request $request)
@@ -39,11 +37,10 @@ class SectionController extends Controller
         $query = Section::with(['category', 'items.tag'])
             ->where('section_type', '!=', 'search');
 
-
-        if ($categoryName !== '') {
+        if ('' !== $categoryName) {
             $query->whereIn('placement_type', ['category', 'global'])
-                ->whereHas('category', function ($q) use ($categoryName) {
-                   $q->where('name', '=', $categoryName);
+                ->whereHas('category', function (\Illuminate\Contracts\Database\Query\Builder $q) use ($categoryName): void {
+                    $q->where('name', '=', $categoryName);
                 })
                 ->orderBy('cat_index', 'asc')
                 ->orderBy('index', 'asc');
@@ -57,11 +54,9 @@ class SectionController extends Controller
         return SectionResource::collection($sections);
     }
 
-
-
     public function searchSection()
     {
-        $section = Section::where('section_type', 'search')
+        $section = \App\Models\Section::query()->where('section_type', 'search')
             ->with(['category', 'items.tag'])
             ->orderBy('index')
             ->paginate(5);
@@ -69,31 +64,32 @@ class SectionController extends Controller
         return SectionResource::collection($section);
     }
 
-    public function create()
+    public function create(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
-        $categories = Category::whereNull('parent_id')->get();
-        return view('admin.sections.create', compact('categories'));
+        $categories = \App\Models\Category::query()->whereNull('parent_id')->get();
+
+        return view('admin.sections.create', ['categories' => $categories]);
     }
 
     public function store(Request $request)
     {
         // Validate the request data
         $validated = $request->validate([
-            'section_name' => 'nullable|string|max:255',
-            'section_type' => 'nullable|string',
-            'section_title' => 'nullable|string|max:255',
-            'category_id' => 'nullable|exists:categories,id',
+            'section_name' => ['nullable', 'string', 'max:255'],
+            'section_type' => ['nullable', 'string'],
+            'section_title' => ['nullable', 'string', 'max:255'],
+            'category_id' => ['nullable', 'exists:categories,id'],
             'placement_type' => ['required', 'in:category,global,all_only'],
-            'bio' => 'nullable|string|max:1000',
-            'visibility' => 'boolean',
-            'background_image' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg',
-            'banner_image' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg',
-            'items' => 'array|nullable',
-            'items.*.image' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg',
-            'items.*.title' => 'nullable|string',
-            'items.*.bio' => 'nullable|string',
-            'items.*.tag_id' => 'nullable|string',
-            'items.*.visibility' => 'nullable|boolean',
+            'bio' => ['nullable', 'string', 'max:1000'],
+            'visibility' => ['boolean'],
+            'background_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,svg'],
+            'banner_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,svg'],
+            'items' => ['array', 'nullable'],
+            'items.*.image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,svg'],
+            'items.*.title' => ['nullable', 'string'],
+            'items.*.bio' => ['nullable', 'string'],
+            'items.*.tag_id' => ['nullable', 'string'],
+            'items.*.visibility' => ['nullable', 'boolean'],
         ]);
 
         $background = null;
@@ -107,10 +103,10 @@ class SectionController extends Controller
             ? $this->uploadImage($request->file('banner_image'), 'sections/banners/')
             : null;
 
-        if ($validated['section_type'] === 'search') {
-            $lastIndex = Section::where('section_type', 'search')->max('index');
+        if ('search' === $validated['section_type']) {
+            $lastIndex = \App\Models\Section::query()->where('section_type', 'search')->max('index');
         } else {
-            $lastIndex = Section::where('section_type', '!=', 'search')->max('index');
+            $lastIndex = \App\Models\Section::query()->where('section_type', '!=', 'search')->max('index');
         }
         $newIndex = $lastIndex + 1;
 
@@ -124,13 +120,13 @@ class SectionController extends Controller
             'bio' => $validated['bio'] ?? null,
             'visibility' => $validated['visibility'] ?? false,
             'index' => $newIndex,
-            'background_image' =>  $background,
-            'banner_image' =>  $banner_img,
-            'placement_type'   => $validated['placement_type'],
-            'cat_index'        => $catIndex,
+            'background_image' => $background,
+            'banner_image' => $banner_img,
+            'placement_type' => $validated['placement_type'],
+            'cat_index' => $catIndex,
         ]);
 
-        if (isset($validated['items']) && count($validated['items']) > 0) {
+        if (isset($validated['items']) && 0 < count($validated['items'])) {
             foreach ($request->items as $index => $item) {
                 $itemIndex = $index + 1;
                 $item_image = null;
@@ -152,34 +148,34 @@ class SectionController extends Controller
             }
         }
 
-        return redirect()->route('admin.sections.index')->with('success', 'Section created successfully');
+        return to_route('admin.sections.index')->with('success', 'Section created successfully');
     }
 
     private function uploadImage(?UploadedFile $image, string $folder): ?string
     {
-        if (!$image instanceof UploadedFile) {
+        if (! $image instanceof UploadedFile) {
             return null;
         }
 
         $folder = trim($folder, '/');
 
-        return $image->store('upload/' . $folder, 'r2');
+        return $image->store('upload/'.$folder, 'r2');
     }
 
-    public function edit($id)
+    public function edit($id): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
-        $section = Section::with(['items' => function($query) {
+        $section = Section::with(['items' => function ($query) {
             $query->orderBy('index', 'asc');
         }])->findOrFail($id);
 
         $categories = Category::whereNull('parent_id')->get();
 
-        if ($section->section_type === 'search') {
-            $sectionsGroup = Section::where('section_type', 'search')
+        if ('search' === $section->section_type) {
+            $sectionsGroup = \App\Models\Section::query()->where('section_type', 'search')
                 ->orderBy('index')
                 ->get();
         } else {
-            $sectionsGroup = Section::where('section_type', '!=', 'search')
+            $sectionsGroup = \App\Models\Section::query()->where('section_type', '!=', 'search')
                 ->orderBy('index')
                 ->get();
         }
@@ -189,33 +185,32 @@ class SectionController extends Controller
         $catCount = Section::where('category_id', $section->category_id)->count();
         $availableCatPositions = range(1, max(1, $catCount));
 
-        return view('admin.sections.edit', compact('section', 'categories', 'availableIndices', 'availableCatPositions'));
+        return view('admin.sections.edit', ['section' => $section, 'categories' => $categories, 'availableIndices' => $availableIndices, 'availableCatPositions' => $availableCatPositions]);
     }
-
 
     public function update(Request $request, $id)
     {
-        $section = Section::findOrFail($id);
+        $section = \App\Models\Section::query()->findOrFail($id);
 
         $validated = $request->validate([
-            'section_name'       => 'nullable|string|max:255',
-            'section_type'       => 'nullable|string',
-            'section_title'      => 'nullable|string|max:255',
-            'category_id'        => 'required|exists:categories,id',
-            'placement_type'     => ['required', 'in:category,global,all_only'],
-            'bio'                => 'nullable|string|max:1000',
-            'index'              => 'nullable|integer|min:1',
-            'cat_index'          => 'nullable|integer|min:1',
-            'visibility'         => 'boolean',
-            'background_image'   => 'nullable|image|mimes:jpeg,jpg,png,gif,svg',
-            'banner_image'       => 'nullable|image|mimes:jpeg,jpg,png,gif,svg',
-            'items'              => 'array|nullable',
-            'items.*.image'      => 'nullable|image|mimes:jpeg,jpg,png,gif,svg',
-            'items.*.title'      => 'nullable|string',
-            'items.*.bio'        => 'nullable|string',
-            'items.*.tag_id'     => 'nullable|string',
-            'items.*.index'      => 'nullable|integer',
-            'items.*.visibility' => 'nullable|boolean',
+            'section_name' => ['nullable', 'string', 'max:255'],
+            'section_type' => ['nullable', 'string'],
+            'section_title' => ['nullable', 'string', 'max:255'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'placement_type' => ['required', 'in:category,global,all_only'],
+            'bio' => ['nullable', 'string', 'max:1000'],
+            'index' => ['nullable', 'integer', 'min:1'],
+            'cat_index' => ['nullable', 'integer', 'min:1'],
+            'visibility' => ['boolean'],
+            'background_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,svg'],
+            'banner_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,svg'],
+            'items' => ['array', 'nullable'],
+            'items.*.image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,svg'],
+            'items.*.title' => ['nullable', 'string'],
+            'items.*.bio' => ['nullable', 'string'],
+            'items.*.tag_id' => ['nullable', 'string'],
+            'items.*.index' => ['nullable', 'integer'],
+            'items.*.visibility' => ['nullable', 'boolean'],
         ]);
 
         $currentIndex = (int) $section->index;
@@ -235,12 +230,12 @@ class SectionController extends Controller
             $banner_img = $this->uploadImage($request->file('banner_image'), 'sections/banners/');
         }
 
-        \DB::transaction(function () use ($section, $validated, $background, $banner_img, $newIndex, $request) {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($section, $validated, $background, $banner_img, $newIndex, $request): void {
             $oldCategoryId = (int) $section->category_id;
             $newCategoryId = (int) $validated['category_id'];
-            $oldCatIndex   = (int) ($section->cat_index ?? 0);
+            $oldCatIndex = (int) ($section->cat_index ?? 0);
 
-            $maxInTarget = (int) \App\Models\Section::where('category_id', $newCategoryId)->count();
+            $maxInTarget = (int) \App\Models\Section::query()->where('category_id', $newCategoryId)->count();
             if ($newCategoryId !== $oldCategoryId) {
                 $maxInTarget++;
             }
@@ -249,51 +244,51 @@ class SectionController extends Controller
             $targetCatIndex = max(1, min($requestedCatIndex ?? $maxInTarget, $maxInTarget));
 
             if ($newCategoryId !== $oldCategoryId) {
-                if ($oldCatIndex > 0) {
-                    \DB::table('sections')
+                if (0 < $oldCatIndex) {
+                    \Illuminate\Support\Facades\DB::table('sections')
                         ->where('category_id', $oldCategoryId)
                         ->where('id', '!=', $section->id)
                         ->where('cat_index', '>', $oldCatIndex)
                         ->decrement('cat_index');
                 }
 
-                \DB::table('sections')
+                \Illuminate\Support\Facades\DB::table('sections')
                     ->where('category_id', $newCategoryId)
                     ->where('cat_index', '>=', $targetCatIndex)
                     ->increment('cat_index');
             }
 
             $section->update([
-                'section_name'     => $validated['section_name'] ?? $section->section_name,
-                'section_type'     => $validated['section_type'] ?? $section->section_type,
-                'section_title'    => $validated['section_title'] ?? $section->section_title,
-                'category_id'      => $newCategoryId,
-                'placement_type'   => $validated['placement_type'] ?? $section->placement_type,
-                'bio'              => $validated['bio'] ?? $section->bio,
-                'index'            => $newIndex,
-                'cat_index'        => $targetCatIndex,
-                'visibility'       => $validated['visibility'] ?? $section->visibility,
+                'section_name' => $validated['section_name'] ?? $section->section_name,
+                'section_type' => $validated['section_type'] ?? $section->section_type,
+                'section_title' => $validated['section_title'] ?? $section->section_title,
+                'category_id' => $newCategoryId,
+                'placement_type' => $validated['placement_type'] ?? $section->placement_type,
+                'bio' => $validated['bio'] ?? $section->bio,
+                'index' => $newIndex,
+                'cat_index' => $targetCatIndex,
+                'visibility' => $validated['visibility'] ?? $section->visibility,
                 'background_image' => $background,
-                'banner_image'     => $banner_img,
+                'banner_image' => $banner_img,
             ]);
 
             $oldItems = $section->items()->get();
             $updatedItems = $request->input('items', []);
 
             foreach ($updatedItems as $i => $itemData) {
-                $itemModel = $oldItems[$i] ?? new \App\Models\SectionItem();
+                $itemModel = $oldItems[$i] ?? new \App\Models\SectionItem;
                 $itemModel->section_id = $section->id;
 
                 if ($request->hasFile("items.$i.image")) {
                     $itemModel->image = $this->uploadImage($request->file("items.$i.image"), 'sections/items/');
-                } elseif (!$itemModel->exists) {
+                } elseif (! $itemModel->exists) {
                     $itemModel->image = null;
                 }
 
-                $itemModel->title      = $itemData['title'] ?? $itemModel->title;
-                $itemModel->bio        = $itemData['bio'] ?? $itemModel->bio;
-                $itemModel->tag_id     = $itemData['tag_id'] ?? $itemModel->tag_id;
-                $itemModel->index      = $itemData['index'] ?? ($i + 1);
+                $itemModel->title = $itemData['title'] ?? $itemModel->title;
+                $itemModel->bio = $itemData['bio'] ?? $itemModel->bio;
+                $itemModel->tag_id = $itemData['tag_id'] ?? $itemModel->tag_id;
+                $itemModel->index = $itemData['index'] ?? ($i + 1);
                 $itemModel->visibility = $itemData['visibility'] ?? $itemModel->visibility ?? 1;
                 $itemModel->save();
             }
@@ -303,21 +298,19 @@ class SectionController extends Controller
             }
         });
 
-        return redirect()->route('admin.sections.index')->with('success', 'Section updated successfully');
+        return to_route('admin.sections.index')->with('success', 'Section updated successfully');
     }
-
-
 
     protected function reorderSectionsAfterUpdate($newIndex, $currentIndex, Section $section)
     {
-        if ($section->section_type === 'search') {
+        if ('search' === $section->section_type) {
             // Reorder only within 'search' sections
-            $sections = Section::where('section_type', 'search')
+            $sections = \App\Models\Section::query()->where('section_type', 'search')
                 ->orderBy('index')
                 ->get();
         } else {
             // Reorder among all sections except 'search'
-            $sections = Section::where('section_type', '!=', 'search')
+            $sections = \App\Models\Section::query()->where('section_type', '!=', 'search')
                 ->orderBy('index')
                 ->get();
         }
@@ -327,7 +320,7 @@ class SectionController extends Controller
                 if (
                     $sec->index >= $newIndex &&
                     $sec->index < $currentIndex &&
-                    $sec->id != $section->id
+                    $sec->id !== $section->id
                 ) {
                     $sec->index += 1;
                     $sec->save();
@@ -338,7 +331,7 @@ class SectionController extends Controller
                 if (
                     $sec->index > $currentIndex &&
                     $sec->index <= $newIndex &&
-                    $sec->id != $section->id
+                    $sec->id !== $section->id
                 ) {
                     $sec->index -= 1;
                     $sec->save();
@@ -356,7 +349,7 @@ class SectionController extends Controller
         $orderedIds = $request->input('orderedIds');
 
         foreach ($orderedIds as $index => $id) {
-            $section = Section::find($id);
+            $section = \App\Models\Section::query()->find($id);
             if ($section) {
                 $section->index = $index + 1;
                 $section->save();
@@ -366,15 +359,14 @@ class SectionController extends Controller
         return response()->json(['success' => true]);
     }
 
-
     public function destroy($id)
     {
         $section = Section::with('items')->findOrFail($id);
 
-        $deletedIndex     = (int) $section->index;
-        $categoryId       = (int) $section->category_id;
-        $deletedCatIndex  = $section->cat_index;
-        $isSearchType     = $section->section_type === 'search';
+        $deletedIndex = (int) $section->index;
+        $categoryId = (int) $section->category_id;
+        $deletedCatIndex = $section->cat_index;
+        $isSearchType = 'search' === $section->section_type;
 
         $this->deleteFileIfExists($section->background_image);
         $this->deleteFileIfExists($section->banner_image);
@@ -389,34 +381,34 @@ class SectionController extends Controller
         $siblingsToShift = Section::query()
             ->when(
                 $isSearchType,
-                fn($q) => $q->where('section_type', 'search'),
-                fn($q) => $q->where('section_type', '!=', 'search')
+                fn ($q) => $q->where('section_type', 'search'),
+                fn ($q) => $q->where('section_type', '!=', 'search')
             )
             ->where('index', '>', $deletedIndex)
             ->orderBy('index', 'asc')
             ->get();
 
         foreach ($siblingsToShift as $sibling) {
-            $sibling->index = $sibling->index - 1;
+            $sibling->index -= 1;
             $sibling->save();
         }
 
-        if (!is_null($deletedCatIndex)) {
-            \DB::table('sections')
+        if (! is_null($deletedCatIndex)) {
+            \Illuminate\Support\Facades\DB::table('sections')
                 ->where('category_id', $categoryId)
                 ->where('cat_index', '>', $deletedCatIndex)
                 ->decrement('cat_index');
         }
 
-        return redirect()
-            ->route('admin.sections.index')
+        return to_route('admin.sections.index')
             ->with('success', 'Section deleted and indices reordered successfully.');
     }
 
-
     protected function deleteFileIfExists(?string $path): void
     {
-        if (!$path) return;
+        if (! $path) {
+            return;
+        }
 
         $full = public_path($path);
         if (is_file($full) && file_exists($full)) {
@@ -424,21 +416,20 @@ class SectionController extends Controller
         }
     }
 
-
     protected function nextCatIndex(int $categoryId): int
     {
-        return (int) Section::where('category_id', $categoryId)->max('cat_index') + 1;
+        return (int) \App\Models\Section::query()->where('category_id', $categoryId)->max('cat_index') + 1;
     }
 
     protected function compactCategoryAfterRemoval(int $categoryId, int $removedIndex, ?int $exceptId = null): void
     {
-        Section::where('category_id', $categoryId)
-            ->when($exceptId, fn($q) => $q->where('id', '!=', $exceptId))
+        \App\Models\Section::query()->where('category_id', $categoryId)
+            ->when($exceptId, fn ($q) => $q->where('id', '!=', $exceptId))
             ->where('cat_index', '>', $removedIndex)
             ->orderBy('cat_index', 'asc')
             ->get()
-            ->each(function ($s) {
-                $s->cat_index = $s->cat_index - 1;
+            ->each(function ($s): void {
+                $s->cat_index -= 1;
                 $s->save();
             });
     }
