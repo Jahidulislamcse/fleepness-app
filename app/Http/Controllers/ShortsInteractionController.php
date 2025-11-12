@@ -2,14 +2,39 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ShortCommentResource;
 use App\Models\ShortsComment;
 use App\Models\ShortsLike;
 use App\Models\ShortsSave;
 use App\Models\ShortVideo;
 use Illuminate\Http\Request;
+use App\Http\Resources\ShortsProductResource;
+use App\Http\Resources\ShortVideoResource;
 
 class ShortsInteractionController extends Controller
 {
+    
+    public function allshorts()
+    {
+
+        $videos = ShortVideo::latest()
+            ->cursorPaginate();
+
+        return response()->json($videos);
+    }
+
+    public function getShortProducts($shortId)
+    {
+        $video = ShortVideo::find($shortId);
+
+        if (!$video) {
+            return response()->json(['message' => 'Short video not found'], 404);
+        }
+
+        $products = $video->products()->with('images')->get();
+
+        return ShortsProductResource::collection($products);
+    }
 
     public function comment(Request $request, $shortId)
     {
@@ -32,6 +57,19 @@ class ShortsInteractionController extends Controller
             'message' => 'Comment added successfully.',
             'data' => $comment,
         ], 201);
+    }
+
+    public function getComments($shortId)
+    {
+        $short = ShortVideo::find($shortId);
+
+        if (!$short) {
+            return response()->json(['message' => 'Short video not found'], 404);
+        }
+
+        $comments = $short->comments()->with('user')->latest()->get();
+
+        return ShortCommentResource::collection($comments);
     }
 
 
@@ -66,23 +104,24 @@ class ShortsInteractionController extends Controller
 
         if ($like) {
             $like->delete();
+            $short->decrement('likes_count');
             $liked = false;
         } else {
             ShortsLike::create([
                 'user_id' => auth()->id(),
                 'short_video_id' => $shortId,
             ]);
+            $short->increment('likes_count');
             $liked = true;
         }
-
-        $likeCount = ShortsLike::where('short_video_id', $shortId)->count();
 
         return response()->json([
             'message' => $liked ? 'Short liked.' : 'Like removed.',
             'liked' => $liked,
-            'like_count' => $likeCount,
+            'like_count' => $short->likes_count, 
         ]);
     }
+
 
 
     public function toggleSave($shortId)
@@ -116,22 +155,17 @@ class ShortsInteractionController extends Controller
         ]);
     }
 
-
-    public function getComments($shortId)
+    public function getSavedShorts()
     {
-        $short = ShortVideo::find($shortId);
-        if (!$short) {
-            return response()->json(['message' => 'Short video not found.'], 404);
-        }
+        $userId = auth()->id();
 
-        $comments = ShortsComment::with('user:id,name')
-            ->where('short_video_id', $shortId)
+        $savedShorts = ShortsSave::where('user_id', $userId)
+            ->with('shortVideo.products.images') 
             ->latest()
-            ->get();
+            ->get()
+            ->pluck('shortVideo'); 
 
-        return response()->json([
-            'message' => 'Comments fetched successfully.',
-            'data' => $comments,
-        ]);
+        return ShortVideoResource::collection($savedShorts);
     }
+
 }

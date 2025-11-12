@@ -22,6 +22,8 @@ class VendorShortVideoController extends Controller
     }
 
 
+
+
     public function store_api(Request $request)
     {
         $validator = Validator::make($request->all(), [

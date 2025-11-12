@@ -245,8 +245,12 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
         Route::delete('/shorts/comment/{id}', [ShortsInteractionController::class, 'deleteComment']);
         Route::post('/shorts/{id}/like', [ShortsInteractionController::class, 'toggleLike']);
         Route::post('/shorts/{id}/save', [ShortsInteractionController::class, 'toggleSave']);
-        Route::get('/shorts/{id}/comments', [ShortsInteractionController::class, 'getComments']);
+        Route::get('/shorts/saved', [ShortsInteractionController::class, 'getSavedShorts']);
     });
+
+    Route::get('/shorts/{id}/products', [ShortsInteractionController::class, 'getShortProducts']);
+    Route::get('/shorts', [ShortsInteractionController::class, 'allshorts']); 
+    Route::get('/shorts/{id}/comments', [ShortsInteractionController::class, 'getComments']);
 
     Route::get('livestream/{livestream}/products', [LivestreamController::class, 'addedProducts']);
 

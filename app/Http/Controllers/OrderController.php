@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\SellerOrderItem;
 use App\Enums\SellerOrderStatus;
+use App\Models\DeliveryModel;
+use App\Models\Fee;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Container\Attributes\CurrentUser;
 
@@ -18,7 +20,7 @@ class OrderController extends Controller
 {
     public function store(Request $request, #[CurrentUser()] User $user)
     {
-        $fee = \App\Models\Fee::query()->first();
+        $fee = Fee::query()->first();
 
         $cartItems = CartItem::with(['product', 'size'])
             ->where('user_id', $user->getKey())
@@ -29,7 +31,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'No items selected in cart.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $deliveryModel = \App\Models\DeliveryModel::query()->find($request->delivery_model_id);
+        $deliveryModel = DeliveryModel::query()->find($request->delivery_model_id);
 
         if (! $deliveryModel) {
             return response()->json(['message' => 'Invalid delivery model.'], Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -128,7 +130,7 @@ class OrderController extends Controller
                 + (float) $order->vat;
             $order->save();
 
-            \App\Models\CartItem::query()->where('user_id', $userId)
+            CartItem::query()->where('user_id', $userId)
                 ->where('selected', 1)
                 ->delete();
 
@@ -226,7 +228,7 @@ class OrderController extends Controller
         $search = $request->query('search');
         $status = $request->enum('status', SellerOrderStatus::class);
 
-        $orders = \App\Models\SellerOrder::query()
+        $orders = SellerOrder::query()
             ->where('seller_id', $seller->getKey())
             ->latest()
             ->when(filled($status))
@@ -366,7 +368,7 @@ class OrderController extends Controller
 
         $delivery_model = $mainOrder->delivery_model;
 
-        $deliveryModel = \App\Models\DeliveryModel::query()->find($delivery_model);
+        $deliveryModel = DeliveryModel::query()->find($delivery_model);
         if ($deliveryModel) {
             $order->delivery_end_time = now()->addMinutes($deliveryModel->minutes);
         }

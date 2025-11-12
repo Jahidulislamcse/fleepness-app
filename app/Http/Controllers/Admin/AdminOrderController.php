@@ -47,7 +47,6 @@ class AdminOrderController extends Controller
             ])],
         ]);
 
-        /** @var SellerOrder */
         $sellerOrder = \App\Models\SellerOrder::query()->findOrFail($id);
 
         $riderAssigned = $request->boolean('rider_assigned');

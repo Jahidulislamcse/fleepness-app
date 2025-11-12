@@ -109,11 +109,13 @@ class AppServiceProvider extends ServiceProvider
         Str::macro('orderId', function (string $prefix = '#ORD') {
             $prefix = str($prefix)
                 ->trim()
-                ->whenDoesntEndWith('-', fn (SupportStringable $str) => $str->append('-'))
+                ->whenDoesntEndWith('-', fn ($str) => $str->append('-'))
                 ->value();
 
-            return str(Str::random(6))->prepend($prefix);
+            $randomNumber = mt_rand(10000, 99999); 
+            return $prefix . $randomNumber;
         });
+
 
         context()->hydrated(static function (Repository $context): void {
             if ($context->has('traceId') && $traceId = $context->get('traceId')) {
