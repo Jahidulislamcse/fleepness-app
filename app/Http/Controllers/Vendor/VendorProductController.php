@@ -326,10 +326,12 @@ class VendorProductController extends Controller
 
     private function generateRandomReviews(): string
     {
-        $random = rand(100, 1000); 
-        $value = $random / 1000; 
-        return $value . 'k'; 
+        $random = rand(100, 150);
+        $value = $random / 100;
+
+        return number_format($value, 2) . 'k';
     }
+
 
 
     private function generateRandomTime(): string

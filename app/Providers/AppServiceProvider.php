@@ -125,8 +125,10 @@ class AppServiceProvider extends ServiceProvider
                 })
                 ->value();
 
-            return str(Str::random(6))->prepend($prefix);
+            $randomNumber = mt_rand(10000, 99999); 
+            return $prefix . $randomNumber;
         });
+
 
         context()->hydrated(static function (Repository $context): void {
             if ($context->has('traceId') && $traceId = $context->get('traceId')) {
