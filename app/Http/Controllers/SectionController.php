@@ -8,6 +8,7 @@ use App\Models\Section;
 use App\Models\Category;
 use App\Models\SectionItem;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use App\Http\Resources\SectionResource;
 
 class SectionController extends Controller
@@ -94,31 +95,13 @@ class SectionController extends Controller
         $background = null;
         $banner_img = null;
 
-        // Handle the background image upload
-        if ($request->hasFile('background_image')) {
-            $photo = $request->file('background_image');
-            $name_gen = hexdec(uniqid()).'.'.$photo->getClientOriginalExtension();
-            $folder = 'slider/';
-            if (! file_exists(public_path('upload/'.$folder))) {
-                mkdir(public_path('upload/'.$folder), 0777, true);
-            }
-            $photo->move(public_path('upload/'.$folder), $name_gen);
-            $background = 'upload/'.$folder.$name_gen;
-        }
+        $background = $request->hasFile('background_image')
+            ? $this->uploadImage($request->file('background_image'), 'sections/backgrounds/')
+            : null;
 
-        // Handle the banner image upload
-        if ($request->hasFile('banner_image')) {
-            $banner = $request->file('banner_image');
-            $name_gen_banner = hexdec(uniqid()).'.'.$banner->getClientOriginalExtension();
-            $folder = 'slider/';
-            if (! file_exists(public_path('upload/'.$folder))) {
-                mkdir(public_path('upload/'.$folder), 0777, true);
-            }
-            $banner->move(public_path('upload/'.$folder), $name_gen_banner);
-            $banner_img = 'upload/'.$folder.$name_gen_banner;
-        }
-
-        // $lastIndex = Section::max('index');
+        $banner_img = $request->hasFile('banner_image')
+            ? $this->uploadImage($request->file('banner_image'), 'sections/banners/')
+            : null;
 
         if ('search' === $validated['section_type']) {
             $lastIndex = \App\Models\Section::query()->where('section_type', 'search')->max('index');
@@ -129,8 +112,7 @@ class SectionController extends Controller
 
         $catIndex = $this->nextCatIndex((int) $validated['category_id']);
 
-        // Create the section record
-        $section = \App\Models\Section::query()->create([
+        $section = Section::create([
             'section_name' => $validated['section_name'],
             'section_type' => $validated['section_type'],
             'section_title' => $validated['section_title'],
@@ -144,27 +126,17 @@ class SectionController extends Controller
             'cat_index' => $catIndex,
         ]);
 
-        // Handle storing the section items
         if (isset($validated['items']) && 0 < count($validated['items'])) {
             foreach ($request->items as $index => $item) {
-                $item_image = $item['image'] ?? null;
-                $image_path = null;
-
                 $itemIndex = $index + 1;
+                $item_image = null;
 
-                if ($item_image && $request->hasFile('items.'.$index.'.image')) {
-                    $image_name = hexdec(uniqid()).'.'.$item_image->getClientOriginalExtension();
-                    $folder = 'slider/';
-                    $image_path = public_path('upload/'.$folder);
-                    if (! file_exists($image_path)) {
-                        mkdir($image_path, 0777, true);
-                    }
-                    $item_image->move($image_path, $image_name);
-                    $item_image = 'upload/'.$folder.$image_name;
+                if ($request->hasFile("items.$index.image")) {
+                    $uploadedFile = $request->file("items.$index.image");
+                    $item_image = $this->uploadImage($uploadedFile, 'sections/items/');
                 }
 
-                // Create the section item
-                \App\Models\SectionItem::query()->create([
+                SectionItem::create([
                     'section_id' => $section->id,
                     'image' => $item_image,
                     'title' => $item['title'] ?? null,
@@ -179,10 +151,24 @@ class SectionController extends Controller
         return to_route('admin.sections.index')->with('success', 'Section created successfully');
     }
 
+    private function uploadImage(?UploadedFile $image, string $folder): ?string
+    {
+        if (! $image instanceof UploadedFile) {
+            return null;
+        }
+
+        $folder = trim($folder, '/');
+
+        return $image->store('upload/'.$folder, 'r2');
+    }
+
     public function edit($id): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
-        $section = \App\Models\Section::query()->findOrFail($id);
-        $categories = \App\Models\Category::query()->whereNull('parent_id')->get();
+        $section = Section::with(['items' => function ($query) {
+            $query->orderBy('index', 'asc');
+        }])->findOrFail($id);
+
+        $categories = Category::whereNull('parent_id')->get();
 
         if ('search' === $section->section_type) {
             $sectionsGroup = \App\Models\Section::query()->where('section_type', 'search')
@@ -196,7 +182,7 @@ class SectionController extends Controller
 
         $availableIndices = $sectionsGroup->where('id', '!=', $section->id)->pluck('index')->toArray();
 
-        $catCount = \App\Models\Section::query()->where('category_id', $section->category_id)->count();
+        $catCount = Section::where('category_id', $section->category_id)->count();
         $availableCatPositions = range(1, max(1, $catCount));
 
         return view('admin.sections.edit', ['section' => $section, 'categories' => $categories, 'availableIndices' => $availableIndices, 'availableCatPositions' => $availableCatPositions]);
@@ -228,28 +214,20 @@ class SectionController extends Controller
         ]);
 
         $currentIndex = (int) $section->index;
-        $newIndex = isset($validated['index']) ? (int) $validated['index'] : $currentIndex;
+        $newIndex = $validated['index'] ?? $currentIndex;
 
         if ($currentIndex !== $newIndex) {
             $this->reorderSectionsAfterUpdate($newIndex, $currentIndex, $section);
         }
 
-        $background = $section->background_image;
+        $background = $section->getRawOriginal('background_image');
         if ($request->hasFile('background_image')) {
-            $photo = $request->file('background_image');
-            $name_gen = hexdec(uniqid()).'.'.$photo->getClientOriginalExtension();
-            $folder = 'slider/';
-            $photo->move(public_path('upload/'.$folder), $name_gen);
-            $background = 'upload/'.$folder.$name_gen;
+            $background = $this->uploadImage($request->file('background_image'), 'sections/backgrounds/');
         }
 
-        $banner_img = $section->banner_image;
+        $banner_img = $section->getRawOriginal('banner_image');
         if ($request->hasFile('banner_image')) {
-            $banner = $request->file('banner_image');
-            $name_gen_banner = hexdec(uniqid()).'.'.$banner->getClientOriginalExtension();
-            $folder = 'slider/';
-            $banner->move(public_path('upload/'.$folder), $name_gen_banner);
-            $banner_img = 'upload/'.$folder.$name_gen_banner;
+            $banner_img = $this->uploadImage($request->file('banner_image'), 'sections/banners/');
         }
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($section, $validated, $background, $banner_img, $newIndex, $request): void {
@@ -259,16 +237,11 @@ class SectionController extends Controller
 
             $maxInTarget = (int) \App\Models\Section::query()->where('category_id', $newCategoryId)->count();
             if ($newCategoryId !== $oldCategoryId) {
-                $maxInTarget += 1;
+                $maxInTarget++;
             }
-            $requestedCatIndex = isset($validated['cat_index']) ? (int) $validated['cat_index'] : null;
-            $targetCatIndex = $requestedCatIndex ?? $maxInTarget; // default to end
-            if (1 > $targetCatIndex) {
-                $targetCatIndex = 1;
-            }
-            if ($targetCatIndex > $maxInTarget) {
-                $targetCatIndex = $maxInTarget;
-            }
+
+            $requestedCatIndex = $validated['cat_index'] ?? null;
+            $targetCatIndex = max(1, min($requestedCatIndex ?? $maxInTarget, $maxInTarget));
 
             if ($newCategoryId !== $oldCategoryId) {
                 if (0 < $oldCatIndex) {
@@ -283,85 +256,21 @@ class SectionController extends Controller
                     ->where('category_id', $newCategoryId)
                     ->where('cat_index', '>=', $targetCatIndex)
                     ->increment('cat_index');
-
-                $section->update([
-                    'section_name' => $validated['section_name'],
-                    'section_type' => $validated['section_type'] ?? $section->section_type,
-                    'section_title' => $validated['section_title'],
-                    'category_id' => $newCategoryId,
-                    'placement_type' => $validated['placement_type'],
-                    'bio' => $validated['bio'] ?? null,
-                    'index' => $newIndex,
-                    'cat_index' => $targetCatIndex,
-                    'visibility' => $validated['visibility'] ?? false,
-                    'background_image' => $background,
-                    'banner_image' => $banner_img,
-                ]);
-            } else {
-                $current = (int) ($section->cat_index ?? 0);
-
-                if (0 === $current) {
-                    \Illuminate\Support\Facades\DB::table('sections')
-                        ->where('category_id', $newCategoryId)
-                        ->where('cat_index', '>=', $targetCatIndex)
-                        ->increment('cat_index');
-
-                    $section->update([
-                        'section_name' => $validated['section_name'],
-                        'section_type' => $validated['section_type'] ?? $section->section_type,
-                        'section_title' => $validated['section_title'],
-                        'category_id' => $newCategoryId,
-                        'placement_type' => $validated['placement_type'],
-                        'bio' => $validated['bio'] ?? null,
-                        'index' => $newIndex,
-                        'cat_index' => $targetCatIndex,
-                        'visibility' => $validated['visibility'] ?? false,
-                        'background_image' => $background,
-                        'banner_image' => $banner_img,
-                    ]);
-                } elseif ($targetCatIndex !== $current) {
-                    if ($targetCatIndex < $current) {
-                        \Illuminate\Support\Facades\DB::table('sections')
-                            ->where('category_id', $newCategoryId)
-                            ->where('id', '!=', $section->id)
-                            ->whereBetween('cat_index', [$targetCatIndex, $current - 1])
-                            ->increment('cat_index');
-                    } else {
-                        \Illuminate\Support\Facades\DB::table('sections')
-                            ->where('category_id', $newCategoryId)
-                            ->where('id', '!=', $section->id)
-                            ->whereBetween('cat_index', [$current + 1, $targetCatIndex])
-                            ->decrement('cat_index');
-                    }
-
-                    $section->update([
-                        'section_name' => $validated['section_name'],
-                        'section_type' => $validated['section_type'] ?? $section->section_type,
-                        'section_title' => $validated['section_title'],
-                        'category_id' => $newCategoryId,
-                        'placement_type' => $validated['placement_type'],
-                        'bio' => $validated['bio'] ?? null,
-                        'index' => $newIndex,
-                        'cat_index' => $targetCatIndex,
-                        'visibility' => $validated['visibility'] ?? false,
-                        'background_image' => $background,
-                        'banner_image' => $banner_img,
-                    ]);
-                } else {
-                    $section->update([
-                        'section_name' => $validated['section_name'],
-                        'section_type' => $validated['section_type'] ?? $section->section_type,
-                        'section_title' => $validated['section_title'],
-                        'category_id' => $newCategoryId,
-                        'placement_type' => $validated['placement_type'],
-                        'bio' => $validated['bio'] ?? null,
-                        'index' => $newIndex,
-                        'visibility' => $validated['visibility'] ?? false,
-                        'background_image' => $background,
-                        'banner_image' => $banner_img,
-                    ]);
-                }
             }
+
+            $section->update([
+                'section_name' => $validated['section_name'] ?? $section->section_name,
+                'section_type' => $validated['section_type'] ?? $section->section_type,
+                'section_title' => $validated['section_title'] ?? $section->section_title,
+                'category_id' => $newCategoryId,
+                'placement_type' => $validated['placement_type'] ?? $section->placement_type,
+                'bio' => $validated['bio'] ?? $section->bio,
+                'index' => $newIndex,
+                'cat_index' => $targetCatIndex,
+                'visibility' => $validated['visibility'] ?? $section->visibility,
+                'background_image' => $background,
+                'banner_image' => $banner_img,
+            ]);
 
             $oldItems = $section->items()->get();
             $updatedItems = $request->input('items', []);
@@ -370,21 +279,17 @@ class SectionController extends Controller
                 $itemModel = $oldItems[$i] ?? new \App\Models\SectionItem;
                 $itemModel->section_id = $section->id;
 
-                $uploadedImage = $request->file("items.$i.image");
-                if ($uploadedImage) {
-                    $imageName = hexdec(uniqid()).'.'.$uploadedImage->getClientOriginalExtension();
-                    $folder = 'slider/';
-                    $uploadedImage->move(public_path('upload/'.$folder), $imageName);
-                    $itemModel->image = 'upload/'.$folder.$imageName;
+                if ($request->hasFile("items.$i.image")) {
+                    $itemModel->image = $this->uploadImage($request->file("items.$i.image"), 'sections/items/');
                 } elseif (! $itemModel->exists) {
                     $itemModel->image = null;
                 }
 
-                $itemModel->title = $itemData['title'] ?? null;
-                $itemModel->bio = $itemData['bio'] ?? null;
-                $itemModel->tag_id = $itemData['tag_id'] ?? null;
-                $itemModel->index = $itemData['index'] ?? null;
-                $itemModel->visibility = $itemData['visibility'] ?? 1;
+                $itemModel->title = $itemData['title'] ?? $itemModel->title;
+                $itemModel->bio = $itemData['bio'] ?? $itemModel->bio;
+                $itemModel->tag_id = $itemData['tag_id'] ?? $itemModel->tag_id;
+                $itemModel->index = $itemData['index'] ?? ($i + 1);
+                $itemModel->visibility = $itemData['visibility'] ?? $itemModel->visibility ?? 1;
                 $itemModel->save();
             }
 
