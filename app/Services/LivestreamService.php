@@ -141,8 +141,8 @@ class LivestreamService
             'single-speaker',
             $output,
             new EncodingOptions()
-                ->setWidth(720)
-                ->setHeight(1280),
+                ->setWidth(1080)
+                ->setHeight(1920),
             // ->setFramerate(30)
             // ->setAudioFrequency(3000),
             // ->setAudioCodec(AudioCodec::OPUS)
