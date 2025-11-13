@@ -4,18 +4,20 @@ namespace App\Services;
 
 use Closure;
 use Livekit\FileInfo;
+use Livekit\AudioCodec;
 use Livekit\EgressInfo;
 use Livekit\ImagesInfo;
+use Livekit\VideoCodec;
 use Livekit\ImageOutput;
 use Livekit\SegmentsInfo;
 use App\Models\Livestream;
 use Livekit\EncodedFileType;
+use Livekit\EncodingOptions;
 use Livekit\EncodedFileOutput;
 use Livekit\SegmentedFileOutput;
 use Agence104\LiveKit\VideoGrant;
 use Agence104\LiveKit\AccessToken;
 use Illuminate\Support\Collection;
-use Livekit\EncodingOptionsPreset;
 use Agence104\LiveKit\EncodedOutputs;
 use Agence104\LiveKit\RoomCreateOptions;
 use Illuminate\Support\Facades\Pipeline;
@@ -134,12 +136,17 @@ class LivestreamService
             ->setSegments($segmentedFileOutput)
             ->setImage($imageOutput);
 
-        /** @disregard intelephense(P1006) */
         return $this->egressService->startRoomCompositeEgress(
             $roomName,
             'single-speaker',
             $output,
-            EncodingOptionsPreset::PORTRAIT_H264_720P_30
+            new EncodingOptions()
+                ->setWidth(720)
+                ->setHeight(1280)
+                ->setFramerate(30)
+                ->setAudioFrequency(3000)
+                ->setAudioCodec(AudioCodec::OPUS)
+                ->setVideoCodec(VideoCodec::H264_MAIN),
         );
     }
 
