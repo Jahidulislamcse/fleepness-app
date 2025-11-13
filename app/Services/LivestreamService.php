@@ -144,9 +144,9 @@ class LivestreamService
                 ->setWidth(720)
                 ->setHeight(1280)
                 ->setFramerate(30)
-                ->setAudioFrequency(3000)
-                ->setAudioCodec(AudioCodec::OPUS)
-                ->setVideoCodec(VideoCodec::H264_MAIN),
+                ->setAudioFrequency(3000),
+            // ->setAudioCodec(AudioCodec::OPUS)
+            // ->setVideoCodec(VideoCodec::H264_MAIN),
         );
     }
 
