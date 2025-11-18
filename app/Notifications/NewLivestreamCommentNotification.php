@@ -34,6 +34,7 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
         ];
     }
 
+    #[\Override]
     public function broadcastOn()
     {
         return [
@@ -77,14 +78,9 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
         ];
     }
 
-    public function shouldSend(object $notifiable, string $channel)
+    public function shouldSend(object $notifiable, string $channel): bool
     {
-        $isFinished = $this->comment->livestream->status === LivestreamStatuses::FINISHED->value;
-
-        if ($isFinished && 'broadcast' === $channel) {
-            return false;
-        }
-
-        return true;
+        $isFinished = LivestreamStatuses::FINISHED === $this->comment->livestream;
+        return !($isFinished && 'broadcast' === $channel);
     }
 }

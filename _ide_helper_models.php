@@ -417,12 +417,14 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property bool $platform_fee_added
  * @property int $completed_order
+ * @property string $balance
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\SellerOrder> $sellerOrders
  * @property-read int|null $seller_orders_count
  * @property-read \App\Models\User $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBalance($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCommission($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCompletedOrder($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedAt($value)
@@ -646,9 +648,9 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+ * @property-read ?string $image
  * @property int $id
  * @property int $section_id
- * @property string|null $image
  * @property string|null $title
  * @property string|null $bio
  * @property string|null $tag_id
@@ -693,6 +695,7 @@ namespace App\Models{
  * @property string|null $delivery_fee
  * @property string|null $balance
  * @property bool|null $rider_assigned
+ * @property int $is_delay
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\User|null $customer
@@ -710,6 +713,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereDeliveryFee($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereDeliveryStartTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereIsDelay($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereOrderId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereProductCost($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SellerOrder whereRiderAssigned($value)
@@ -842,12 +846,12 @@ namespace App\Models{
  * @property string $title
  * @property string $video
  * @property string|null $alt_text
+ * @property-read int|null $likes_count
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ShortsComment> $comments
  * @property-read int|null $comments_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ShortsLike> $likes
- * @property-read int|null $likes_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product> $products
  * @property-read int|null $products_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ShortsSave> $saves
@@ -858,6 +862,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortVideo whereAltText($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortVideo whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortVideo whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortVideo whereLikesCount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortVideo whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortVideo whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ShortVideo whereUserId($value)
@@ -1064,6 +1069,7 @@ namespace App\Models{
  * @property int $id
  * @property int $user_id
  * @property int $payment_method_id
+ * @property string|null $reference
  * @property string $amount
  * @property string|null $transaction_id
  * @property string|null $note
@@ -1081,6 +1087,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Transaction whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Transaction whereNote($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Transaction wherePaymentMethodId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Transaction whereReference($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Transaction whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Transaction whereTransactionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Transaction whereType($value)
