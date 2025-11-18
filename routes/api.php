@@ -197,6 +197,8 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
         Route::post('/addresses', [AddressController::class, 'store']);
         Route::get('/addresses', [AddressController::class, 'index']);
         Route::put('/addresses/{address}', [AddressController::class, 'update']);
+        Route::post('/addresses/{id}/set-default', [AddressController::class, 'setDefault']);
+        Route::get('/addresses/default', [AddressController::class, 'getDefault']);
 
         // Delivery options for users
     });

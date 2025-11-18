@@ -7,13 +7,13 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
-    protected function schedule(Schedule $schedule)
+    protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('orders:check-delay')->everyTwoMinutes();
+        $schedule->command('orders:check-delay')->everyMinute();
     }
 
-    protected function commands()
+    protected function commands(): void
     {
-        $this->load(__DIR__ . '/Commands');
+        $this->load(__DIR__.'/Commands');
     }
 }

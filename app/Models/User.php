@@ -212,4 +212,15 @@ class User extends Authenticatable implements FcmBroadcastNotifiableByDevice, Fc
     {
         return cache()->forget($this->getOtpCacheKey());
     }
+
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    public function defaultAddress()
+    {
+        return $this->hasOne(Address::class)->where('is_default', true);
+    }
+
 }

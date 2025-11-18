@@ -11,11 +11,18 @@ class Address extends Model
         'latitude',
         'longitude',
         'formatted_address',
-        'street',
+        'address_text',      
+        'address_line_1',
+        'address_line_2',
+        'area',
+        'is_default',
         'city',
         'label',
         'postal_code',
-        'country',
+    ];
+
+    protected $casts = [
+        'is_default' => 'boolean',
     ];
 
     public function user()
