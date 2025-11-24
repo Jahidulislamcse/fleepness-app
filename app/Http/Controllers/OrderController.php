@@ -204,7 +204,9 @@ class OrderController extends Controller
         $status = $request->enum('status', SellerOrderStatus::class);
 
         $orders = Order::with([
-            'sellerOrders',
+             'sellerOrders' => function ($q) {
+                $q->with(['seller:id,shop_name,shop_category,banner_image,cover_image']);
+            },
         ])
             ->where('user_id', $user->getKey())
             ->latest()
