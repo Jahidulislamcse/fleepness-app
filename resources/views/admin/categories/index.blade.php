@@ -208,11 +208,16 @@
                                                 <td></td> 
                                                 <td>{{ $grandchild->name }}</td> 
                                                 <td>
-                                                    <img src="{{ asset($grandchild->profile_img) }}" alt="" class="img-thumbnail" style="width:50px; height:50px;">
+                                                    @if($grandchild->profile_img)
+                                                        <img src="{{ $grandchild->profile_img }}" alt="{{ $grandchild->name }}" class="img-thumbnail" style="width:50px; height:50px;">
+                                                    @endif
                                                 </td>
                                                 <td>
-                                                    <img src="{{ asset($grandchild->cover_img) }}" alt="" class="img-thumbnail" style="width:50px; height:50px; ">
+                                                    @if($grandchild->cover_img)
+                                                        <img src="{{ $grandchild->cover_img }}" alt="{{ $grandchild->name }}" class="img-thumbnail" style="width:50px; height:50px;">
+                                                    @endif
                                                 </td>
+
                                                 <td>{{ $grandchild->order }}</td>
                                                 <td>
                                                     <div class="d-flex gap-2">
