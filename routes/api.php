@@ -223,6 +223,8 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
         Route::delete('livestreams/{ls}/products', [LivestreamProductController::class, 'destroy'])
             ->name('livestream-products.destroy');
 
+        Route::get('my-livestreams', [LivestreamController::class, 'myLivestreams'])->name('livestreams.my');
+
         Route::prefix('livestreams/{id}')->group(function (): void {
             Route::post('like', [LivestreamController::class, 'like']);
             Route::post('save', [LivestreamController::class, 'save']);

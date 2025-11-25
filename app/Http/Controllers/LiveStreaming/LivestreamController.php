@@ -40,6 +40,15 @@ class LivestreamController extends Controller
         return LivestreamResource::collection($livestreams);
     }
 
+    public function myLivestreams()
+    {
+        $livestreams = Livestream::where('vendor_id', auth()->id())
+            ->orderBy('created_at', 'asc')
+            ->cursorPaginate();
+
+        return LivestreamResource::collection($livestreams);
+    }
+
     public function addedProducts(Livestream $livestream)
     {
         $livestream->load([
