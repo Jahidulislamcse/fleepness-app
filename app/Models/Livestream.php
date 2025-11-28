@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Spatie\MediaLibrary\HasMedia;
+use Illuminate\Broadcasting\Channel;
 use App\Constants\LivestreamStatuses;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Notifications\Notifiable;
+use App\Http\Resources\LivestreamResource;
 use Illuminate\Notifications\Notification;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -241,7 +243,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
      */
     public function broadcastOn(string $event): array
     {
-        return ['livestream_feed'];
+        return [new Channel('livestream_feed')];
     }
 
     /**
@@ -262,9 +264,8 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
      */
     public function broadcastWith(string $event): array
     {
-        return match ($event) {
-            'created' => ['next_cursor' => ''],
-            default => [],
-        };
+        return $this
+            ->toResource(LivestreamResource::class)
+            ->resolve();
     }
 }
