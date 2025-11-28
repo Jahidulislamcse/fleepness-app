@@ -243,7 +243,10 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
      */
     public function broadcastOn(string $event): array
     {
-        return [new Channel('livestream_feed')];
+        return match ($event) {
+            'created' => [new Channel('livestream_feed')],
+            default => []
+        };
     }
 
     /**
@@ -251,10 +254,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
      */
     public function broadcastAs(string $event): ?string
     {
-        return match ($event) {
-            'created' => 'livestream_created',
-            default => null,
-        };
+        return sprintf('livestream_%s', $event);
     }
 
     /**
