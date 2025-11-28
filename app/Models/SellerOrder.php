@@ -20,8 +20,13 @@ class SellerOrder extends Model
         'rider_assigned' => 'boolean',
 
         'status' => \App\Enums\SellerOrderStatus::class,
-    ];
 
+        'product_cost' => 'float',
+        'commission' => 'float',
+        'vat' => 'float',
+        'delivery_fee' => 'float',
+        'balance' => 'float',
+    ];
     /**
      * @return BelongsTo<Order,$this>
      */

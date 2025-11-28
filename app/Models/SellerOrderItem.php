@@ -19,6 +19,12 @@ class SellerOrderItem extends Model
         'size',
     ];
 
+    protected $casts = [
+        'price' => 'float',
+        'total_cost' => 'float',
+        'quantity' => 'integer',
+    ];
+
     /**
      * @return BelongsTo<SellerOrder,$this>
      */

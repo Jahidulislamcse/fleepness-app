@@ -68,11 +68,11 @@ class AdminCategoryController extends Controller
         $data['order'] = $maxOrder ? $maxOrder + 1 : 1; 
 
         if ($request->hasFile('profile_img')) {
-            $data['profile_img'] = $this->uploadImage($request->file('profile_img'), 'category_images/');
+            $data['profile_img'] = $this->uploadImage($request->file('profile_img'), 'category_images');
         }
 
         if ($request->hasFile('cover_img')) {
-            $data['cover_img'] = $this->uploadImage($request->file('cover_img'), 'category_images/');
+            $data['cover_img'] = $this->uploadImage($request->file('cover_img'), 'category_images');
         }
 
         Category::create($data);
@@ -139,7 +139,7 @@ class AdminCategoryController extends Controller
             if ($category->profile_img && file_exists(public_path($category->profile_img))) {
                 unlink(public_path($category->profile_img));
             }
-            $category->profile_img = $this->uploadImage($request->file('profile_img'), 'category_images/');
+            $category->profile_img = $this->uploadImage($request->file('profile_img'), 'category_images');
         }
 
         // Handle cover image
@@ -147,7 +147,7 @@ class AdminCategoryController extends Controller
             if ($category->cover_img && file_exists(public_path($category->cover_img))) {
                 unlink(public_path($category->cover_img));
             }
-            $category->cover_img = $this->uploadImage($request->file('cover_img'), 'category_images/');
+            $category->cover_img = $this->uploadImage($request->file('cover_img'), 'category_images');
         }
 
         // Reorder categories if the order is updated

@@ -33,7 +33,16 @@ class LivestreamController extends Controller
     public function index()
     {
         $livestreams = Livestream::with(['vendor'])
-            ->latest()
+            ->orderBy('created_at', 'asc')
+            ->cursorPaginate();
+
+        return LivestreamResource::collection($livestreams);
+    }
+
+    public function myLivestreams()
+    {
+        $livestreams = Livestream::where('vendor_id', auth()->id())
+            ->orderBy('created_at', 'asc')
             ->cursorPaginate();
 
         return LivestreamResource::collection($livestreams);

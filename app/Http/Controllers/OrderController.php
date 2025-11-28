@@ -141,9 +141,12 @@ class OrderController extends Controller
                 'sellerOrders.seller',
             ]);
 
+            $user->load('defaultAddress');
+
             return response()->json([
                 'message' => 'Order created successfully',
                 'order' => $order,
+                'default_address' => $user->defaultAddress,
             ], 201);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -163,6 +166,7 @@ class OrderController extends Controller
                 $q->with(['product:id,name,selling_price,discount_price', 'product.images:id,product_id,path']);
             },
             'customer:id,name,phone_number,email',
+            'customer.defaultAddress'
         ])
             ->where('seller_id', $seller->getKey());
 
@@ -200,7 +204,9 @@ class OrderController extends Controller
         $status = $request->enum('status', SellerOrderStatus::class);
 
         $orders = Order::with([
-            'sellerOrders',
+             'sellerOrders' => function ($q) {
+                $q->with(['seller:id,shop_name,shop_category,banner_image,cover_image']);
+            },
         ])
             ->where('user_id', $user->getKey())
             ->latest()
@@ -282,6 +288,8 @@ class OrderController extends Controller
                     'product.images',
                 ]);
             },
+            'customer:id,name,phone_number,email',
+            'customer.defaultAddress',
         ]);
 
         return response()->json([
@@ -293,6 +301,7 @@ class OrderController extends Controller
     public function myOrderDetail($id)
     {
         $userId = auth()->id();
+        $customer = auth()->user();
 
         if (! $userId) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
@@ -325,6 +334,8 @@ class OrderController extends Controller
                 'vat' => $order->vat,
                 'platform_fee' => $order->platform_fee,
                 'grand_total' => $order->grand_total,
+                'address' => $customer->defaultAddress,
+
                 'sellers' => $order->sellerOrders->map(function ($sellerOrder) {
                     return [
                         'seller_id' => $sellerOrder->seller->id,

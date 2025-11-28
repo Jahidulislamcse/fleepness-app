@@ -54,6 +54,7 @@ class AdminOrderController extends Controller
 
         if ($riderAssigned) {
             $sellerOrder->status = \App\Enums\SellerOrderStatus::On_The_Way;
+            $sellerOrder->status_message = 'Order is on the way';
         } else {
             $status = $request->enum('status', \App\Enums\SellerOrderStatus::class);
             if ($status) {
@@ -64,6 +65,7 @@ class AdminOrderController extends Controller
         $sellerOrder->save();
 
         if ($sellerOrder->status->isDelivered()) {
+            $sellerOrder->status_message = $request->input('message', 'Order has been delivered successfully');
             $sellerOrder->balance = $sellerOrder->product_cost - $sellerOrder->commission;
             $sellerOrder->save();
 
