@@ -21,7 +21,7 @@ class OrderStatusChanged extends Notification implements ShouldBroadcast
 
     public function broadcastAs()
     {
-        return str($this::class)->snake();
+        return str(static::class)->snake();
     }
 
     /**
@@ -31,13 +31,13 @@ class OrderStatusChanged extends Notification implements ShouldBroadcast
      */
     public function via(object $notifiable): array
     {
-        return ['broadcast'];
+        return ['broadcast', 'database'];
     }
 
     /**
      * Get the mail representation of the notification.
      */
-    public function toBroadcast(object $notifiable)
+    public function toBroadcast(object $notifiable): array
     {
         return [
             'notifiable' => $notifiable,
