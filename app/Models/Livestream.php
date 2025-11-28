@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Support\Notification\Contracts\SupportsFcmChannel;
 use App\Support\Notification\Contracts\FcmNotifiableByTopic;
+use Illuminate\Database\Eloquent\BroadcastsEventsAfterCommit;
 
 /**
  * @property-read string $room_name
@@ -25,7 +26,7 @@ use App\Support\Notification\Contracts\FcmNotifiableByTopic;
  */
 class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 {
-    use HasFactory,  InteractsWithMedia, Notifiable;
+    use BroadcastsEventsAfterCommit, HasFactory, InteractsWithMedia, Notifiable;
 
     protected $fillable = ['title', 'vendor_id', 'total_duration', 'scheduled_time', 'started_at', 'ended_at', 'egress_id', 'egress_data', 'room_id'];
 
@@ -231,5 +232,39 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
     public function receivesBroadcastNotificationsOn(): string
     {
         return $this->getRoomName();
+    }
+
+    /**
+     * Get the channels that model events should broadcast on.
+     *
+     * @return array<int, \Illuminate\Broadcasting\Channel|\Illuminate\Database\Eloquent\Model>
+     */
+    public function broadcastOn(string $event): array
+    {
+        return ['livestream_feed'];
+    }
+
+    /**
+     * The model event's broadcast name.
+     */
+    public function broadcastAs(string $event): ?string
+    {
+        return match ($event) {
+            'created' => 'livestream_created',
+            default => null,
+        };
+    }
+
+    /**
+     * Get the data to broadcast for the model.
+     *
+     * @return array<string, mixed>
+     */
+    public function broadcastWith(string $event): array
+    {
+        return match ($event) {
+            'created' => ['next_cursor' => ''],
+            default => [],
+        };
     }
 }
