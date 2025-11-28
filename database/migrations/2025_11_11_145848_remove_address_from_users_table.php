@@ -6,21 +6,17 @@ use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
-    public function up(): void
-    {
-        if (! Schema::hasColumn('users', 'address')) {
-            return;
-        }
+    // public function up(): void
+    // {
+    //     Schema::table('users', function (Blueprint $table) {
+    //         $table->dropColumn('address');
+    //     });
+    // }
 
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('address');
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('address')->nullable();
-        });
-    }
+    // public function down(): void
+    // {
+    //     Schema::table('users', function (Blueprint $table) {
+    //         $table->string('address')->nullable();
+    //     });
+    // }
 };
