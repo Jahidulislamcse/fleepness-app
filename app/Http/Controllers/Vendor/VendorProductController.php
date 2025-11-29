@@ -445,7 +445,7 @@ class VendorProductController extends Controller
                 $sellerTag->save();
             }
 
-            $tags = json_decode($product->tags, true);
+            $tags = $product->tags;
             $tag = $tags ? $tags[0] : null; 
 
             $tagName = null;
