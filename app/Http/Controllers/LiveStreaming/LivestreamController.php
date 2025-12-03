@@ -33,7 +33,7 @@ class LivestreamController extends Controller
     public function index()
     {
         $livestreams = Livestream::with(['vendor'])
-            ->orderBy('created_at', 'asc')
+            ->latest()
             ->cursorPaginate();
 
         return LivestreamResource::collection($livestreams);
@@ -41,8 +41,7 @@ class LivestreamController extends Controller
 
     public function myLivestreams()
     {
-        $livestreams = Livestream::where('vendor_id', auth()->id())
-            ->orderBy('created_at', 'asc')
+        $livestreams = \App\Models\Livestream::query()->where('vendor_id', auth()->id())->oldest()
             ->cursorPaginate();
 
         return LivestreamResource::collection($livestreams);
