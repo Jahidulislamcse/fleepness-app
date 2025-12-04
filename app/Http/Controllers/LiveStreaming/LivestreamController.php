@@ -41,7 +41,8 @@ class LivestreamController extends Controller
 
     public function myLivestreams()
     {
-        $livestreams = \App\Models\Livestream::query()->where('vendor_id', auth()->id())->oldest()
+        $livestreams = \App\Models\Livestream::query()
+            ->where('vendor_id', auth()->id())->oldest()
             ->cursorPaginate();
 
         return LivestreamResource::collection($livestreams);
@@ -78,9 +79,12 @@ class LivestreamController extends Controller
         $response = $controller->__invoke($newLivestream, $user);
         $publisherToken = data_get($response->getData(true), 'token');
 
-        return $newLivestream->toResource()->additional([
-            'published_token' => $publisherToken,
-        ]);
+        return $newLivestream
+            ->load(['vendor'])
+            ->toResource(LivestreamResource::class)
+            ->additional([
+                'published_token' => $publisherToken,
+            ]);
     }
 
     /**
@@ -90,7 +94,7 @@ class LivestreamController extends Controller
     {
         $livestream = $ls->load(['livestreamProducts', 'comments', 'likes']);
 
-        return $livestream->toResource();
+        return $livestream->toResource(LivestreamResource::class);
     }
 
     /**
