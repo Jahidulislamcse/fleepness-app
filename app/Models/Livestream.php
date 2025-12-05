@@ -117,9 +117,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 
     protected function roomName(): Attribute
     {
-        return Attribute::get(function () {
-            return $this->getRoomName();
-        })->shouldCache();
+        return Attribute::get($this->getRoomName(...))->shouldCache();
     }
 
     public function getRoomName(): string
@@ -134,7 +132,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
         return sprintf('%s_%s', $title, today()->format('Ymd_h_i_s'));
     }
 
-    public function stopRecording()
+    public function stopRecording(): void
     {
         $this->ended_at = now();
 
@@ -143,7 +141,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
         }
     }
 
-    public function startRecording()
+    public function startRecording(): void
     {
         $this->started_at = now();
         $egress = \App\Facades\Livestream::startRecording($this->getRoomName(), $this->getEncodedFileOutputName());
@@ -165,7 +163,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 
             $recordings = data_get($egressData, 'recordings', []);
 
-            return collect($recordings)->map(function (array $egressInfo) {
+            return collect($recordings)->map(function (array $egressInfo): array {
                 $filename = data_get($egressInfo, 'filename', '');
 
                 $location = Storage::disk('r2')->url($filename);
@@ -185,7 +183,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 
             $recordings = data_get($egressData, 'short_videos', []);
 
-            return collect($recordings)->map(function (array $egressInfo) {
+            return collect($recordings)->map(function (array $egressInfo): array {
                 $playlistName = data_get($egressInfo, 'playlistName', '');
 
                 $playlistLocation = Storage::disk('r2')->url($playlistName);
@@ -205,7 +203,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 
             $recordings = data_get($egressData, 'thumbnails', []);
 
-            return collect($recordings)->map(function (array $egressInfo) {
+            return collect($recordings)->map(function (array $egressInfo): array {
                 $filenamePrefix = data_get($egressInfo, 'filenamePrefix', '');
 
                 $directoryName = str($filenamePrefix)->dirname();
@@ -213,7 +211,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
                 $thumbnails = Storage::disk('r2')->files($directoryName);
 
                 $thumbnails = collect($thumbnails)
-                    ->filter(function ($thumbnailPath) {
+                    ->filter(function ($thumbnailPath): bool {
                         $ext = strtolower(pathinfo($thumbnailPath, PATHINFO_EXTENSION));
 
                         return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
@@ -245,6 +243,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
     {
         return match ($event) {
             'created' => [new Channel('livestream_feed')],
+            'updated' => [new Channel('livestream_feed'), new Channel($this->getRoomName())],
             default => []
         };
     }
