@@ -34,6 +34,7 @@ class LivestreamController extends Controller
     {
         $livestreams = Livestream::with(['vendor'])
             ->latest()
+            ->where('egress_data->recordings->0->duration', '>', 0)
             ->cursorPaginate();
 
         return LivestreamResource::collection($livestreams);
@@ -42,7 +43,8 @@ class LivestreamController extends Controller
     public function myLivestreams()
     {
         $livestreams = \App\Models\Livestream::query()
-            ->where('vendor_id', auth()->id())->oldest()
+            ->where('vendor_id', Auth::id())
+            ->oldest()
             ->cursorPaginate();
 
         return LivestreamResource::collection($livestreams);
