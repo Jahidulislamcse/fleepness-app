@@ -31,14 +31,35 @@ class LivestreamController extends Controller
     }
 
     public function index()
-    {
-        $livestreams = Livestream::with(['vendor'])
-            ->latest()
-       //     ->where('egress_data->recordings->0->duration', '>', 0)
-            ->cursorPaginate();
+{
+    $livestreams = Livestream::with(['vendor'])
+        ->latest()
+        ->where(function ($q) {
 
-        return LivestreamResource::collection($livestreams);
-    }
+            // initial + started (always included)
+            $q->whereIn('status', [
+                LivestreamStatuses::INITIAL,
+                LivestreamStatuses::STARTED,
+            ])
+
+            // OR finished with valid egress_data condition
+            ->orWhere(function ($q2) {
+                $q2->where('status', LivestreamStatuses::FINISHED)
+                    ->where(function ($q3) {
+
+                        $q3->where('egress_data->recordings->0->duration', '>', 0)
+                            // egress_data is empty object: "{}"
+                            ->orWhere('egress_data', '{}')
+                            // egress_data is null
+                            ->orWhereNull('egress_data');
+                    });
+            });
+        })
+        ->cursorPaginate();
+
+    return LivestreamResource::collection($livestreams);
+}
+
 
     public function myLivestreams()
     {
