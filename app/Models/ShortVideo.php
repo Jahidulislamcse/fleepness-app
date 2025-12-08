@@ -34,4 +34,10 @@ class ShortVideo extends Model
     {
         return $this->belongsToMany(Product::class, 'shorts_products', 'short_video_id', 'product_id');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
 }

@@ -153,6 +153,8 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
             });
 
             Route::post('/withdraw', [TransactionController::class, 'withdraw']);
+            Route::get('/my/balance', [UserController::class, 'getBalance']);
+
 
         });
 
@@ -213,6 +215,7 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
     });
 
     Route::get('livestreams', [LivestreamController::class, 'index'])->name('livestreams.index');
+    Route::get('livestreams/seller/{vendorId}', [LivestreamController::class, 'sellerLivestreams'])->name('livestreams.seller');
     Route::get('livestreams/{ls}', [LivestreamController::class, 'show'])->name('livestreams.show');
 
     Route::middleware('auth:sanctum')->group(function (): void {

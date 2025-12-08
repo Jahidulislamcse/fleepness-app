@@ -200,7 +200,7 @@ class UserController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
         $validatedData = $validator->validated();
-        // Generate OTP and expiry
+      
         $otp = Str::otp();
 
         $user = User::create([
@@ -433,4 +433,21 @@ class UserController extends Controller
 
         return to_route('admin.user.list')->with('success', 'User deleted successfully');
     }
+
+    public function getBalance()
+    {
+        $user = auth()->user(); 
+
+        if (! $user) {
+            return response()->json([
+                'message' => 'Unauthenticated'
+            ], 401);
+        }
+
+        return response()->json([
+            'balance' => $user->balance,
+            'success' => true,
+        ]);
+    }
+
 }

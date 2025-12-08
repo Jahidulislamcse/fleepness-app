@@ -14,4 +14,10 @@ class Fee extends Model
         'platform_fee',
         'commission',
     ];
+
+    protected $casts = [
+        'vat' => 'float',
+        'platform_fee' => 'float',
+        'commission' => 'float',
+    ];
 }

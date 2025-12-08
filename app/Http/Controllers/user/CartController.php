@@ -8,6 +8,7 @@ use App\Models\CartItem;
 use App\Models\Product;
 use Illuminate\Validation\Rule;
 use App\Models\DeliveryModel;
+use App\Models\Fee;
 use App\Models\ProductSize;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -130,31 +131,45 @@ class CartController extends Controller
     public function summary(Request $request)
     {
         $user = Auth::user();
-        $deliveryModelId = $request->query('delivery_model_id', 1); 
-        $deliveryModel = DeliveryModel::find($deliveryModelId) ?? DeliveryModel::find(1);
+        $deliveryModelId = $request->query('delivery_model_id');
+        $deliveryModel = DeliveryModel::find($deliveryModelId) ?? DeliveryModel::first();
+        $fee = Fee::first();
 
-        $selectedItems = CartItem::with('product')
+        $selectedItems = CartItem::with(['product'])
             ->where('user_id', $user->id)
             ->where('selected', true)
             ->get();
 
+        if ($selectedItems->isEmpty()) {
+            return response()->json(['message' => 'No items selected'], 422);
+        }
+
         $itemTotal = $selectedItems->sum(function ($item) {
-            $price = $item->product->discount_price ?? $item->product->selling_price;
+            $price = ($item->product->discount_price && $item->product->discount_price > 0)
+                ? $item->product->discount_price
+                : $item->product->selling_price;
+
             return $price * $item->quantity;
         });
 
-        $platformFee = 30;  
-        $vatFee = 15;       
-        $deliveryFee = $deliveryModel->fee ?? 0;
+        $uniqueSellerCount = $selectedItems->pluck('product.user_id')->unique()->count();
 
-        $grandTotal = $itemTotal + $platformFee + $vatFee + $deliveryFee;
+        $deliveryFee = ($deliveryModel->fee ?? 0) * $uniqueSellerCount;
+        $commission = $itemTotal * ($fee->commission / 100);
+        $vat = round($itemTotal * ($fee->vat / 100), 2);
+        $platformFee = $fee->platform_fee;
+
+        $grandTotal = $itemTotal + $deliveryFee + $platformFee + $vat;
 
         return response()->json([
             'item_total' => $itemTotal,
             'delivery_fee' => $deliveryFee,
             'platform_fee' => $platformFee,
-            'vat_fee' => $vatFee,
+            'commission_fee' => $commission,
+            'vat_fee' => $vat,
             'grand_total' => $grandTotal,
+            'unique_sellers' => $uniqueSellerCount,
         ]);
     }
+
 }

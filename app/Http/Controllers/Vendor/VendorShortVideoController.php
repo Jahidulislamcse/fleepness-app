@@ -14,12 +14,30 @@ class VendorShortVideoController extends Controller
     {
         $userId = auth()->id();
 
-        $videos = ShortVideo::where('user_id', $userId)
+        $videos = ShortVideo::with('user')
+            ->where('user_id', $userId)
             ->latest()
             ->paginate(10);
 
+        $videos->getCollection()->transform(function ($video) {
+            return [
+                'id' => $video->id,
+                'title' => $video->title,
+                'video' => $video->video,
+                'likes_count' => $video->likes_count,
+                'created_at' => $video->created_at,
+                'user' => [
+                    'id' => $video->user->id,
+                    'name' => $video->user->name,
+                    'banner_image' => $video->user->banner_image,
+                    'cover_image' => $video->user->cover_image,
+                ],
+            ];
+        });
+
         return response()->json($videos);
     }
+
 
 
 
@@ -81,13 +99,12 @@ class VendorShortVideoController extends Controller
 
     public function show_api($id)
     {
-        $video = ShortVideo::find($id);
+        $video = ShortVideo::with('user')->find($id);
         if (!$video) {
             return response()->json(['message' => 'Video not found.'], 404);
         }
 
-        $products = $video->products()->with('product.images')->get()->map(function ($sp) {
-            $product = $sp->product;
+        $products = $video->products()->with('images')->get()->map(function ($product) {
             return [
                 'id' => $product->id,
                 'name' => $product->name,
@@ -96,11 +113,26 @@ class VendorShortVideoController extends Controller
             ];
         });
 
+        $user = $video->user;
+        
         return response()->json([
-            'video' => $video,
+            'video' => [
+                'id' => $video->id,
+                'title' => $video->title,
+                'video' => $video->video,
+                'likes_count' => $video->likes_count,
+                'created_at' => $video->created_at,
+            ],
             'products' => $products,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'banner_image' => $user->banner_image,
+                'cover_image' => $user->cover_image,
+            ]
         ]);
     }
+
 
 
     public function update_api(Request $request, $id)
