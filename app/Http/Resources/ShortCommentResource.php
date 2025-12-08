@@ -13,6 +13,8 @@ class ShortCommentResource extends JsonResource
             'user' => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
+                'banner_image' => $this->user->banner_image,
+                'cover_image' => $this->user->cover_image,
             ],
             'comment' => $this->comment,
             'created_at' => $this->created_at->diffForHumans(),

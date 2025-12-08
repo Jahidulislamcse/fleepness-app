@@ -240,12 +240,13 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
         });
 
         Route::prefix('livestreams/{livestreamId}/comments')->group(function (): void {
-            Route::get('/', [LivestreamCommentController::class, 'index']);
             Route::post('/', [LivestreamCommentController::class, 'store']);
             Route::put('{commentId}', [LivestreamCommentController::class, 'update']);
             Route::delete('{commentId}', [LivestreamCommentController::class, 'destroy']);
         });
     });
+
+     Route::get('/livestreams/{livestreamId}/comments', [LivestreamCommentController::class, 'index']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/shorts/{id}/comment', [ShortsInteractionController::class, 'comment']);
