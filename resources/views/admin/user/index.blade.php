@@ -96,7 +96,6 @@
                                     <th>Name</th>
                                     <th>Phone</th>
                                     <th>Email</th>
-                                    <th>Address</th>
                                     <th>Role</th>
                                     <th>Status</th>
                                     <th>Actions</th>
@@ -109,9 +108,8 @@
                                     <td>{{ $user->name }}</td>
                                     <td>{{ $user->phone_number }}</td>
                                     <td>{{ $user->email }}</td>
-                                    <td>{{ $user->address }}</td>
                                     <td>{{ ucfirst($user->role) }}</td>
-                                    <td>{{ ucfirst($user->status) }}</td>
+                                    <td>{{ $user->status }}</td>
                                     <td>
                                         <!-- Edit Button -->
                                         @if($user->role === 'vendor' || $user->role === 'admin' || $user->role === 'rider')

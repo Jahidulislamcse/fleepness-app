@@ -16,12 +16,29 @@ class ShortsInteractionController extends Controller
     
     public function allshorts()
     {
+        $videos = ShortVideo::with('user')
+            ->latest()
+            ->cursorPaginate(10);
 
-        $videos = ShortVideo::latest()
-            ->cursorPaginate();
+        $videos->through(function ($video) {
+            return [
+                'id' => $video->id,
+                'title' => $video->title,
+                'video' => $video->video,
+                'likes_count' => $video->likes_count,
+                'created_at' => $video->created_at,
+                'user' => [
+                    'id' => $video->user->id,
+                    'name' => $video->user->name,
+                    'banner_image' => $video->user->banner_image,
+                    'cover_image' => $video->user->cover_image,
+                ],
+            ];
+        });
 
         return response()->json($videos);
     }
+
 
     public function getShortProducts($shortId)
     {
@@ -160,12 +177,37 @@ class ShortsInteractionController extends Controller
         $userId = auth()->id();
 
         $savedShorts = ShortsSave::where('user_id', $userId)
-            ->with('shortVideo.products.images') 
+            ->with('shortVideo.user', 'shortVideo.products.images')
             ->latest()
             ->get()
-            ->pluck('shortVideo'); 
+            ->pluck('shortVideo');
 
-        return ShortVideoResource::collection($savedShorts);
+        $result = $savedShorts->map(function ($video) {
+            return [
+                'id' => $video->id,
+                'title' => $video->title,
+                'video' => $video->video,
+                'likes_count' => $video->likes_count,
+                'created_at' => $video->created_at,
+                'user' => [
+                    'id' => $video->user->id,
+                    'name' => $video->user->name,
+                    'banner_image' => $video->user->banner_image,
+                    'cover_image' => $video->user->cover_image,
+                ],
+                'products' => $video->products->map(function ($product) {
+                    return [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'short_description' => $product->short_description,
+                        'images' => $product->images->map(fn($img) => $img->path),
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json($result);
     }
+
 
 }

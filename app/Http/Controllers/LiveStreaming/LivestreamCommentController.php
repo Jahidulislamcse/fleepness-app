@@ -14,10 +14,28 @@ class LivestreamCommentController extends Controller
     public function index($livestreamId)
     {
         $livestream = Livestream::findOrFail($livestreamId);
-        $comments = $livestream->comments()->paginate(10);
+
+        $comments = $livestream->comments()
+            ->with('user')
+            ->latest()
+            ->paginate(10);
+
+        $comments->getCollection()->transform(function ($comment) {
+            return [
+                'id' => $comment->id,
+                'comment' => $comment->comment,
+                'created_at' => $comment->created_at,
+                'user' => [
+                    'id' => $comment->user->id,
+                    'name' => $comment->user->name,
+                    'cover_image' => $comment->user->cover_image,
+                ],
+            ];
+        });
 
         return response()->json($comments);
     }
+
 
     public function store(Request $request, $livestreamId, #[CurrentUser] User $user)
     {

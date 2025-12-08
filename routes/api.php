@@ -153,6 +153,8 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
             });
 
             Route::post('/withdraw', [TransactionController::class, 'withdraw']);
+            Route::get('/my/balance', [UserController::class, 'getBalance']);
+
 
         });
 
@@ -213,6 +215,7 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
     });
 
     Route::get('livestreams', [LivestreamController::class, 'index'])->name('livestreams.index');
+    Route::get('livestreams/seller/{vendorId}', [LivestreamController::class, 'sellerLivestreams'])->name('livestreams.seller');
     Route::get('livestreams/{ls}', [LivestreamController::class, 'show'])->name('livestreams.show');
 
     Route::middleware('auth:sanctum')->group(function (): void {
@@ -237,15 +240,15 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
         });
 
         Route::prefix('livestreams/{livestreamId}/comments')->group(function (): void {
-            Route::get('/', [LivestreamCommentController::class, 'index'])
-                ->withoutMiddleware('auth:sanctum');
             Route::post('/', [LivestreamCommentController::class, 'store']);
             Route::put('{commentId}', [LivestreamCommentController::class, 'update']);
             Route::delete('{commentId}', [LivestreamCommentController::class, 'destroy']);
         });
     });
 
-    Route::middleware('auth:sanctum')->group(function (): void {
+     Route::get('/livestreams/{livestreamId}/comments', [LivestreamCommentController::class, 'index']);
+
+    Route::middleware('auth:sanctum')->group(function () {
         Route::post('/shorts/{id}/comment', [ShortsInteractionController::class, 'comment']);
         Route::delete('/shorts/comment/{id}', [ShortsInteractionController::class, 'deleteComment']);
         Route::post('/shorts/{id}/like', [ShortsInteractionController::class, 'toggleLike']);

@@ -307,7 +307,6 @@ class VendorProductController extends Controller
             ]);
 
         } catch (ValidationException $e) {
-            // Return validation errors with 422 status code
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -354,7 +353,6 @@ class VendorProductController extends Controller
 
     public function edit(Product $product)
     {
-        // dd($product);
         $productImageCount = ProductImage::where('product_id', $product->id)->count();
         $categories = Category::whereNull('parent_id')->get();
         return view('vendor.products.product_edit', compact('product', 'categories', 'productImageCount'));
@@ -362,19 +360,15 @@ class VendorProductController extends Controller
 
    public function update(Request $request, $id)
     {
-        // dd($request->all());
         try {
-            // Find the product
             $product = Product::findOrFail($id);
 
-            // Check if the product belongs to the logged-in user
             if ($product->user_id !== auth()->id()) {
                 return $request->wantsJson()
                     ? response()->json(['success' => false, 'message' => 'You are not authorized to update this product.'], 403)
                     : redirect()->back()->with('error', 'You are not authorized to update this product.');
             }
 
-            // Validate input
             $validated = $request->validate([
                 'category_id' => 'nullable|exists:categories,id',
                 'name' => 'nullable|string|max:255',
@@ -386,29 +380,23 @@ class VendorProductController extends Controller
                 'discount_price' => 'nullable|numeric|min:0',
             ]);
 
-            // Update the product details
             $validated['tags'] = json_encode($request->tags);
             $product->update($validated);
 
-            // Handle sizes (retain only submitted size IDs)
             if ($request->has('sizes')) {
                 $submittedSizes = $request->sizes;
 
                 foreach ($submittedSizes as $sizeData) {
-                    $sizeData['size_name'] = strtolower($sizeData['size_name']);  // Convert size name to lowercase
+                    $sizeData['size_name'] = strtolower($sizeData['size_name']);  
 
-                    // Check if the size already exists for the product
                     $size = ProductSize::where('product_id', $product->id)
                         ->where('size_name', $sizeData['size_name'])
                         ->first();
 
-                    // If the size exists, update its value if available is true
                     if ($size) {
                         if ($sizeData['available'] === 'false') {
-                            // If available is false, delete the size
                             $size->delete();
                         } else {
-                            // Update the size value
                             $size->size_value = $sizeData['size_value'];
                             $size->save();
                         }
@@ -416,7 +404,7 @@ class VendorProductController extends Controller
                         if ($sizeData['available'] === 'true') {
                             ProductSize::create([
                                 'product_id' => $product->id,
-                                'size_name' => $sizeData['size_name'], // Ensure size name is lowercase
+                                'size_name' => $sizeData['size_name'], 
                                 'size_value' => $sizeData['size_value'],
                             ]);
                         }
@@ -445,7 +433,7 @@ class VendorProductController extends Controller
                 $sellerTag->save();
             }
 
-            $tags = json_decode($product->tags, true);
+            $tags = $product->tags;
             $tag = $tags ? $tags[0] : null; 
 
             $tagName = null;
