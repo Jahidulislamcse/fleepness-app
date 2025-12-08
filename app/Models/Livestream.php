@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Spatie\MediaLibrary\HasMedia;
+use Illuminate\Broadcasting\Channel;
 use App\Constants\LivestreamStatuses;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Notifications\Notifiable;
+use App\Http\Resources\LivestreamResource;
 use Illuminate\Notifications\Notification;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -16,6 +18,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Support\Notification\Contracts\SupportsFcmChannel;
 use App\Support\Notification\Contracts\FcmNotifiableByTopic;
+use Illuminate\Database\Eloquent\BroadcastsEventsAfterCommit;
 
 /**
  * @property-read string $room_name
@@ -25,7 +28,7 @@ use App\Support\Notification\Contracts\FcmNotifiableByTopic;
  */
 class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 {
-    use HasFactory,  InteractsWithMedia, Notifiable;
+    use BroadcastsEventsAfterCommit, HasFactory, InteractsWithMedia, Notifiable;
 
     protected $fillable = ['title', 'vendor_id', 'total_duration', 'scheduled_time', 'started_at', 'ended_at', 'egress_id', 'egress_data', 'room_id'];
 
@@ -114,9 +117,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 
     protected function roomName(): Attribute
     {
-        return Attribute::get(function () {
-            return $this->getRoomName();
-        })->shouldCache();
+        return Attribute::get($this->getRoomName(...))->shouldCache();
     }
 
     public function getRoomName(): string
@@ -131,7 +132,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
         return sprintf('%s_%s', $title, today()->format('Ymd_h_i_s'));
     }
 
-    public function stopRecording()
+    public function stopRecording(): void
     {
         $this->ended_at = now();
 
@@ -140,7 +141,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
         }
     }
 
-    public function startRecording()
+    public function startRecording(): void
     {
         $this->started_at = now();
         $egress = \App\Facades\Livestream::startRecording($this->getRoomName(), $this->getEncodedFileOutputName());
@@ -162,7 +163,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 
             $recordings = data_get($egressData, 'recordings', []);
 
-            return collect($recordings)->map(function (array $egressInfo) {
+            return collect($recordings)->map(function (array $egressInfo): array {
                 $filename = data_get($egressInfo, 'filename', '');
 
                 $location = Storage::disk('r2')->url($filename);
@@ -182,7 +183,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 
             $recordings = data_get($egressData, 'short_videos', []);
 
-            return collect($recordings)->map(function (array $egressInfo) {
+            return collect($recordings)->map(function (array $egressInfo): array {
                 $playlistName = data_get($egressInfo, 'playlistName', '');
 
                 $playlistLocation = Storage::disk('r2')->url($playlistName);
@@ -202,7 +203,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 
             $recordings = data_get($egressData, 'thumbnails', []);
 
-            return collect($recordings)->map(function (array $egressInfo) {
+            return collect($recordings)->map(function (array $egressInfo): array {
                 $filenamePrefix = data_get($egressInfo, 'filenamePrefix', '');
 
                 $directoryName = str($filenamePrefix)->dirname();
@@ -210,7 +211,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
                 $thumbnails = Storage::disk('r2')->files($directoryName);
 
                 $thumbnails = collect($thumbnails)
-                    ->filter(function ($thumbnailPath) {
+                    ->filter(function ($thumbnailPath): bool {
                         $ext = strtolower(pathinfo($thumbnailPath, PATHINFO_EXTENSION));
 
                         return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
@@ -231,5 +232,39 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
     public function receivesBroadcastNotificationsOn(): string
     {
         return $this->getRoomName();
+    }
+
+    /**
+     * Get the channels that model events should broadcast on.
+     *
+     * @return array<int, \Illuminate\Broadcasting\Channel|\Illuminate\Database\Eloquent\Model>
+     */
+    public function broadcastOn(string $event): array
+    {
+        return match ($event) {
+            'created' => [new Channel('livestream_feed')],
+            'updated' => [new Channel('livestream_feed'), new Channel($this->getRoomName())],
+            default => []
+        };
+    }
+
+    /**
+     * The model event's broadcast name.
+     */
+    public function broadcastAs(string $event): ?string
+    {
+        return sprintf('livestream_%s', $event);
+    }
+
+    /**
+     * Get the data to broadcast for the model.
+     *
+     * @return array<string, mixed>
+     */
+    public function broadcastWith(string $event): array
+    {
+        return $this
+            ->toResource(LivestreamResource::class)
+            ->resolve();
     }
 }

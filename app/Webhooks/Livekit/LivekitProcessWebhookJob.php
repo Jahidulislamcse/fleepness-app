@@ -2,7 +2,6 @@
 
 namespace App\Webhooks\Livekit;
 
-use App\Models\User;
 use App\Models\Livestream;
 use App\Constants\LivestreamStatuses;
 use Agence104\LiveKit\WebhookReceiver;
@@ -11,7 +10,7 @@ use Spatie\WebhookClient\Jobs\ProcessWebhookJob;
 
 class LivekitProcessWebhookJob extends ProcessWebhookJob
 {
-    public function handle()
+    public function handle(): void
     {
         $webhookPayload = $this->webhookCall->payload;
 
@@ -30,7 +29,7 @@ class LivekitProcessWebhookJob extends ProcessWebhookJob
                 if ($event->hasRoom()) {
                     $roomMetadata = Json::decode($event->getRoom()->getMetadata());
                     $livestreamId = data_get($roomMetadata, 'livestream_identity');
-                    $livestream = Livestream::find($livestreamId);
+                    $livestream = \App\Models\Livestream::query()->find($livestreamId);
                     if ($livestream) {
                         $livestream->ended_at = now();
                         $livestream->status = LivestreamStatuses::FINISHED;
@@ -42,14 +41,14 @@ class LivekitProcessWebhookJob extends ProcessWebhookJob
                 if ($event->hasRoom() && $event->hasParticipant()) {
                     $roomMetadata = Json::decode($event->getRoom()->getMetadata());
                     $livestreamId = data_get($roomMetadata, 'livestream_identity');
-                    $livestream = Livestream::find($livestreamId);
+                    $livestream = \App\Models\Livestream::query()->find($livestreamId);
 
                     if ($event->getParticipant()->getPermission()->getCanPublish()) {
                         return;
                     }
 
                     $participantUserId = $event->getParticipant()->getIdentity();
-                    $user = User::find($participantUserId);
+                    $user = \App\Models\User::query()->find($participantUserId);
 
                     if ($livestream) {
                         if ($user) {
@@ -76,8 +75,10 @@ class LivekitProcessWebhookJob extends ProcessWebhookJob
                 $event->getParticipant()->getIdentity();
                 break;
             case 'track_published':
-                break;
             case 'track_unpublished':
+            case 'egress_updated':
+            case 'ingress_started':
+            case 'ingress_ended':
                 break;
             case 'egress_started':
                 if ($event->hasEgressInfo()) {
@@ -94,13 +95,11 @@ class LivekitProcessWebhookJob extends ProcessWebhookJob
                     // }
                 }
                 break;
-            case 'egress_updated':
-                break;
             case 'egress_ended':
                 logger()->info('egress ended', [$event->hasEgressInfo(), $event->hasRoom()]);
                 if ($event->hasEgressInfo()) {
                     $eventEgressId = $event->getEgressInfo()->getEgressId();
-                    $livestream = Livestream::firstWhere([
+                    $livestream = \App\Models\Livestream::query()->firstWhere([
                         'egress_id' => $eventEgressId,
                     ]);
 
@@ -120,10 +119,6 @@ class LivekitProcessWebhookJob extends ProcessWebhookJob
                         ]);
                     }
                 }
-                break;
-            case 'ingress_started':
-                break;
-            case 'ingress_ended':
                 break;
         }
     }

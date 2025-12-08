@@ -4,7 +4,6 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use App\Models\LivestreamComment;
-use App\Constants\LivestreamStatuses;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -34,6 +33,7 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
         ];
     }
 
+    #[\Override]
     public function broadcastOn()
     {
         return [
@@ -77,14 +77,8 @@ class NewLivestreamCommentNotification extends Notification implements ShouldBro
         ];
     }
 
-    public function shouldSend(object $notifiable, string $channel)
+    public function shouldSend(object $notifiable, string $channel): bool
     {
-        $isFinished = $this->comment->livestream->status === LivestreamStatuses::FINISHED->value;
-
-        if ($isFinished && 'broadcast' === $channel) {
-            return false;
-        }
-
-        return true;
+        return ! $this->comment->livestream->status->isFinished();
     }
 }

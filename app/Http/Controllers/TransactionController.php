@@ -2,27 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\PaymentMethod;
-use App\Models\Transaction;
 
 class TransactionController extends Controller
 {
-
     public function withdraw(Request $request)
     {
         $user = Auth::user();
 
         $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:1', 'max:' . $user->balance],
+            'amount' => ['required', 'numeric', 'min:1', 'max:'.$user->balance],
             'payment_method_id' => ['required', 'exists:payment_methods,id'],
         ]);
 
         $user->balance -= $validated['amount'];
         $user->save();
 
-        $transaction = Transaction::create([
+        $transaction = \App\Models\Transaction::query()->create([
             'user_id' => $user->id,
             'payment_method_id' => $validated['payment_method_id'],
             'amount' => $validated['amount'],
@@ -36,25 +34,28 @@ class TransactionController extends Controller
         ], 201);
     }
 
-    public function PaymentRequests()
+    public function PaymentRequests(): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
-        $bills = Transaction::where('status', 'pending')->get();
-        return view('admin.payment.requests', compact('bills'));
+        $bills = \App\Models\Transaction::query()->where('status', 'pending')->get();
+
+        return view('admin.payment.requests', ['bills' => $bills]);
     }
 
     public function update(Request $request, $billId)
     {
-        $bill = Transaction::findOrFail($billId);
+        $bill = \App\Models\Transaction::query()->findOrFail($billId);
         $bill->status = 'approved';
         $bill->transaction_id = $request->transaction_id;
         $bill->save();
 
-        return redirect()->back()->with('success', 'Payment details updated successfully.');
+        $bill->notifySellerAboutWithdrawalApproval();
+
+        return back()->with('success', 'Payment details updated successfully.');
     }
 
-    public function AdminPaymentHistory(Request $request)
+    public function AdminPaymentHistory(Request $request): \Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
     {
-        $status = $request->query('status'); 
+        $status = $request->query('status');
 
         $query = Transaction::with(['user', 'paymentMethod']);
 
@@ -66,22 +67,21 @@ class TransactionController extends Controller
 
         $bills = $query->latest()->get();
 
-        return view('admin.payment.history', compact('bills', 'status'));
+        return view('admin.payment.history', ['bills' => $bills, 'status' => $status]);
     }
-
 
     public function reject(Request $request, $billId)
     {
         $request->validate([
-            'reason' => 'required|string|max:1000',
+            'reason' => ['required', 'string', 'max:1000'],
         ]);
 
-        $bill = Transaction::findOrFail($billId);
+        $bill = \App\Models\Transaction::query()->findOrFail($billId);
         $bill->update([
             'status' => 'rejected',
             'note' => $request->reason,
         ]);
 
-        return redirect()->back()->with('success', 'Payment request rejected successfully.');
+        return back()->with('success', 'Payment request rejected successfully.');
     }
 }
