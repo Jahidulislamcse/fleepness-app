@@ -200,7 +200,7 @@ class ShortsInteractionController extends Controller
                         'id' => $product->id,
                         'name' => $product->name,
                         'short_description' => $product->short_description,
-                        'images' => $product->images->map(fn($img) => asset($img->path)),
+                        'images' => $product->images->map(fn($img) => $img->path),
                     ];
                 }),
             ];
