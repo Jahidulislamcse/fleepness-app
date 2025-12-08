@@ -257,7 +257,7 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
     });
 
     Route::get('/shorts/{id}/products', [ShortsInteractionController::class, 'getShortProducts']);
-    Route::get('/shorts', [ShortsInteractionController::class, 'allshorts']); 
+    Route::get('/shorts', [ShortsInteractionController::class, 'allshorts']);
     Route::get('/shorts/{id}/comments', [ShortsInteractionController::class, 'getComments']);
 
     Route::get('livestream/{livestream}/products', [LivestreamController::class, 'addedProducts']);
