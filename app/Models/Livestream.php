@@ -163,16 +163,21 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
 
             $recordings = data_get($egressData, 'recordings', []);
 
-            return collect($recordings)->map(function (array $egressInfo): array {
-                $filename = data_get($egressInfo, 'filename', '');
+            return collect($recordings)
+                ->reject(function (array $egressInfo) {
+                    return 1 > data_get($egressInfo, 'duration', 0);
+                })
+                ->map(function (array $egressInfo): array {
+                    $filename = data_get($egressInfo, 'filename', '');
 
-                $location = Storage::disk('r2')->url($filename);
+                    $location = Storage::disk('r2')->url($filename);
 
-                return [
-                    ...$egressInfo,
-                    'location' => $location,
-                ];
-            })->all();
+                    return [
+                        ...$egressInfo,
+                        'location' => $location,
+                    ];
+                })
+                ->all();
         })->shouldCache();
     }
 
