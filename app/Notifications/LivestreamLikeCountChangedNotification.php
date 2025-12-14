@@ -14,10 +14,7 @@ class LivestreamLikeCountChangedNotification extends Notification implements Sho
     /**
      * Create a new notification instance.
      */
-    public function __construct(public readonly Livestream $livestream)
-    {
-        //
-    }
+    public function __construct(public readonly Livestream $livestream) {}
 
     /**
      * Get the notification's delivery channels.
@@ -31,6 +28,8 @@ class LivestreamLikeCountChangedNotification extends Notification implements Sho
 
     public function toBroadcast(object $notifiable): array
     {
+        $this->livestream->loadCount('likes');
+
         return [
             'likes_count' => $this->livestream->likes_count,
         ];
