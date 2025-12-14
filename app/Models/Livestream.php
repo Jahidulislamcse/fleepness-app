@@ -253,7 +253,7 @@ class Livestream extends Model implements FcmNotifiableByTopic, HasMedia
     {
         return match ($event) {
             'created' => [new Channel('livestream_feed')],
-            'updated' => [new Channel('livestream_feed'), new Channel($this->getRoomName())],
+            'updated' => [new Channel($this->getRoomName())],
             default => []
         };
     }

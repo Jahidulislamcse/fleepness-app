@@ -32,7 +32,7 @@ class SellerStatusUpdatedNotification extends Notification implements ShouldBroa
      */
     public function via(object $notifiable): array
     {
-        return ['sms', 'broadcast'];
+        return ['sms', 'broadcast', 'database'];
     }
 
     public function toSms(object $notifiable): string
