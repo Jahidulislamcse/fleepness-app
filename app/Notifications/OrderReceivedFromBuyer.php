@@ -84,4 +84,9 @@ class OrderReceivedFromBuyer extends Notification implements ShouldQueue, Suppor
             ...$this->buildNotificationData(),
         ];
     }
+
+    public function broadcastAs(): string
+    {
+        return str(static::class)->classBasename()->snake();
+    }
 }
