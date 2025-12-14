@@ -21,7 +21,7 @@ class OrderStatusChanged extends Notification implements ShouldBroadcast
 
     public function broadcastAs()
     {
-        return str(static::class)->snake();
+        return str(static::class)->classBasename()->snake();
     }
 
     /**
