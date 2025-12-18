@@ -130,26 +130,25 @@
     </div>
 </div>
 
-<!-- Ensure jQuery is included -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
     $(document).ready(function() {
-        $('#section_type').change(function() {
+        $('#section_type').change(function () {
             const sectionType = $(this).val();
+            $('#category').val('').trigger('change');
             handleSectionTypeChange(sectionType);
         });
 
+
     $('#category').change(function() {
-        const categoryId = $(this).val(); // Get selected category ID
+        const categoryId = $(this).val(); 
 
         if (categoryId) {
-            // Make an AJAX request to fetch grandchildren (tags) based on the selected category
             $.ajax({
-                url: `/categories/${categoryId}/tags`, // The API endpoint
+                url: `/categories/${categoryId}/tags`, 
                 type: 'GET',
                 success: function(data) {
-                    // Clear the existing options in the tag dropdown
                     $('#tag_id').empty();
                     $('#box1_tag').empty();
                     $('#box2_tag').empty();
@@ -164,9 +163,7 @@
                     $('#box11_tag').empty();
                     $('#box12_tag').empty();
 
-                    // Check if there are tags (grandchildren) returned
                     if (data.status) {
-                        // Populate the tag dropdown with fetched grandchildren (tags)
                         $('#tag_id').append('<option value="">Select Tag</option>');
                         $('#box1_tag').append('<option value="">Select Tag</option>');
                         $('#box2_tag').append('<option value="">Select Tag</option>');
@@ -181,7 +178,6 @@
                         $('#box11_tag').append('<option value="">Select Tag</option>');
                         $('#box12_tag').append('<option value="">Select Tag</option>');
 
-                        // Add each tag as an option in the select dropdown
                         data.tags.forEach(function(tag) {
                             $('#tag_id').append(new Option(tag.name, tag.id));
                              $('#box1_tag').append(new Option(tag.name, tag.id));
@@ -199,7 +195,6 @@
 
                         });
                     } else {
-                        // If no tags are found, display a message or handle accordingly
                         $('#tag_id').append('<option value="">No tags found</option>');
                          $('#box1_tag').append('<option value="">No tags found</option>');
                         $('#box2_tag').append('<option value="">No tags found</option>');
@@ -225,7 +220,7 @@
 
 
         function handleSectionTypeChange(sectionType) {
-            $('#dynamicFieldsContainer').empty(); // Clear dynamic fields
+            $('#dynamicFieldsContainer').empty(); 
 
            switch (sectionType) {
             case 'multiproduct_banner':

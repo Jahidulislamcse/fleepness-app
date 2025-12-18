@@ -20,6 +20,12 @@ class OrderController extends Controller
 {
     public function store(Request $request, #[CurrentUser()] User $user)
     {
+        if (! $user->defaultAddress()->exists()) {
+            return response()->json([
+                'message' => 'Please set a default delivery address before placing an order.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         $fee = Fee::query()->first();
 
         $cartItems = CartItem::with(['product', 'size'])

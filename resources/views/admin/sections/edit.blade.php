@@ -185,23 +185,19 @@
     </div>
 </div>
 
-<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 <script>
     const baseUrl = "{{ asset('') }}";
 </script>
-<!-- Dynamic Field Loader -->
 <script>
     const existingItems = @json($section->items ?? []);
     const existingSectionType = '{{ $section->section_type }}';
     const selectedCategoryId = '{{ $section->category_id }}';
 
     $(document).ready(function() {
-        // Load section type fields on load
         handleSectionTypeChange(existingSectionType);
 
-        // Load tags after loading section type
         setTimeout(() => {
             if (selectedCategoryId) {
                 $('#category').val(selectedCategoryId).trigger('change');
@@ -212,27 +208,26 @@
             handleSectionTypeChange($(this).val());
         });
 
-        $('#category').change(function() {
-            const categoryId = $(this).val();
-            if (!categoryId) return;
+$('#category').change(function() {
+    const categoryId = $(this).val();
+    if (!categoryId) return;
 
-            $.get(`/categories/${categoryId}/tags`, function(data) {
-                const tagOptions = data.status ? data.tags.map(tag =>
-                        `<option value="${tag.id}">${tag.name}</option>`).join('') :
-                    `<option value="">No tags found</option>`;
+    $.get(`/categories/${categoryId}/tags`, function(data) {
+        const options = data.status ? data.tags.map(tag =>
+            `<option value="${tag.id}">${tag.name}</option>`).join('') :
+            `<option value="">No tags found</option>`;
 
-                ['tag_id', 'box1_tag', 'box2_tag', 'box3_tag', 'box4_tag', 'box5_tag', 'box6_tag', 'box7_tag', 'box8_tag'].forEach(id => {
-                    if ($('#' + id).length) {
-                        $('#' + id).html('<option value="">Select Tag</option>' + tagOptions);
-                    }
-                });
+        $('.tag-select').each(function(i) {
+            const select = $(this);
+            select.html('<option value="">Select Tag</option>' + options);
 
-                // After tags loaded, set selected tags
-                existingItems.forEach((item, i) => {
-                    $(`[name="items[${i}][tag_id]"]`).val(item.tag_id);
-                });
-            });
+            if (existingItems[i] && existingItems[i].tag_id) {
+                select.val(existingItems[i].tag_id);
+            }
         });
+    });
+});
+
     });
 
     function handleSectionTypeChange(type) {
@@ -258,9 +253,10 @@
                                 <label>Box ${i + 1} Image</label>
                                 ${imagePreview}
                                 <input type="file" name="items[${i}][image]" class="form-control">
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                <select name="items[${i}][tag_id]" class="form-control tag-select" required>
                                     <option value="">Select Tag</option>
                                 </select>
+
                                 <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" value="${item.index || ''}" required readonly>
                                 <input type="checkbox" name="items[${i}][visibility]" value="1" ${item.visibility ? 'checked' : ''}> Visibility
                             </div>
@@ -350,9 +346,10 @@
                                 ${imagePreview}
                                 <input type="file" name="items[${i}][image]" class="form-control">
                                 <textarea name="items[${i}][bio]" class="form-control" rows="5" placeholder="Bio"  required></textarea>
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                <select name="items[${i}][tag_id]" class="form-control tag-select" required>
                                     <option value="">Select Tag</option>
                                 </select>
+
                                 <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required readonly>
                                 <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
                             </div>
@@ -386,9 +383,10 @@
                                 <label>Box ${i + 1} Image</label>
                                 ${imagePreview}
                                 <input type="file" name="items[${i}][image]" class="form-control">
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                <select name="items[${i}][tag_id]" class="form-control tag-select" required>
                                     <option value="">Select Tag</option>
                                 </select>
+
                                 <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required readonly>
                                 <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
                             </div>
@@ -419,9 +417,10 @@
                                 <label>Box ${i + 1} Image</label>
                                 ${imagePreview}
                                 <input type="file" name="items[${i}][image]" class="form-control">
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                <select name="items[${i}][tag_id]" class="form-control tag-select" required>
                                     <option value="">Select Tag</option>
                                 </select>
+
                                 <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" value="${item.index || ''}" required readonly>
                                 <input type="checkbox" name="items[${i}][visibility]" value="1" ${item.visibility ? 'checked' : ''}> Visibility
                             </div>
@@ -451,9 +450,10 @@
                                 <label>Box ${i + 1} Image</label>
                                 ${imagePreview}
                                 <input type="file" name="items[${i}][image]" class="form-control">
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                <select name="items[${i}][tag_id]" class="form-control tag-select" required>
                                     <option value="">Select Tag</option>
                                 </select>
+
                                 <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required readonly>
                                 <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
                             </div>
@@ -501,9 +501,10 @@
                                 <input type="file" name="items[${i}][image]" class="form-control">
                                 <input type="text" name="items[${i}][title]" class="form-control" required>
                                 <textarea name="items[${i}][bio]" class="form-control" rows="4"></textarea>
-                                <select name="items[${i}][tag_id]" id="box${i + 1}_tag" class="form-control" required>
+                                <select name="items[${i}][tag_id]" class="form-control tag-select" required>
                                     <option value="">Select Tag</option>
                                 </select>
+
                                 <input type="number" name="items[${i}][index]" class="form-control mt-1" placeholder="Index" required readonly>
                                 <input type="checkbox" name="items[${i}][visibility]" value="1" checked> Visibility
                             </div>
@@ -514,16 +515,13 @@
 
         }
 
-        // Make the container sortable (drag-and-drop enabled)
         new Sortable(document.getElementById('dynamicFieldsContainer'), {
-            handle: '.form-group', // Optional: Add a handle to make dragging easier, e.g., dragging the whole form group
+            handle: '.form-group', 
             onEnd: function(evt) {
-                // Update the indexes after the drag and drop is completed
                 updateIndexes();
             }
         });
 
-        // Fill existing values
         existingItems.forEach((item, i) => {
             if (item.index) $(`[name="items[${i}][index]"]`).val(item.index);
             if (item.bio) $(`[name="items[${i}][bio]"]`).val(item.bio);
@@ -532,12 +530,11 @@
         });
     }
 
-    // Function to update index values of items after sorting
     function updateIndexes() {
         $('#dynamicFieldsContainer .col-md-4').each(function(index) {
-            const boxIndex = index + 1; // Starting from index 1
+            const boxIndex = index + 1; 
             const inputIndexField = $(this).find('[name*="index"]');
-            inputIndexField.val(boxIndex); // Update the input field with new index
+            inputIndexField.val(boxIndex);
         });
     }
 </script>

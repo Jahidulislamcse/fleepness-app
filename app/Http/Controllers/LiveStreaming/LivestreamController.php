@@ -27,7 +27,6 @@ class LivestreamController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:sanctum', ['except' => ['index', 'sellerLivestreams', 'show', 'addedProducts']]);
     }
 
     public function index()
@@ -44,7 +43,7 @@ class LivestreamController extends Controller
     {
         $livestreams = Livestream::with(['vendor'])
             ->where('vendor_id', $vendorId)
-            ->orderBy('created_at', 'asc')
+            ->latest()
             ->cursorPaginate();
 
         return LivestreamResource::collection($livestreams);
