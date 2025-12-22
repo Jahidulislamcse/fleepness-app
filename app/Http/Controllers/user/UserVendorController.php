@@ -130,10 +130,8 @@ class UserVendorController extends Controller
 
     public function getShortVideos($vendor)
     {
-        // Fetch videos where user_id matches the given id
-        $videos = ShortVideo::where('user_id', $vendor)->get();
+        $videos = ShortVideo::where('user_id', $vendor)->paginate(10);
 
-        // Check if videos exist
         if ($videos->isEmpty()) {
             return response()->json([
                 'status' => false,
@@ -142,11 +140,11 @@ class UserVendorController extends Controller
             ], 404);
         }
 
-        // Return success response
         return response()->json([
             'status' => true,
             'message' => 'Videos retrieved successfully',
             'data' => $videos
         ], 200);
     }
+
 }

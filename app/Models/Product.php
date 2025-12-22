@@ -185,8 +185,20 @@ class Product extends Model
 
     protected function image(): Attribute
     {
-        return Attribute::get(fn () => $this->firstImage ? Storage::url($this->firstImage->path) : null);
+        return Attribute::get(function () {
+            $firstImage = $this->firstImage;
+            if (! $firstImage || ! $firstImage->path) {
+                return null;
+            }
+
+            if (str_starts_with($firstImage->path, 'http')) {
+                return $firstImage->path;
+            }
+
+            return Storage::url($firstImage->path);
+        });
     }
+
 
     // Automatically set the slug attribute
     protected static function boot()

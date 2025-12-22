@@ -89,22 +89,16 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
     Route::get('/vendorlist ', [UserVendorController::class, 'vendorlist']);            // Show all sellers in list form
     Route::get('/vendorlist/{vendor} ', [UserVendorController::class, 'vendorData']);   // Show a particular seller data
     Route::get('/similarvendors/{vendor}', [UserVendorController::class, 'similarSellers']);
-    // Show products based on price range
     Route::get('/vendorlist/{vendor}/product/in-price-range ', [UserProductController::class, 'getProductsByPriceRange']);
-    // Show products on price category like low, medium, high
     Route::get('/vendorlist/{vendor}/product/in-price-category', [UserProductController::class, 'getProductsInPriceCategory']);
-    // Show all product of a particular seller
     Route::get('/vendorlist/{vendor}/allproduct ', [UserProductController::class, 'getAllProducts']);
-    // Show short videos of a particular seller
     Route::get('/vendorlist/{vendor}/shortvideo ', [UserVendorController::class, 'getShortVideos']);
 
     Route::middleware(['auth:sanctum'])->group(function (): void {
-        // Giving a review to a seller
         Route::post('/vendor/{vendor_id}/review', [UserVendorReviewController::class, 'store']);
-        // Removing review from a seller
         Route::delete('/vendor/review/{review_id}/delete', [UserVendorReviewController::class, 'delete']);
     });
-    // See all reviews of a seller
+
     Route::get('/vendor/{vendor_id}/reviews', [UserVendorReviewController::class, 'index']);
     Route::middleware('auth:sanctum')->group(function (): void {
         Route::get('/vendor/{vendor_id}/follow', [UserVendorFollowController::class, 'follow']);        // Follow a Seller
@@ -184,6 +178,8 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
         Route::get('/orders', [OrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/orders/{id}', [OrderController::class, 'show']);
+
+        Route::get('/sellers/{seller}/top-selling-product', [OrderController::class, 'topSellingProductsLast7Days']);
 
         Route::get('/my-orders', [OrderController::class, 'MyOrders']);
         Route::get('/my-orders/search', [OrderController::class, 'searchOrderById']);

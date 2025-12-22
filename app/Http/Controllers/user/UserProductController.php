@@ -175,7 +175,7 @@ class UserProductController extends Controller
         } elseif ('medium' === $category) {
             $minPrice = 501;
             $maxPrice = 1000;
-        } elseif ('premium' === $category) {
+        } elseif ('high' === $category) {
             $minPrice = 1001;
             $maxPrice = PHP_INT_MAX;
         } else {
