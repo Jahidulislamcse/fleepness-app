@@ -15,6 +15,11 @@ class ShortsProductResource extends JsonResource
             'selling_price' => $this->selling_price,
             'discount_price' => $this->discount_price,
             'images' => $this->images->map(fn($img) => asset($img->path)),
+            'sizes' => $this->sizes->map(fn($size) => [
+                'id' => $size->id,
+                'size_name' => $size->size_name,
+                'size_value' => $size->size_value,
+            ]),
         ];
     }
 }

@@ -13,6 +13,7 @@ use App\Models\SellerOrderItem;
 use App\Enums\SellerOrderStatus;
 use App\Models\DeliveryModel;
 use App\Models\Fee;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Container\Attributes\CurrentUser;
 
@@ -20,6 +21,12 @@ class OrderController extends Controller
 {
     public function store(Request $request, #[CurrentUser()] User $user)
     {
+        if (! $user->defaultAddress()->exists()) {
+            return response()->json([
+                'message' => 'Please set a default delivery address before placing an order.',
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         $fee = Fee::query()->first();
 
         $cartItems = CartItem::with(['product', 'size'])
@@ -250,6 +257,52 @@ class OrderController extends Controller
             'message' => 'Store orders retrieved successfully',
             'data' => $orders,
         ]);
+    }
+
+    public function topSellingProductsLast7Days($seller)
+    {
+        $fromDate = Carbon::now()->subDays(7);
+
+        $items = SellerOrderItem::query()
+            ->whereHas('sellerOrder', function ($q) use ($seller, $fromDate) {
+                $q->where('seller_id', $seller)
+                ->where('created_at', '>=', $fromDate);
+            })
+            ->selectRaw('product_id, SUM(quantity) as total_sold, SUM(total_cost) as total_revenue')
+            ->groupBy('product_id')
+            ->orderByDesc('total_sold')
+            ->limit(6)
+            ->with([
+                'product' => function ($q) {
+                    $q->select('id', 'name', 'selling_price', 'discount_price')
+                    ->with('firstImage');
+                }
+            ])
+            ->get();
+
+        if ($items->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No sales found for this seller in the last 7 days',
+                'data' => []
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Top selling products for the last 7 days retrieved successfully',
+            'data' => $items->map(function ($item) {
+                return [
+                    'id' => $item->product->id,
+                    'name' => $item->product->name,
+                    'image' => $item->product->image, 
+                    'selling_price' => $item->product->selling_price,
+                    'discount_price' => $item->product->discount_price,
+                    'total_sold' => (int) $item->total_sold,
+                    'total_revenue' => (float) $item->total_revenue,
+                ];
+            })
+        ], 200);
     }
 
     public function searchOrderById(Request $request, #[CurrentUser()] User $user)
