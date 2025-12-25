@@ -65,7 +65,7 @@ class LivestreamController extends Controller
         $livestream->load([
             'vendor',
             'products' => [
-                'images', 'tag.grandParent',
+                'images', 'tag.grandParent', 'sizes'
             ],
         ]);
 
