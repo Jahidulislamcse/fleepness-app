@@ -167,43 +167,24 @@ class UserProductController extends Controller
 
     public function getProductsInPriceCategory(Request $request, $vendor)
     {
-        $category = $request->query('category');
+        $sort = $request->query('category', 'low'); 
 
-        if ('low' === $category) {
-            $minPrice = 1;
-            $maxPrice = 500;
-        } elseif ('medium' === $category) {
-            $minPrice = 501;
-            $maxPrice = 1000;
-        } elseif ('high' === $category) {
-            $minPrice = 1001;
-            $maxPrice = PHP_INT_MAX;
-        } else {
-            return response()->json(['message' => 'Invalid category'], 400);
+        $productsQuery = Product::where('user_id', $vendor);
+
+        if ($sort === 'low') {
+            $productsQuery->orderByRaw("COALESCE(discount_price, selling_price) ASC");
+        } elseif ($sort === 'high') {
+            $productsQuery->orderByRaw("COALESCE(discount_price, selling_price) DESC");
         }
 
-        if ($minPrice > $maxPrice) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid price range',
-            ], 400);
-        }
-
-        $products = Product::where('user_id', $vendor)
-            ->where(function ($query) use ($minPrice, $maxPrice) {
-                $query->whereBetween('discount_price', [$minPrice, $maxPrice])
-                    ->orWhere(function ($query) use ($minPrice, $maxPrice) {
-                        $query->whereNull('discount_price')
-                            ->orWhere('discount_price', 0)
-                            ->whereBetween('selling_price', [$minPrice, $maxPrice]);
-                    });
-            })
-            ->get();
+        $products = $productsQuery->get();
 
         return $products->toResourceCollection()->additional([
             'success' => true,
         ]);
     }
+
+
 
     public function show(Product $product)
     {
@@ -229,7 +210,7 @@ class UserProductController extends Controller
         $perPage = $request->input('per_page', 10);
 
         $products = Product::with('images')
-            ->where('user_id', $vendor)
+            ->where('user_id', $vendor)->latest()
             ->paginate($perPage);
 
         return $products->toResourceCollection();

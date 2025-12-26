@@ -300,6 +300,11 @@ class OrderController extends Controller
                     'discount_price' => $item->product->discount_price,
                     'total_sold' => (int) $item->total_sold,
                     'total_revenue' => (float) $item->total_revenue,
+                    'sizes' => $item->product->sizes->map(fn($size) => [
+                        'id' => $size->id,
+                        'size_name' => $size->size_name,
+                        'size_value' => $size->size_value,
+                    ])
                 ];
             })
         ], 200);

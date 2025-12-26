@@ -179,8 +179,6 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/orders/{id}', [OrderController::class, 'show']);
 
-        Route::get('/sellers/{seller}/top-selling-product', [OrderController::class, 'topSellingProductsLast7Days']);
-
         Route::get('/my-orders', [OrderController::class, 'MyOrders']);
         Route::get('/my-orders/search', [OrderController::class, 'searchOrderById']);
         Route::get('/my-order/{id}', [OrderController::class, 'myOrderDetail']);
@@ -200,6 +198,8 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
 
         // Delivery options for users
     });
+
+        Route::get('/sellers/{seller}/top-selling-product', [OrderController::class, 'topSellingProductsLast7Days']);
 
     Route::get('/delivery/models', [DeliveryModelController::class, 'userIndex']);
     Route::get('/sections', [SectionController::class, 'sections']);

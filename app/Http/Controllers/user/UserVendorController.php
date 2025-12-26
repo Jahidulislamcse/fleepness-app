@@ -130,7 +130,7 @@ class UserVendorController extends Controller
 
     public function getShortVideos($vendor)
     {
-        $videos = ShortVideo::where('user_id', $vendor)->paginate(10);
+        $videos = ShortVideo::where('user_id', $vendor)->latest()->paginate(10);
 
         if ($videos->isEmpty()) {
             return response()->json([
