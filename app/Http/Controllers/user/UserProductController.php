@@ -185,7 +185,6 @@ class UserProductController extends Controller
     }
 
 
-
     public function show(Product $product)
     {
         $product->load([

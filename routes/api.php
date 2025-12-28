@@ -180,7 +180,6 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
         Route::get('/orders/{id}', [OrderController::class, 'show']);
 
         Route::get('/my-orders', [OrderController::class, 'MyOrders']);
-        Route::get('/my-orders/search', [OrderController::class, 'searchOrderById']);
         Route::get('/my-order/{id}', [OrderController::class, 'myOrderDetail']);
         Route::get('/my-store-orders', [OrderController::class, 'MyStoreOrders']);
 

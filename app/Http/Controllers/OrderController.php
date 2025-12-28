@@ -206,35 +206,62 @@ class OrderController extends Controller
         ]);
     }
 
-    public function MyOrders(Request $request, #[CurrentUser()] User $user)
+    public function myOrders(Request $request, #[CurrentUser()] User $user)
     {
-        $status = $request->enum('status', SellerOrderStatus::class);
+        $status     = $request->enum('status', SellerOrderStatus::class);
+        $search     = $request->query('order_code');
+        $numericPart = $search ? preg_replace('/[^0-9]/', '', $search) : null;
 
-        $orders = Order::with([
-             'sellerOrders' => function ($q) {
+        $query = Order::with([
+            'sellerOrders' => function ($q) {
                 $q->with(['seller:id,shop_name,shop_category,banner_image,cover_image']);
             },
         ])
             ->where('user_id', $user->getKey())
-            ->latest()
-            ->when($status?->isDelivered())
-            ->whereHas('sellerOrders', function (\Illuminate\Contracts\Database\Query\Builder $q): void {
-                $q->where('status', SellerOrderStatus::Delivered);
+            ->latest();
+
+        if (!blank($search)) {
+            $query->where(function ($q) use ($search, $numericPart) {
+                $q->whereLike('order_code', "%{$search}%")
+                ->orWhereLike('order_code', "%{$numericPart}%");
+            });
+
+            $order = $query->firstOrFail();
+
+            return response()->json([
+                'message' => 'Order retrieved successfully',
+                'data'    => $order,
+            ]);
+        }
+
+        $query
+            ->when($status?->isDelivered(), function ($q) {
+                $q->whereHas('sellerOrders', function ($q) {
+                    $q->where('status', SellerOrderStatus::Delivered);
+                });
             })
-            ->when($status?->isActive())
-            ->whereHas('sellerOrders', function (\Illuminate\Contracts\Database\Query\Builder $q): void {
-                $q->whereNotIn('status', [SellerOrderStatus::Delivered, SellerOrderStatus::Rejected]);
+            ->when($status?->isActive(), function ($q) {
+                $q->whereHas('sellerOrders', function ($q) {
+                    $q->whereNotIn('status', [
+                        SellerOrderStatus::Delivered,
+                        SellerOrderStatus::Rejected,
+                    ]);
+                });
             })
-            ->when($status?->isActive())->whereHas('sellerOrders', function (\Illuminate\Contracts\Database\Query\Builder $q): void {
-                $q->where('status', SellerOrderStatus::Rejected);
-            })
-            ->paginate(10);
+            ->when($status?->isRejected(), function ($q) {
+                $q->whereHas('sellerOrders', function ($q) {
+                    $q->where('status', SellerOrderStatus::Rejected);
+                });
+            });
+
+        $orders = $query->paginate(10);
 
         return response()->json([
             'message' => 'Orders retrieved successfully',
-            'data' => $orders,
+            'data'    => $orders,
         ]);
     }
+
 
     public function MyStoreOrders(Request $request, #[CurrentUser()] User $seller)
     {
@@ -308,31 +335,6 @@ class OrderController extends Controller
                 ];
             })
         ], 200);
-    }
-
-    public function searchOrderById(Request $request, #[CurrentUser()] User $user)
-    {
-        $search = $request->query('order_code');
-
-        abort_if(
-            blank($search),
-            response(['message' => 'Order ID is required.'], Response::HTTP_BAD_REQUEST)
-        );
-
-        $numericPart = preg_replace('/[^0-9]/', '', $search);
-
-        $order = Order::with(['sellerOrders'])
-            ->where('user_id', $user->getKey())
-            ->where(function (\Illuminate\Contracts\Database\Query\Builder $query) use ($search, $numericPart): void {
-                $query->whereLike('order_code', "%$search%")
-                    ->orWhereLike('order_code', "%$numericPart%");
-            })
-            ->firstOrFail();
-
-        return response()->json([
-            'message' => 'Order retrieved successfully',
-            'data' => $order,
-        ]);
     }
 
     public function sellerOrderDetail(SellerOrder $order, #[CurrentUser()] User $seller)
