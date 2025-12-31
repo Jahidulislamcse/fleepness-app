@@ -33,6 +33,7 @@ use App\Http\Controllers\LiveStreaming\LivestreamCommentController;
 use App\Http\Controllers\LiveStreaming\LivestreamProductController;
 use App\Http\Controllers\LiveStreaming\GetLivestreamPublisherTokenController;
 use App\Http\Controllers\LiveStreaming\GetLivestreamSubscriberTokenController;
+use App\Http\Controllers\SavedContentController;
 
 Route::middleware(['api', 'throttle:api'])->group(function (): void {
 
@@ -101,8 +102,7 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
 
     Route::get('/vendor/{vendor_id}/reviews', [UserVendorReviewController::class, 'index']);
     Route::middleware('auth:sanctum')->group(function (): void {
-        Route::get('/vendor/{vendor_id}/follow', [UserVendorFollowController::class, 'follow']);        // Follow a Seller
-        Route::get('/vendor/{vendor_id}/unfollow ', [UserVendorFollowController::class, 'unfollow']);   // Unfollow a seller
+        Route::post('/vendor/{vendor_id}/follow', [UserVendorFollowController::class, 'toggle']);
         Route::get('/following ', [UserVendorFollowController::class, 'following']);   // Get all following sellers
         Route::get('/followers ', [UserVendorFollowController::class, 'followers']);
     });
@@ -230,7 +230,7 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
 
         Route::prefix('lives')->group(function (): void {
             Route::get('liked', [LivestreamController::class, 'getLikedLivestreams']);
-            Route::get('saved', [LivestreamController::class, 'getSavedLivestreams']);
+            // Route::get('saved', [LivestreamController::class, 'getSavedLivestreams']);
             Route::get('{livestream}/likes-count', [LivestreamController::class, 'getLikesCount'])->name('livestreams.likes-count');
         });
 
@@ -248,8 +248,10 @@ Route::middleware(['api', 'throttle:api'])->group(function (): void {
         Route::delete('/shorts/comment/{id}', [ShortsInteractionController::class, 'deleteComment']);
         Route::post('/shorts/{id}/like', [ShortsInteractionController::class, 'toggleLike']);
         Route::post('/shorts/{id}/save', [ShortsInteractionController::class, 'toggleSave']);
-        Route::get('/shorts/saved', [ShortsInteractionController::class, 'getSavedShorts']);
+        // Route::get('/shorts/saved', [ShortsInteractionController::class, 'getSavedShorts']);
     });
+
+    Route::middleware('auth:sanctum')->get('/saved',[SavedContentController::class, 'index']);
 
     Route::get('/shorts/{id}/products', [ShortsInteractionController::class, 'getShortProducts']);
     Route::get('/shorts', [ShortsInteractionController::class, 'allshorts']);

@@ -146,7 +146,11 @@ class UserProductController extends Controller
             ], 400);
         }
 
-        $products = Product::where('user_id', $vendor)
+        $products = Product::where('user_id', $vendor) ->with([
+                'user',
+                'images',
+                'sizes',
+            ])
             ->where(function ($query) use ($minPrice, $maxPrice) {
                 $query->whereBetween('discount_price', [$minPrice, $maxPrice])
                     ->orWhere(function ($q) use ($minPrice, $maxPrice) {
@@ -167,19 +171,24 @@ class UserProductController extends Controller
 
     public function getProductsInPriceCategory(Request $request, $vendor)
     {
-        $sort = $request->query('category', 'low'); 
+        $sort = $request->query('category', 'low');
 
-        $productsQuery = Product::where('user_id', $vendor);
+        $productsQuery = Product::where('user_id', $vendor)
+            ->with([
+                'user',
+                'images',
+                'sizes',
+            ]);
 
         if ($sort === 'low') {
-            $productsQuery->orderByRaw("COALESCE(discount_price, selling_price) ASC");
+            $productsQuery->orderByRaw('COALESCE(discount_price, selling_price) ASC');
         } elseif ($sort === 'high') {
-            $productsQuery->orderByRaw("COALESCE(discount_price, selling_price) DESC");
+            $productsQuery->orderByRaw('COALESCE(discount_price, selling_price) DESC');
         }
 
         $products = $productsQuery->get();
 
-        return $products->toResourceCollection()->additional([
+        return ProductResource::collection($products)->additional([
             'success' => true,
         ]);
     }
@@ -208,57 +217,54 @@ class UserProductController extends Controller
     {
         $perPage = $request->input('per_page', 10);
 
-        $products = Product::with('images')
-            ->where('user_id', $vendor)->latest()
+        $products = Product::where('user_id', $vendor)
+            ->with('images', 'sizes')
+            ->latest()
             ->paginate($perPage);
 
-        return $products->toResourceCollection();
+        return ProductResource::collection($products);
     }
 
     public function getSimilarProducts($id)
     {
-        $product = Product::with('category', 'images')
-            ->whereNull('deleted_at')
-            ->find($id);
+        $product = Product::with(['images', 'user', 'sizes'])->find($id);
 
-        if (! $product) {
+        if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        $tags = $product->tags;
-        $tagId = $tags ? $tags[0] : null;
+        $tags = $product->tags; 
+        $tagId = $tags[0] ?? null;
 
-        if (! $tagId) {
+        if (!$tagId) {
             return response()->json(['message' => 'No tag found for this product'], 404);
         }
 
-        $filteredProducts = Product::with(['category', 'images'])
-            ->whereNull('deleted_at')
+        $similarProducts = Product::with(['images', 'user', 'sizes'])
             ->where('id', '!=', $id)
             ->whereNotNull('tags')
-            ->whereRaw('JSON_CONTAINS(tags, ?)', [Json::encode((string) $tagId)])
+            ->whereRaw('JSON_CONTAINS(tags, ?)', [json_encode((string) $tagId)])
             ->get();
 
-        if ($filteredProducts->isEmpty()) {
+        if ($similarProducts->isEmpty()) {
             return response()->json(['message' => 'No similar products found'], 404);
         }
 
-        $similarProductsData = $filteredProducts->map(function ($product) {
-            $productData = $product->only(['name', 'selling_price', 'discount_price', 'long_description']);
+        $responseData = ProductResource::collection($similarProducts)->map(function ($resource) {
+            $productArray = $resource->toArray(request());
 
-            $productData['images'] = $product->images->map(function ($image) {
-                return $image->path;
-            });
+            $firstTagId = is_array($resource->tags) && !empty($resource->tags) ? $resource->tags[0] : null;
+            $productArray['tag_name'] = $firstTagId
+                ? Category::find($firstTagId)?->name
+                : null;
 
-            $productData['category_name'] = $product->category ? $product->category->name : null;
 
-            return $productData;
-        });
+            return $productArray;
+        })->values()->all();
 
         return response()->json([
             'success' => true,
-            'similar_products' => $similarProductsData,
+            'similar_products' => $responseData,
         ]);
-
     }
 }

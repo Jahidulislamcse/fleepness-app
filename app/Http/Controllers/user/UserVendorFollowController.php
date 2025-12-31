@@ -9,35 +9,7 @@ use App\Models\Follower;
 
 class UserVendorFollowController extends Controller
 {
-    // Follow a vendor
-    public function follow($vendor_id)
-    {
-        $user_id = auth()->id();
-
-        // Check if already following
-        $existingFollow = Follower::where('follower_id', $user_id)
-            ->where('vendor_id', $vendor_id)
-            ->first();
-
-        if ($existingFollow) {
-            return response()->json([
-                'message' => 'You are already following this vendor.'
-            ], 400);
-        }
-
-        // Create a new follow entry
-        Follower::create([
-            'follower_id' => $user_id,
-            'vendor_id' => $vendor_id,
-        ]);
-
-        return response()->json([
-            'message' => 'Vendor followed successfully.'
-        ], 201);
-    }
-
-    // Unfollow a vendor
-    public function unfollow($vendor_id)
+    public function toggle($vendor_id)
     {
         $user_id = auth()->id();
 
@@ -45,30 +17,35 @@ class UserVendorFollowController extends Controller
             ->where('vendor_id', $vendor_id)
             ->first();
 
-        if (!$follow) {
+        if ($follow) {
+            $follow->delete();
+
             return response()->json([
-                'message' => 'You are not following this vendor.'
-            ], 400);
+                'status' => 'unfollowed',
+                'message' => 'Vendor unfollowed successfully.'
+            ], 200);
         }
 
-        $follow->delete();
+        Follower::create([
+            'follower_id' => $user_id,
+            'vendor_id' => $vendor_id,
+        ]);
 
         return response()->json([
-            'message' => 'Vendor unfollowed successfully.'
-        ], 200);
+            'status' => 'followed',
+            'message' => 'Vendor followed successfully.'
+        ], 201);
     }
 
-    // Get all vendors the logged-in user is following
+
     public function following(Request $request)
     {
         $user_id = auth()->id();
 
-        // Fetch all vendors the user is following
-        $following = Follower::with('vendor') // eager load vendor info
+        $following = Follower::with('vendor') 
             ->where('follower_id', $user_id)
             ->get();
 
-        // Transform data
         $followingData = $following->map(function ($item) {
             $vendor = $item->vendor;
             return [
@@ -87,17 +64,14 @@ class UserVendorFollowController extends Controller
         ]);
     }
 
-    // Get all users following the logged-in user
     public function followers(Request $request)
     {
         $user_id = auth()->id();
 
-        // Fetch all followers of the logged-in user
-        $followers = Follower::with('follower') // eager load follower info
+        $followers = Follower::with('follower') 
             ->where('vendor_id', $user_id)
             ->get();
 
-        // Transform data
         $followersData = $followers->map(function ($item) {
             $follower = $item->follower;
             return [
