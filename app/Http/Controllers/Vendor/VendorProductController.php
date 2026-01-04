@@ -271,16 +271,18 @@ class VendorProductController extends Controller
                 $sellerTag->save();
             }
 
-            $tag = $tags[0] ?? null;
+            $tags = $product->tags; 
+            $tagId = isset($tags[0]) ? (int) $tags[0] : null;
 
             $tagName = null;
             $categoryId = null;
 
-            if ($tag) {
-                $tagName = Category::where('id', $tag)->pluck('name')->first();
-                $tagCategory = Category::find($tag);
+            if ($tagId) {
+                $tagCategory = Category::find($tagId);
 
                 if ($tagCategory) {
+                    $tagName = $tagCategory->name;
+
                     $parent = Category::find($tagCategory->parent_id);
                     $grandParent = $parent ? Category::find($parent->parent_id) : null;
 

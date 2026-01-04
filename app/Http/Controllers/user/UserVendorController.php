@@ -102,30 +102,36 @@ class UserVendorController extends Controller
 
     public function similarSellers($vendor)
     {
-        // Fetch the vendor's shop category
-        $vendorInfo = User::select('shop_category')->find($vendor);
+        $shopCategoryId = User::where('id', $vendor)->value('shop_category');
 
-        if (!$vendorInfo) {
+        if (! $shopCategoryId) {
             return response()->json([
                 'status' => false,
-                'message' => 'Vendor not found'
+                'message' => 'Vendor not found',
             ], 404);
         }
 
-        // Fetch other vendors with the same shop category
-        $similarVendors = User::where('shop_category', $vendorInfo->shop_category)
-            ->where('id', '!=', $vendor) // Exclude the current vendor
-            ->select('id', 'shop_name', 'phone_number', 'banner_image', 'cover_image', 'total_sales')
+        $similarVendors = User::where('shop_category', $shopCategoryId)
+            ->where('id', '!=', $vendor)
+            ->select(
+                'id',
+                'shop_name',
+                'phone_number',
+                'banner_image',
+                'cover_image',
+                'total_sales',
+                'shop_category' 
+            )
             ->with('shopCategory:id,name')
             ->get();
 
-        // Return the similar vendors as a response
         return response()->json([
             'status' => true,
             'message' => 'Similar vendors retrieved successfully',
             'similar_vendors' => $similarVendors,
-        ], 200);
+        ]);
     }
+
 
 
     public function getShortVideos($vendor)
