@@ -48,7 +48,13 @@ class ShortsInteractionController extends Controller
             return response()->json(['message' => 'Short video not found'], 404);
         }
 
-        $products = $video->products()->with('images')->get();
+         $products = $video->products()
+        ->with([
+            'images',
+            'sizes',
+            'user',
+        ])
+        ->get();
 
         return ShortsProductResource::collection($products);
     }
